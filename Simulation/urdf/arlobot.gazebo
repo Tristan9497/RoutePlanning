@@ -45,7 +45,7 @@
     <sensor type="camera" name="camera1">
       <update_rate>30.0</update_rate>
       <camera name="head">
-        <horizontal_fov>1.3962634</horizontal_fov>
+        <horizontal_fov>1.5708</horizontal_fov>
         <image>
           <width>1280</width>
           <height>1024</height>
@@ -55,21 +55,23 @@
           <near>0.02</near>
           <far>300</far>
         </clip>
-        <noise>
+        <!--noise>
           <type>gaussian</type>
-          <!-- Noise is sampled independently per pixel on each frame.
-               That pixel's noise value is added to each of its color
-               channels, which at that point lie in the range [0,1]. -->
+
           <mean>0.0</mean>
           <stddev>0.007</stddev>
-        </noise>
-        <distortion>
-        
-        >/distortion>
+        </noise-->
+	    <distortion>
+	      <k1>-0.217708</k1>
+	      <k2>0.029583</k2>
+	      <k3>0.0</k3>
+	      <p1>0.002915</p1>
+	      <p2>-0.000567</p2>
+	    </distortion>
       </camera>
       <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
         <alwaysOn>true</alwaysOn>
-        <updateRate>60</updateRate>
+        <updateRate>30</updateRate>
         <cameraName>Arlo_camera</cameraName>
         <imageTopicName>image_raw</imageTopicName>
         <cameraInfoTopicName>camera_info</cameraInfoTopicName>
@@ -86,7 +88,6 @@
         <CxPrime>0</CxPrime>
         <Cx>0.0</Cx>
         <Cy>0.0</Cy>
-        <focalLength>0.00295</focalLength>
       </plugin>
     </sensor>
   </gazebo>
@@ -104,7 +105,7 @@
       <commandTopic>cmd_vel</commandTopic>
       <odometryTopic>odom</odometryTopic>
       <odometryFrame>odom</odometryFrame>
-      <robotBaseFrame>chassis</robotBaseFrame>
+      <robotBaseFrame>base_link</robotBaseFrame>
     </plugin>
   </gazebo>
   
