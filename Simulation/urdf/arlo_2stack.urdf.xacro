@@ -62,6 +62,7 @@
       </collision>
     </link>
 
+	
     <link name="battery_box">
       <inertial>
         <mass value="0.001"/>
@@ -400,7 +401,7 @@
     
     <joint name="camera_joint" type="fixed">
 	  <axis xyz="0 1 0" />
-	  <origin xyz="0.18 0 0.45" rpy="0 0.785398163 0"/>
+	  <origin xyz="0.18 0 0.45" rpy="0 0.785398 0"/>
 	  <parent link="base_link"/>
 	  <child link="camera_link"/>
 	</joint>
@@ -418,7 +419,6 @@
 	    <geometry>
 			<box size="${camera_link} ${camera_link} ${camera_link}"/>
 	    </geometry>
-	    <material name="red"/>
 	  </visual>
 	  <inertial>
 	    <mass value="1e-5" />
