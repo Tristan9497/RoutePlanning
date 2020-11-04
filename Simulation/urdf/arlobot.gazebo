@@ -45,15 +45,15 @@
     <sensor type="camera" name="camera1">
       <update_rate>30.0</update_rate>
       <camera name="head">
-        <horizontal_fov>1.5708</horizontal_fov>
+        <horizontal_fov>2.42601</horizontal_fov>
         <image>
-          <width>1280</width>
-          <height>1024</height>
+          <width>640</width>
+          <height>480</height>
           <format>R8G8B8</format>
         </image>
         <clip>
           <near>0.02</near>
-          <far>300</far>
+          <far>500</far>
         </clip>
         <!--noise>
           <type>gaussian</type>
@@ -64,7 +64,7 @@
 	    <distortion>
 	      <k1>-0.217708</k1>
 	      <k2>0.029583</k2>
-	      <k3>0.0</k3>
+	      <k3>0</k3>
 	      <p1>0.002915</p1>
 	      <p2>-0.000567</p2>
 	    </distortion>
@@ -105,7 +105,7 @@
       <commandTopic>cmd_vel</commandTopic>
       <odometryTopic>odom</odometryTopic>
       <odometryFrame>odom</odometryFrame>
-      <robotBaseFrame>base_link</robotBaseFrame>
+      <robotBaseFrame>base_footprint</robotBaseFrame>
     </plugin>
   </gazebo>
   

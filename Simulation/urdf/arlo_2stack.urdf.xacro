@@ -1,4 +1,9 @@
 <?xml version="1.0"?>
+
+<!-- modified by Tristan Schwörer -->
+<!-- added gazebo plugins for Lidar, Camera and diffwheel drive -->
+<!-- removed not needed joints and links of nonexistend hardware -->
+
 <robot name="arlobot_hardware" xmlns:xacro="http://ros.org/wiki/xacro">
 
   <!-- Macro for ArloBot body. -->
@@ -37,6 +42,7 @@
         </geometry>
       </collision>
     </link>
+
 
     <link name="base_link">
       <inertial>
@@ -300,74 +306,7 @@
       <axis xyz="0 1 0" rpy="0 0 0"/>
       <joint_properties damping="0.0" friction="0.0"/>
     </joint>
-
-    <!-- This pretends to be in the center in order to aid in calculating degrees from multiple sensors on one fake laser scan -->
-    <joint name="ping_array_joint" type="fixed">
-      <origin xyz="0 0 0.03695" rpy="0 0 0"/>
-      <parent link="base_link"/>
-      <child link="ping_sensor_array"/>
-    </joint>
-
-    <link name="ping_sensor_array">
-      <visual>
-        <geometry>
-          <box size="0.0174 0.06 0.0644"/>
-        </geometry>
-      </visual>
-      <inertial>
-        <mass value="0.001"/>
-        <origin xyz="0 0 0"/>
-        <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
-                 iyy="0.0001" iyz="0.0"
-                 izz="0.0001"/>
-      </inertial>
-    </link>
-
-    <joint name="ir_array_joint" type="fixed">
-      <origin xyz="0 0 0.03695" rpy="0 0 0"/>
-      <parent link="base_link"/>
-      <child link="ir_sensor_array"/>
-    </joint>
-
-    <link name="ir_sensor_array">
-      <visual>
-        <geometry>
-          <box size="0.0174 0.06 0.0644"/>
-        </geometry>
-      </visual>
-      <inertial>
-        <mass value="0.001"/>
-        <origin xyz="0 0 0"/>
-        <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
-                 iyy="0.0001" iyz="0.0"
-                 izz="0.0001"/>
-      </inertial>
-    </link>
-
-    <!-- Scanse Sweep Sensor on top of robot -->
-    <joint name="scanse_sweep_joint" type="fixed">
-      <!-- Minor adjustments based on lining up Scanse Sweep output with 3D Sensor output -->
-      <!-- So if the 3D sensor is misaligned the Scanse Sweep is off by the same amount -->
-      <origin xyz="0.15 0.0 0.269107" rpy="0 0 3.13"/>
-      <parent link="base_link"/>
-      <child link="scanse_sweep"/>
-    </joint>
-
-    <link name="scanse_sweep">
-      <visual>
-        <geometry>
-          <box size="0.0 0.0 0.0"/>
-        </geometry>
-      </visual>
-      <inertial>
-        <mass value="0.001"/>
-        <origin xyz="0 0 0"/>
-        <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
-                 iyy="0.0001" iyz="0.0"
-                 izz="0.0001"/>
-      </inertial>
-    </link>
-    
+   
 	<link name="hokuyo_link">
     
       <collision>
@@ -401,7 +340,7 @@
     
     <joint name="camera_joint" type="fixed">
 	  <axis xyz="0 1 0" />
-	  <origin xyz="0.18 0 0.45" rpy="0 0.785398 0"/>
+	  <origin xyz="0.18 0 0.45" rpy="0 0.733038 0"/>
 	  <parent link="base_link"/>
 	  <child link="camera_link"/>
 	</joint>
@@ -427,36 +366,7 @@
 	  </inertial>
 	</link>
 	
-	
-    <!-- RPLIDAR on top of robot -->
-    <joint name="rplidar_joint" type="fixed">
-      <!-- WARNING: The 'rpy' means Roll, Pitch, Yaw, but in the static_transform_publisher the order -->
-      <!-- is Yaw, Pitch, Roll !!!  So don't forget to translate those! -->
-      <!-- The best way to tweak this is to delete this section, start the robot, and use -->
-      <!-- staticTransformExample.sh to broadcast this transform while watching in RVIZ, -->
-      <!-- and keep tweaking the numbers and killing and restarting that transform broadcaster. -->
-      <!-- NOTE: The "FRONT" of the RPLIDAR A2/3 is the point where the cord comes out. -->
-      <!-- Hence the r of 3.1 to rotate it half way around.  -->
-      <!-- The height is set even with the top plate. It shouldn't matter really. -->
-      <origin xyz="0.125 0.0 0.269107" rpy="0.0 0.0 0.0"/>
-      <parent link="base_link"/>
-      <child link="rplidar"/>
-    </joint>
 
-    <link name="rplidar">
-      <visual>
-        <geometry>
-          <box size="0.0 0.0 0.0"/>
-        </geometry>
-      </visual>
-      <inertial>
-        <mass value="0.001"/>
-        <origin xyz="0 0 0"/>
-        <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
-                 iyy="0.0001" iyz="0.0"
-                 izz="0.0001"/>
-      </inertial>
-    </link>
 
   </xacro:macro>
 
