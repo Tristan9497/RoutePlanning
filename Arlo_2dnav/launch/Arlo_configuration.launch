@@ -1,0 +1,5 @@
+<launch>
+
+	<node pkg="Simulation" type="my_world" name="my_world" output="screen"></node>
+	<node pkg="Simulation" type="Arlo" name="Arlo" output="screen"></node>
+</launch> 
