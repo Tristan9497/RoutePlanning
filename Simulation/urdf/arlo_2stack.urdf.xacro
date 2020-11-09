@@ -110,7 +110,8 @@
       </inertial>
 
       <visual>
-        <origin xyz="0 0 0" rpy="-1.5707 0 1.5707"/>
+        
+        <origin xyz="0 0.02 0.050625" rpy="-1.5707 0 0"/>
         <geometry>
           <mesh filename="package://arlobot_ros/meshes/28971-Caster-Wheel-Kit-v1.0_simplified.stl"/>
         </geometry>
@@ -119,18 +120,20 @@
         </material>
       </visual>
       <collision>
-        <origin xyz="0 0 0" rpy="-1.5707 0 1.5707"/>
+        <origin xyz="0 0.02 0" rpy="-1.5707 0 1.5707"/>
         <geometry>
-          <mesh filename="package://arlobot_ros/meshes/28971-Caster-Wheel-Kit-v1.0_simplified.stl"/>
+    	  <sphere radius="0.050625"/>
         </geometry>
         <material name="light_grey">
           <color rgba="0.6 0.6 0.6 1"/>
         </material>
+
       </collision>
     </link>
 
-    <joint name="front_caster_joint" type="fixed">
-      <origin xyz="0.18745 0 -0.002875" rpy="0 0 0"/>
+    <joint name="front_caster_joint" type="continuous">
+      <axis xyz="0 0 1" rpy="0 0 0" />
+      <origin xyz="0.18745 -0.02 -0.050625" rpy="0 0 0"/>
       <parent link="base_link"/>
       <child link="front_caster"/>
     </joint>
@@ -145,7 +148,8 @@
       </inertial>
 
       <visual>
-        <origin xyz="0 0 0" rpy="-1.5707 0 1.5707"/>
+        
+        <origin xyz="0 0.02 0.050625" rpy="-1.5707 0 0"/>
         <geometry>
           <mesh filename="package://arlobot_ros/meshes/28971-Caster-Wheel-Kit-v1.0_simplified.stl"/>
         </geometry>
@@ -154,19 +158,20 @@
         </material>
       </visual>
       <collision>
-        <origin xyz="0 0 0" rpy="-1.5707 0 1.5707"/>
+        <origin xyz="0 0.02 0" rpy="-1.5707 0 1.5707"/>
         <geometry>
-          <mesh filename="package://arlobot_ros/meshes/28971-Caster-Wheel-Kit-v1.0_simplified.stl"/>
+    	  <sphere radius="0.050625"/>
         </geometry>
         <material name="light_grey">
           <color rgba="0.6 0.6 0.6 1"/>
         </material>
-      </collision>
 
+      </collision>
     </link>
-	<!-- modified by Tristan Schwoerer -->
-    <joint name="rear_caster_joint" type="fixed">
-      <origin xyz="-0.18745 0 -0.002875" rpy="0 0 0"/>
+
+    <joint name="rear_caster_joint" type="continuous">
+      <axis xyz="0 0 1" rpy="0 0 0" />
+      <origin xyz="-0.18745 -0.02 -0.050625" rpy="0 0 0"/>
       <parent link="base_link"/>
       <child link="rear_caster"/>
     </joint>
@@ -260,6 +265,14 @@
         <geometry>
           <cylinder radius="0.0762" length="0.03175"/>
         </geometry>
+        <surface>
+	        <friction>
+	          <ode>
+	            <mu>100.00</mu>
+	            <mu2>50.00</mu2>
+	          </ode>
+	        </friction>
+        </surface>
       </collision>
     </link>
 
@@ -294,7 +307,16 @@
         <geometry>
           <cylinder radius="0.0762" length="0.03175"/>
         </geometry>
+        <surface>
+	        <friction>
+	          <ode>
+	            <mu>100.00</mu>
+	            <mu2>50.00</mu2>
+	          </ode>
+	        </friction>
+        </surface>
       </collision>
+      
     </link>
 
     <!-- Fixed because we never rotate it anyway, it is just for show -->
@@ -340,7 +362,7 @@
     
     <joint name="camera_joint" type="fixed">
 	  <axis xyz="0 1 0" />
-	  <origin xyz="0.18 0 0.45" rpy="0 0.733038 0"/>
+	  <origin xyz="0.18 0 0.45" rpy="0 0.785398 0"/>
 	  <parent link="base_link"/>
 	  <child link="camera_link"/>
 	</joint>
