@@ -33,7 +33,7 @@
         	</noise>
       	</ray>
 	    <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_laser.so">
-			<topicName>laserscan</topicName>
+			<topicName>base_scan</topicName>
 			<frameName>hokuyo_link</frameName>
 	    </plugin>
   	</sensor>
@@ -45,7 +45,6 @@
     <sensor type="camera" name="camera1">
       <update_rate>30.0</update_rate>
       <camera name="head">
-        <horizontal_fov>2.42601</horizontal_fov>
         <image>
           <width>640</width>
           <height>480</height>
@@ -55,20 +54,27 @@
           <near>0.02</near>
           <far>500</far>
         </clip>
+        
+        <horizontal_fov>2.408549999994017643</horizontal_fov>
+        
+        
+        <!--commented out because its not working like its supposed to-->
         <!--noise>
           <type>gaussian</type>
-
           <mean>0.0</mean>
           <stddev>0.007</stddev>
         </noise-->
-	    <distortion>
+	    <!--distortion>
 	      <k1>-0.217708</k1>
 	      <k2>0.029583</k2>
 	      <k3>0</k3>
 	      <p1>0.002915</p1>
 	      <p2>-0.000567</p2>
-	    </distortion>
+	    </distortion-->
+
+
       </camera>
+
       <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
         <alwaysOn>true</alwaysOn>
         <updateRate>30</updateRate>
@@ -80,14 +86,14 @@
             between the gazebo sensor image and the frame it is supposed to
             be attached to -->
         <hackBaseline>0.0</hackBaseline>
-        <distortionK1>0.0</distortionK1>
-        <distortionK2>0.0</distortionK2>
+		<!--commented out because its not working like its supposed to-->
+        <!--distortionK1>-0.217708</distortionK1>
+        <distortionK2>0.029583</distortionK2>
         <distortionK3>0.0</distortionK3>
-        <distortionT1>0.0</distortionT1>
-        <distortionT2>0.0</distortionT2>
-        <CxPrime>0</CxPrime>
-        <Cx>0.0</Cx>
-        <Cy>0.0</Cy>
+        <distortionT1>0.002915</distortionT1>
+        <distortionT2>-0.000567</distortionT2!-->
+
+
       </plugin>
     </sensor>
   </gazebo>
