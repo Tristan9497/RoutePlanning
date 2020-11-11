@@ -362,7 +362,7 @@
     
     <joint name="camera_joint" type="fixed">
 	  <axis xyz="0 1 0" />
-	  <origin xyz="0.18 0 0.45" rpy="0 0.785398 0"/>
+	  <origin xyz="0.18 0 0.34875" rpy="0 0.785398 0"/>
 	  <parent link="base_link"/>
 	  <child link="camera_link"/>
 	</joint>
@@ -470,46 +470,6 @@
     <xacro:arlobot_standoff_5in parent="${parent}" number="3" x_loc="-0.052832" y_loc="0.1314196"
                           z_loc="0.06825"/>
 
-    <joint name="plate_1_joint" type="fixed">
-      <origin xyz="0 0 0.1365" rpy="0 0 0"/>
-      <parent link="plate_0_link"/>
-      <child link="plate_1_link"/>
-    </joint>
 
-    <link name="plate_1_link">
-      <inertial>
-        <mass value="0.01"/>
-        <origin xyz="0 0 0"/>
-        <inertia ixx="0.01" ixy="0.0" ixz="0.0"
-                 iyy="0.01" iyz="0.0"
-                 izz="0.01"/>
-      </inertial>
-
-      <visual>
-        <origin xyz=" 0 0 0 " rpy="0 0 0"/>
-        <geometry>
-          <cylinder length="0.0095" radius="0.2245"/>
-        </geometry>
-        <material name="veryDarkGrey">
-          <color rgba=".2 .2 .2 1"/>
-        </material>
-      </visual>
-
-      <collision>
-        <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
-        <geometry>
-          <cylinder length="0.0095" radius="0.2245"/>
-        </geometry>
-      </collision>
-    </link>
-
-    <xacro:arlobot_standoff_5in parent="plate_0_link" number="4" x_loc="0.0676402" y_loc="0.1314196"
-                          z_loc="0.06825"/>
-    <xacro:arlobot_standoff_5in parent="plate_0_link" number="5" x_loc="0.0676402" y_loc="-0.1314196"
-                          z_loc="0.06825"/>
-    <xacro:arlobot_standoff_5in parent="plate_0_link" number="6" x_loc="-0.052832" y_loc="-0.1314196"
-                          z_loc="0.06825"/>
-    <xacro:arlobot_standoff_5in parent="plate_0_link" number="7" x_loc="-0.052832" y_loc="0.1314196"
-                          z_loc="0.06825"/>
   </xacro:macro>
 </robot>
