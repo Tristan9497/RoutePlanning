@@ -29,6 +29,6 @@
 
     <include file="$(find road_detection)/launch/detectionOnly.launch" />
 
-    <include  file="$(find costmap_2d)/launch/Arlo_costmap.launch"/>
+    <include  file="$(find Simulation)/launch/Arlo_costmap.launch"/>
 
 </launch>
