@@ -39,8 +39,8 @@ cost_scaling_factor: 10.0
 lethal_cost_threshold: 100
 
 obstacle_layer:
+ inflation_radius: 0.2245
  transform_tolerance: 0.3
- obstacle_range: 2.5
  max_obstacle_height: 2.0
  min_obstacle_height: -2.0
  observation_sources:  road_detection_cloud laser_scan_sensor
