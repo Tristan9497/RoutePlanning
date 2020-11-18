@@ -21,14 +21,10 @@
 
     <node name="mybot_spawn" pkg="gazebo_ros" type="spawn_model" output="screen"
         args="-urdf -param robot_description -model Arlo -x $(arg x) -y $(arg y) -z $(arg z)"/>
-
-    <node name="slam_gmapping" pkg="gmapping" type="slam_gmapping" output="screen">
-      <remap from="scan" to="base_scan"/>
-      <param name="odom_frame" value="odom"/>
-    </node>
-
-    <include file="$(find road_detection)/launch/detectionOnly.launch" />
-
+	
+    <include file="$(find gmapping)/launch/slam_gmapping_pr2.launch"/>
+    <include file="$(find road_detection)/launch/detectionOnly.launch"/>
+    <node name="markfreespace" pkg="arlo_navigation" type="markfreespace" />
     <include  file="$(find Simulation)/launch/Arlo_costmap.launch"/>
 
 </launch>
