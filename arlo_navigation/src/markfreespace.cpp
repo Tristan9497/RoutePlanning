@@ -35,8 +35,6 @@ geometry_msgs::Point position;
 //double unknownThresh;
 //double knownThresh;
 
-bool MiddlePoints;
-
 ros::Publisher pub;
 sensor_msgs::PointCloud2 constructcloud(std::vector<geometry_msgs::Point32> &points, float intensity, std::string frame);
 
@@ -59,18 +57,13 @@ class Listener
 
 				points.push_back(road->lineRight.points[j]);
 			}
+
+			for(int i=0;i<road->lineMiddle.points.size();i++)
+			{
+				points.push_back(road->lineMiddle.points[i]);
+			}
 			pub.publish(constructcloud(points,100,"base_footprint"));
-//			points.clear();
-//
-//			//TODO dyn recon
-//			if(MiddlePoints){
-//				for(int i=0;i<road->lineMiddle.points.size();i++)
-//				{
-//					points.push_back(road->lineMiddle.points[i]);
-//				}
-//				pub.publish(constructcloud(points,100,"base_footprint"));
-//				points.clear();
-//			}
+
 
 		};
 
