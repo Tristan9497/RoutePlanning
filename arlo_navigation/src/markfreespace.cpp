@@ -48,30 +48,29 @@ class Listener
 			//Transforming points of road_detection into sensor_msgs::PointCloud2 so they can be used in the costmap
 			std::vector<geometry_msgs::Point32> points;
 
-			int i;
 
 			//publishing borders and middle line individual to give better flexibility
-			for(i=0;i<road->lineLeft.points.size();i++)
+			for(int i=0;i<road->lineLeft.points.size();i++)
 			{
 				points.push_back(road->lineLeft.points[i]);
 			}
-			for(i=0;i<road->lineRight.points.size();i++)
+			for(int j=0;j<road->lineRight.points.size();j++)
 			{
 
-				points.push_back(road->lineRight.points[i]);
+				points.push_back(road->lineRight.points[j]);
 			}
 			pub.publish(constructcloud(points,100,"base_footprint"));
-			points.clear();
-
-			//TODO dyn recon
-			if(MiddlePoints){
-				for(i=0;i<road->lineMiddle.points.size();i++)
-				{
-					points.push_back(road->lineMiddle.points[i]);
-				}
-				pub.publish(constructcloud(points,100,"base_footprint"));
-				points.clear();
-			}
+//			points.clear();
+//
+//			//TODO dyn recon
+//			if(MiddlePoints){
+//				for(int i=0;i<road->lineMiddle.points.size();i++)
+//				{
+//					points.push_back(road->lineMiddle.points[i]);
+//				}
+//				pub.publish(constructcloud(points,100,"base_footprint"));
+//				points.clear();
+//			}
 
 		};
 
@@ -140,7 +139,7 @@ sensor_msgs::PointCloud2 constructcloud(std::vector<geometry_msgs::Point32> &poi
 
 	//Construct PointCloud2 Message with given array of points tf_frame and intensity
 
-		int Count=sizeof(points);
+		int Count=points.size();
 		// Populate message fields
 		const uint32_t POINT_STEP = 16;
 		sensor_msgs::PointCloud2 msg;
@@ -172,7 +171,7 @@ sensor_msgs::PointCloud2 constructcloud(std::vector<geometry_msgs::Point32> &poi
 		{
 			*((float*)(ptr + 0))=points[i].x;
 			*((float*)(ptr + 4))=points[i].y;
-			*((float*)(ptr + 8))=points[i].z;
+			*((float*)(ptr + 8))=0.01;
 			*((float*)(ptr + 12))=intensity;
 			ptr += POINT_STEP;
 		}
@@ -198,8 +197,8 @@ int main(int argc, char **argv)
 	pub = n.advertise<sensor_msgs::PointCloud2>("RoadPointCloud2", 1000);
 	//TODO maybe 3 different point clouds for each line of the track
 	ros::Subscriber road = n.subscribe("/roadDetection/road", 1000, &Listener::roadCallback, &listener);
-	ros::Subscriber map = n.subscribe("/map", 1000, &Listener::mapCallback, &listener);
-	ros::Subscriber odom = n.subscribe("/odom", 1000, &Listener::odomCallback, &listener);
+	//ros::Subscriber map = n.subscribe("/map", 1000, &Listener::mapCallback, &listener);
+	//ros::Subscriber odom = n.subscribe("/odom", 1000, &Listener::odomCallback, &listener);
 	ros::spin();
   return 0;
 }
