@@ -15,7 +15,7 @@
 
   <!-- Run the costmap node -->
   <node name="costmap_node" pkg="costmap_2d" type="costmap_2d_node" >
-    <rosparam file="$(find Simulation)/launch/Arlo_costmap_params.yaml" command="load" ns="costmap" />
+    <rosparam file="$(find Simulation)/params/Arlo_costmap_params.yaml" command="load" ns="costmap" />
   </node>
 
 </launch>

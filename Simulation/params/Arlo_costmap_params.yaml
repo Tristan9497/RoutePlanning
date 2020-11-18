@@ -40,6 +40,7 @@ inflation_radius: 0.2245
 cost_scaling_factor: 10.0
 lethal_cost_threshold: 100
 
-observation_sources: laser_scan_sensor
-
-laser_scan_sensor: {sensor_frame: hokuyo_link,data_type: LaserScan, topic: base_scan, marking: true, clearing: true}
+observation_sources:  road_detection_cloud
+#laser_scan_sensor#
+#laser_scan_sensor:    {sensor_frame: hokuyo_link ,data_type: LaserScan      , topic: base_scan      , marking: true, clearing: true}
+road_detection_cloud: {sensor_frame: base_link   ,data_type: PointCloud2    , topic: RoadPointCloud2, marking: true, clearing: true}
