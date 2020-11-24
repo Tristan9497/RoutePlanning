@@ -21,6 +21,9 @@
 #include <pcl_ros/point_cloud.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
 
+//Lidar
+#include <sensor_msgs/LaserScan.h>
+#include <tf/transform_listener.h>
 
 
 
@@ -37,16 +40,14 @@ geometry_msgs::Point position;
 
 ros::Publisher pub;
 sensor_msgs::PointCloud2 constructcloud(std::vector<geometry_msgs::Point32> &points, float intensity, std::string frame);
-
+std::vector<geometry_msgs::Point32> points;
 class Listener
 	{
 	public:
 		void roadCallback(const road_detection::RoadConstPtr& road)
 		{
 			//Transforming points of road_detection into sensor_msgs::PointCloud2 so they can be used in the costmap
-			std::vector<geometry_msgs::Point32> points;
-
-
+			points.clear();
 			//publishing borders and middle line individual to give better flexibility
 			for(int i=0;i<road->lineLeft.points.size();i++)
 			{
@@ -58,70 +59,99 @@ class Listener
 				points.push_back(road->lineRight.points[j]);
 			}
 
-			for(int i=0;i<road->lineMiddle.points.size();i++)
-			{
-				points.push_back(road->lineMiddle.points[i]);
-			}
-			pub.publish(constructcloud(points,100,"base_footprint"));
-
+//			for(int i=0;i<road->lineMiddle.points.size();i++)
+//			{
+//				points.push_back(road->lineMiddle.points[i]);
+//			}
 
 		};
 
-
 	public:
-		void mapCallback(const nav_msgs::OccupancyGridConstPtr& grid)
+
+		void scanCallback(const sensor_msgs::LaserScanConstPtr& Scan)
 		{
-			//Transforming points of slam map into sensor_msgs::PointCloud2 so they can be used in the costmap to have costs for points we have seen before but not atm
-			int map_height=grid->info.height;
-			int map_width=grid->info.width;
-
-			int pixel_x;
-			int pixel_y;
-			double coord_x;
-			double coord_y;
-
-			//resolution in m/cell
-			double resolution = grid->info.resolution;
-			double Distance;
-			std::vector<geometry_msgs::Point32> points;
-			geometry_msgs::Point32 currentpoint;
-
-			for (int i=0; i<grid->data.size(); i++)
+			//generates combined pointcloud of lidar and roaddetection
+			std::vector<geometry_msgs::Point32> scan;
+			geometry_msgs::Point32 scanpoint;
+			float angle;
+			float range;
+			for(int i=0;i<Scan->ranges.size();i++)
 			{
+				angle=(i*Scan->angle_increment)+Scan->angle_min;
+				range=Scan->ranges.at(i);
+				//offset value from arlo_2stack urdf
 
-				//get pixel coordinate relative to map origin
-				pixel_x=grid->info.origin.position.x-(i%map_width);
-				pixel_y=grid->info.origin.position.y-((int)floor(i/map_width));
+				scanpoint.x=range*cos(angle)+0.175;
+				scanpoint.y=range*sin(angle);
+				scanpoint.z=0;
+				scan.push_back(scanpoint);
 
-				currentpoint.x=pixel_x*resolution;
-				currentpoint.y=pixel_y*resolution;
-				currentpoint.z=0;
-
-				if(grid->data.at(i)>=50)
-				{
-					points.push_back(currentpoint);
-				}
-
-				//calc Distance between Arlo and given Pixel (assumption map origin=robot pos reference)
-//				Distance=sqrt(pow(abs(pixel_x-position.x),2.0)+pow(abs(pixel_x-position.x),2.0));
-
-//				if(Distance<searchradius)
+			}
+			//copy smaller vector to larger and publish it as pointcloud2
+			if(scan.size()>=points.size()){
+				scan.insert( scan.end(), points.begin(), points.end() );
+				pub.publish(constructcloud(scan,100,"base_footprint"));
+			}
+			else
+			{
+				points.insert( points.end(), scan.begin(), scan.end() );
+				pub.publish(constructcloud(points,100,"base_footprint"));
+			}
+		}
+//	public:
+//		void mapCallback(const nav_msgs::OccupancyGridConstPtr& grid)
+//		{
+//			//Transforming points of slam map into sensor_msgs::PointCloud2 so they can be used in the costmap to have costs for points we have seen before but not atm
+//			int map_height=grid->info.height;
+//			int map_width=grid->info.width;
+//
+//			int pixel_x;
+//			int pixel_y;
+//			double coord_x;
+//			double coord_y;
+//
+//			//resolution in m/cell
+//			double resolution = grid->info.resolution;
+//			double Distance;
+//			std::vector<geometry_msgs::Point32> points;
+//			geometry_msgs::Point32 currentpoint;
+//
+//			for (int i=0; i<grid->data.size(); i++)
+//			{
+//
+//				//get pixel coordinate relative to map origin
+//				pixel_x=grid->info.origin.position.x-(i%map_width);
+//				pixel_y=grid->info.origin.position.y-((int)floor(i/map_width));
+//
+//				currentpoint.x=pixel_x*resolution;
+//				currentpoint.y=pixel_y*resolution;
+//				currentpoint.z=0;
+//
+//				if(grid->data.at(i)>=50)
 //				{
-//					currentpoint.x=grid->info.resolution;
 //					points.push_back(currentpoint);
 //				}
-			}
-			pub.publish(constructcloud(points,100,"map"));
-
-		};
-	public:
-		void odomCallback(const nav_msgs::OdometryConstPtr& odom)
-		{
-			//get current position
-
-			position=odom->pose.pose.position;
-			orientation=odom->pose.pose.orientation;
-		};
+//
+//				//calc Distance between Arlo and given Pixel (assumption map origin=robot pos reference)
+////				Distance=sqrt(pow(abs(pixel_x-position.x),2.0)+pow(abs(pixel_x-position.x),2.0));
+//
+////				if(Distance<searchradius)
+////				{
+////					currentpoint.x=grid->info.resolution;
+////					points.push_back(currentpoint);
+////				}
+//			}
+//			pub.publish(constructcloud(points,100,"map"));
+//
+//		};
+//	public:
+//		void odomCallback(const nav_msgs::OdometryConstPtr& odom)
+//		{
+//			//get current position
+//
+//			position=odom->pose.pose.position;
+//			orientation=odom->pose.pose.orientation;
+//		};
 
 	};
 
@@ -186,12 +216,15 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "markfreespace");
 	ros::NodeHandle n;
 	Listener listener;
-
+	tf::TransformListener tflistener;
+	tf::StampedTransform transform;
 	pub = n.advertise<sensor_msgs::PointCloud2>("RoadPointCloud2", 1000);
 	//TODO maybe 3 different point clouds for each line of the track
 	ros::Subscriber road = n.subscribe("/roadDetection/road", 1000, &Listener::roadCallback, &listener);
+	ros::Subscriber scan = n.subscribe("/base_scan", 1000, &Listener::scanCallback, &listener);
 	//ros::Subscriber map = n.subscribe("/map", 1000, &Listener::mapCallback, &listener);
 	//ros::Subscriber odom = n.subscribe("/odom", 1000, &Listener::odomCallback, &listener);
+
 	ros::spin();
   return 0;
 }
