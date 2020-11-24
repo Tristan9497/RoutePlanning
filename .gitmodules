@@ -1,0 +1,16 @@
+[submodule "calibration_gazebo"]
+	url = https://github.com/oKermorgant/calibration_gazebo.git
+[submodule "gazebo_ros_demos"]
+	url = https://github.com/ros-simulation/gazebo_ros_demos.git
+[submodule "hector_slam"]
+	url = https://github.com/tu-darmstadt-ros-pkg/hector_slam.git
+[submodule "image_pipeline"]
+	url = https://github.com/ros-perception/image_pipeline
+[submodule "navigation"]
+	url = https://github.com/ros-planning/navigation.git
+[submodule "slam_gmapping"]
+	url = https://github.com/ros-perception/slam_gmapping.git
+[submodule "slider_publisher"]
+	url = https://github.com/oKermorgant/slider_publisher.git
+[submodule "teb_local_planner_tutorials"]
+	url = https://github.com/rst-tu-dortmund/teb_local_planner.git
