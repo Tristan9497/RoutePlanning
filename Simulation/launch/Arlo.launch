@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
+	<param name="/use_sim_time" value="true"/>
     <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find Simulation)/urdf/common_default.urdf.xacro'" />
     <arg name="x" default="0"/>
     <arg name="y" default="0"/>
@@ -22,9 +23,20 @@
     <node name="mybot_spawn" pkg="gazebo_ros" type="spawn_model" output="screen"
         args="-urdf -param robot_description -model Arlo -x $(arg x) -y $(arg y) -z $(arg z)"/>
 	
-    <include file="$(find Simulation)/launch/arlo_gmapping.launch"/>
+    <!-- include file="$(find Simulation)/launch/arlo_gmapping.launch"/-->
+    <include file="$(find Simulation)/launch/cartographer.launch"/>
     <include file="$(find road_detection)/launch/detectionOnly.launch"/>
     <node name="markfreespace" pkg="arlo_navigation" type="markfreespace" />
     <include  file="$(find Simulation)/launch/Arlo_costmap.launch"/>
+    
+    <!-- navigation stack launch -->
+    
+	<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+	    <rosparam file="$(find arlo_navigation)/config/costmap_common_params.yaml" command="load" ns="global_costmap" /> 
+	    <rosparam file="$(find arlo_navigation)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
+	    <rosparam file="$(find arlo_navigation)/config/local_costmap_params.yaml" command="load" />
+	    <rosparam file="$(find arlo_navigation)/config/global_costmap_params.yaml" command="load" /> 
+	    <rosparam file="$(find arlo_navigation)/config/base_local_planner_params.yaml" command="load" />
+	</node>
 
 </launch>
