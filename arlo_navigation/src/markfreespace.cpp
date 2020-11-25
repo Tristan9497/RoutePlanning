@@ -90,12 +90,12 @@ class Listener
 			//copy smaller vector to larger and publish it as pointcloud2
 			if(scan.size()>=points.size()){
 				scan.insert( scan.end(), points.begin(), points.end() );
-				pub.publish(constructcloud(scan,100,"base_footprint"));
+				pub.publish(constructcloud(scan,100,"base_link"));
 			}
 			else
 			{
 				points.insert( points.end(), scan.begin(), scan.end() );
-				pub.publish(constructcloud(points,100,"base_footprint"));
+				pub.publish(constructcloud(points,100,"base_link"));
 			}
 		}
 //	public:
