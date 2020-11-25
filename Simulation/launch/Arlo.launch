@@ -25,9 +25,10 @@
 	
     <!-- include file="$(find Simulation)/launch/arlo_gmapping.launch"/-->
     <include file="$(find Simulation)/launch/cartographer.launch"/>
+    
     <include file="$(find road_detection)/launch/detectionOnly.launch"/>
     <node name="markfreespace" pkg="arlo_navigation" type="markfreespace" />
-    <include  file="$(find Simulation)/launch/Arlo_costmap.launch"/>
+    <!-- include  file="$(find Simulation)/launch/Arlo_costmap.launch"/-->
     
     <!-- navigation stack launch -->
     
