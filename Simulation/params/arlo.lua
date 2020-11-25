@@ -34,18 +34,20 @@ options = {
 }
 
 MAP_BUILDER.use_trajectory_builder_2d = true
+MAP_BUILDER.num_background_threads = 8
 TRAJECTORY_BUILDER_2D.use_imu_data = false
 TRAJECTORY_BUILDER_2D.min_range = 0.1
 TRAJECTORY_BUILDER_2D.max_range = 6.0
+TRAJECTORY_BUILDER_2D.ceres_scan_matcher.translation_weight = 1e3
+TRAJECTORY_BUILDER_2D.ceres_scan_matcher.rotation_weight = 1e3
 
-
-TRAJECTORY_BUILDER_2D.use_online_correlative_scan_matching = true
+TRAJECTORY_BUILDER_2D.use_online_correlative_scan_matching = false
 TRAJECTORY_BUILDER_2D.real_time_correlative_scan_matcher.linear_search_window=0.0
 TRAJECTORY_BUILDER_2D.real_time_correlative_scan_matcher.angular_search_window = math.rad(0.0)
-TRAJECTORY_BUILDER_2D.missing_data_ray_length = 6.
-TRAJECTORY_BUILDER_2D.submaps.num_range_data = 300
+TRAJECTORY_BUILDER_2D.submaps.num_range_data = 200
 POSE_GRAPH.optimization_problem.huber_scale = 1e2
-POSE_GRAPH.optimize_every_n_nodes = 50
+POSE_GRAPH.optimize_every_n_nodes = 5
+POSE_GRAPH.global_sampling_ratio = 1
 POSE_GRAPH.constraint_builder.min_score = 1
 
 
