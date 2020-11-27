@@ -10,5 +10,3 @@
 	url = https://github.com/ros-perception/slam_gmapping.git
 [submodule "slider_publisher"]
 	url = https://github.com/oKermorgant/slider_publisher.git
-[submodule "teb_local_planner_tutorials"]
-	url = https://github.com/rst-tu-dortmund/teb_local_planner.git
