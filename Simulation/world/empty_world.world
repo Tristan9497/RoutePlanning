@@ -11,10 +11,10 @@
 		</scene>
 		<!-- A ground plane -->
 		<include>
-			<uri>model://GroundPlane50x50</uri>
+			<uri>model://Simulation/gazebo_models/GroundPlane50x50</uri>
 		</include>
 		<include>
-			<uri>model://Track_Loop</uri>
+			<uri>model://Simulation/gazebo_models/Track_Loop</uri>
 		</include>
 	</world>
 </sdf>
