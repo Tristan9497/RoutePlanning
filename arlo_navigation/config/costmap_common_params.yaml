@@ -1,18 +1,27 @@
 obstacle_range: 4.0
-raytrace_range: 4.5
+raytrace_range: 2.5
 
-#footprint: [[0.2245,0],[0.2109,0.07678],[0.171969,0.144305],[0.11225,0.1944],[0.0389,0.22108],
-#            [0,0.2245],[-0.07678,0.2109],[-0.144305,0.171969],[-0.1944,0.11225],[-0.22108,0.0389],
-#            [-0.2245,0],[-0.2109,-0.07678],[-0.171969,-0.144305],[-0.11225,-0.1944],[-0.0389,-0.22108],
-#            [0,-0.2245],[0.07678,-0.2109],[0.144305,-0.171969],[0.1944,-0.11225],[0.22108,-0.0389]]
-footprint: [[0.125,-0.125],[0.125,0.125],[-0.125,0.125],[-0.125,-0.125]]
+robot_radius: 0.10
 transform_tolerance: 2.5
 
-obstacle_layer:
+plugins:
+    - {name: obstacle,    type: "costmap_2d::ObstacleLayer"}
+    - {name: road,        type: "costmap_2d::ObstacleLayer"}
+    
+observation_sources: road obstacle
+
+obstacle:
  inflation_radius: 0.125
  
  max_obstacle_height: 2.0
  min_obstacle_height: -2.0
- observation_sources:  road_detection_cloud 
+ observation_sources:  laser
+ laser: {sensor_frame: hokuyo_link   ,data_type: LaserScan    , topic: base_scan, marking: true, clearing: true}
  
- road_detection_cloud: {sensor_frame: base_footprint   ,data_type: PointCloud2    , topic: RoadPointCloud2, marking: true, clearing: true}
+road:
+ inflation_radius: 0.125
+ 
+ max_obstacle_height: 2.0
+ min_obstacle_height: -2.0
+ observation_sources:  road_detection_cloud
+ road_detection_cloud: {sensor_frame: base_footprint   ,data_type: PointCloud2    , topic: NavPointData, marking: true, clearing: true}
