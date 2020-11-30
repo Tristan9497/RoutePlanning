@@ -105,6 +105,7 @@ Visualization Manager:
         Path: false
         PointCloud2: false
         Polygon: false
+        Pose: true
         Value: false
       Zoom Factor: 1
     - Alpha: 1
@@ -254,6 +255,22 @@ Visualization Manager:
       Topic: /move_base/TebLocalPlannerROS/local_plan
       Unreliable: false
       Value: true
+    - Alpha: 1
+      Axes Length: 1
+      Axes Radius: 0.10000000149011612
+      Class: rviz/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.30000001192092896
+      Head Radius: 0.10000000149011612
+      Name: Pose
+      Queue Size: 10
+      Shaft Length: 1
+      Shaft Radius: 0.05000000074505806
+      Shape: Arrow
+      Topic: /move_base_simple/goal
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -291,10 +308,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 52.708866119384766
+      Scale: 76.02561950683594
       Target Frame: <Fixed Frame>
-      X: 1.250948429107666
-      Y: 1.6504309177398682
+      X: 0.363246887922287
+      Y: 3.0243165493011475
     Saved: ~
 Window Geometry:
   Camera:
