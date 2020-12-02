@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_conversions
   pcl_ros
   road_detection
+  tf2_geometry_msgs
 )
 
 
