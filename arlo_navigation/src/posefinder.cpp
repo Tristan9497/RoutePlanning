@@ -118,6 +118,10 @@ class Listener
 		{
 			bool obstacleright=false;
 			bool obstacleleft=false;
+			float xobsleftmin=searchradius;
+			float xobsleftmax;
+			float xobsrightmin=searchradius;
+			float xobsrightmax;
 
 			//DataSync
 			if(road->laneLeft.points.size()>0)
@@ -145,15 +149,22 @@ class Listener
 
 			road_detection::Line Line;
 			for(int i=0; i<scan.size();i++){
-				//check whether the point is in the lane by projecting it on to the 3 roadlines and comparing their y values
-				//exact calculation not necessary since road makes wide curves
-				if(polynomial(scan.at(i).x, LeftLine.polynomial.a)>scan.at(i).y&&polynomial(scan.at(i).x, MiddleLine.polynomial.a)<scan.at(i).y)
-				{
-					obstacleleft=true;
-				}
-				else if(polynomial(scan.at(i).x, RightLine.polynomial.a)<scan.at(i).y&&polynomial(scan.at(i).x, MiddleLine.polynomial.a)>scan.at(i).y)
-				{
-					obstacleright=true;
+				if(scan.at(i).x>0){
+					//check whether the point is in the lane by projecting it on to the 3 roadlines and comparing their y values
+					//exact calculation not necessary since road makes wide curves
+					if(polynomial(scan.at(i).x, LeftLine.polynomial.a)>scan.at(i).y&&polynomial(scan.at(i).x, MiddleLine.polynomial.a)<scan.at(i).y)
+					{
+						obstacleleft=true;
+
+						if(scan.at(i).x<xobsleftmin)xobsleftmin=scan.at(i).x;
+						if(scan.at(i).x>xobsleftmax)xobsleftmax=scan.at(i).x;
+					}
+					else if(polynomial(scan.at(i).x, RightLine.polynomial.a)<scan.at(i).y&&polynomial(scan.at(i).x, MiddleLine.polynomial.a)>scan.at(i).y)
+					{
+						obstacleright=true;
+						if(scan.at(i).x<xobsrightmin)xobsrightmin=scan.at(i).x;
+						if(scan.at(i).x<xobsrightmax)xobsrightmax=scan.at(i).x;
+					}
 				}
 
 			}
