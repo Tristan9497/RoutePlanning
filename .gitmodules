@@ -10,3 +10,5 @@
 	url = https://github.com/ros-perception/slam_gmapping.git
 [submodule "slider_publisher"]
 	url = https://github.com/oKermorgant/slider_publisher.git
+[submodule "obstacle_detection/obstacle_detector"]
+	url = https://github.com/tysik/obstacle_detector.git

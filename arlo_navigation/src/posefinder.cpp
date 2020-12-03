@@ -1,4 +1,5 @@
 #include <ros/ros.h>
+#include "nav_msgs/Odometry.h"
 
 //TF
 #include <tf2_ros/transform_listener.h>
