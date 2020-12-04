@@ -35,6 +35,9 @@ double costthreshold=100;
 bool Rightside;
 bool goaltrigger=false;
 double roadangle;
+double robot_diameter=0.4;
+
+
 move_base_msgs::MoveBaseGoal goal;
 ros::Publisher pub;
 
@@ -177,7 +180,23 @@ class Listener
 				Line=RightLane;
 				constructgoal(Line);
 			}
-			else if(obstacleleft&&obstacleright)
+
+			//chicanes
+			else if(obstacleleft&&obstacleright&&(xobsleftmin>(xobsrightmax+robot_diameter)))
+			{
+				ROS_INFO("Road Blocked chicane left to right");
+				Line=RightLane;
+				constructgoal(Line);
+			}
+			else if(obstacleleft&&obstacleright&&(xobsrightmin>(xobsleftmax+robot_diameter)))
+			{
+				ROS_INFO("Road Blocked chicane right to left");
+				Line=LeftLane;
+				constructgoal(Line);
+			}
+
+			//fullblock
+			else if(obstacleleft&&obstacleright&&(((xobsrightmax-xobsleftmin)<robot_diameter)||((xobsleftmax-xobsrightmin)<robot_diameter)))
 			{
 				ROS_INFO("Road Blocked");
 				goaltrigger=false;
@@ -243,7 +262,7 @@ int main(int argc, char* argv[])
 	while(!ac.waitForServer(ros::Duration(5.0))){
 		ROS_INFO("Waiting for the move_base action server to come up");
 	}
-	ros::Rate r=0.5;
+	ros::Rate r=1;
 
 	while(ros::ok()){
 		if(goaltrigger)
@@ -256,11 +275,12 @@ int main(int argc, char* argv[])
 		{
 			ac.cancelAllGoals();
 		}
-//					ac.waitForResult();
-//					if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-//						ROS_INFO("Hooray, the base moved 1 meter forward");
-//					else
-//						ROS_INFO("The base failed to move forward 1 meter for some reason");
+
+		ac.waitForResult();
+		if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+			ROS_INFO("Hooray, the base moved 1 meter forward");
+		else
+			ROS_INFO("The base failed to move forward 1 meter for some reason");
 
 		//TODO maybe 3 different point clouds for each line of the track
 
