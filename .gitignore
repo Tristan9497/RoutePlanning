@@ -2,3 +2,7 @@
 road_detection/
 
 Simulation/meshes/
+
+*.user
+
+*.workspace

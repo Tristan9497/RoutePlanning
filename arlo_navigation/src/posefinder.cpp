@@ -215,7 +215,7 @@ class Listener
 				Line=RightLane;
 				constructgoal(Line);
 			}
-		};
+    };
 	public:
 		void scanCallback(const sensor_msgs::LaserScanConstPtr& Scan)
 		{
@@ -236,7 +236,7 @@ class Listener
 						scan.push_back(scanpoint);
 					}
 				}
-		};
+    };
 	};
 
 
@@ -282,8 +282,7 @@ int main(int argc, char* argv[])
 		else
 			ROS_INFO("The base failed to move forward 1 meter for some reason");
 
-		//TODO maybe 3 different point clouds for each line of the track
-
+    //TODO maybe 3 different point clouds for each line of the track
 		ros::spinOnce();
 		r.sleep();
 
