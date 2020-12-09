@@ -15,6 +15,10 @@
 #include "road_detection/LineArray.h"
 #include "road_detection/Road.h"
 
+
+
+#include <people_msgs/People.h>
+
 //PCL Stuff
 #include <sensor_msgs/PointCloud2.h>
 #include <pcl_conversions/pcl_conversions.h>
@@ -43,11 +47,14 @@ geometry_msgs::Point position;
 bool middletrigger;
 
 ros::Publisher pub;
+ros::Publisher leftpub;
+ros::Publisher rightpub;
 ros::Publisher linepub;
 sensor_msgs::PointCloud2 constructcloud(std::vector<geometry_msgs::Point32> &points, float intensity, std::string frame);
 std::vector<geometry_msgs::Point32> points;
 std::vector<geometry_msgs::Point32> navpoints;
-
+people_msgs::People leftLine;
+people_msgs::People rightLine;
 
 void callback(arlo_navigation::markfreespaceConfig &config, uint32_t level) {
 	middletrigger=config.middleline;
@@ -58,20 +65,32 @@ class Listener
 	public:
 		void roadCallback(const road_detection::RoadConstPtr& road)
 		{
+			people_msgs::Person leftpoint;
+			people_msgs::Person rightpoint;
+			leftLine.header.stamp=ros::Time::now();
+			leftLine.header.frame_id="base_footprint";
+			rightLine.header.stamp=ros::Time::now();
+			rightLine.header.frame_id="base_footprint";
 			//Transforming points of road_detection into sensor_msgs::PointCloud2 so they can be used for slam and the costmap
 			points.clear();
+			leftLine.people.clear();
 			//publishing borders and middle line individual to give better flexibility
 			for(int i=0;i<road->lineLeft.points.size();i++)
 			{
+				leftpoint.position.x=road->lineLeft.points[i].x;
+				leftpoint.position.y=road->lineLeft.points[i].y;
+				leftLine.people.push_back(leftpoint);
 				points.push_back(road->lineLeft.points[i]);
 			}
 			for(int j=0;j<road->lineRight.points.size();j++)
 			{
-
+				rightpoint.position.x=road->lineRight.points[j].x;
+				rightpoint.position.y=road->lineRight.points[j].y;
+				rightLine.people.push_back(leftpoint);
 				points.push_back(road->lineRight.points[j]);
 			}
-
-
+			leftpub.publish(leftLine);
+			rightpub.publish(rightLine);
 			//Line Publisher for navigation (costmap)
 			navpoints=points;
 			//functionality to switch of middle line
@@ -191,7 +210,8 @@ int main(int argc, char **argv)
 
 	f = boost::bind(&callback, _1, _2);
 	server.setCallback(f);
-
+	leftpub = n.advertise<people_msgs::People>("people",1000);
+	rightpub = n.advertise<people_msgs::People>("people",1000);
 	pub = n.advertise<sensor_msgs::PointCloud2>("RoadPointCloud2", 1000);
 	linepub=n.advertise<sensor_msgs::PointCloud2>("NavPointData",1000);
 	//TODO maybe 3 different point clouds for each line of the track
