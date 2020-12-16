@@ -4,7 +4,7 @@ global_costmap:
   update_frequency: 5.0
   publish_frequency: 5.0
   resolution: 0.1
-  static_map: false
+  static_map: true
   origin_x: -7.5
   origin_y: -7.5
   width: 15.0

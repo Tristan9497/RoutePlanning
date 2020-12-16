@@ -1,12 +1,15 @@
 obstacle_range: 4.0
 raytrace_range: 2.5
 
-robot_radius: 0.10
+robot_radius: 0.1
+
 transform_tolerance: 2.5
 
 plugins:
     - {name: obstacle,    type: "costmap_2d::ObstacleLayer"}
     - {name: road,        type: "costmap_2d::ObstacleLayer"}
+    - {name: my,          type: "simple_layer_namespace::MyLayer"}
+
     
 observation_sources: road obstacle
 
@@ -17,7 +20,9 @@ obstacle:
  min_obstacle_height: -2.0
  observation_sources:  laser
  laser: {sensor_frame: hokuyo_link   ,data_type: LaserScan    , topic: base_scan, marking: true, clearing: true}
- 
+         
+my:
+   enabled: true
 road:
  inflation_radius: 0.125
  
