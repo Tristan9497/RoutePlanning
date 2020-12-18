@@ -40,7 +40,7 @@ TebLocalPlannerROS:
  global_plan_overwrite_orientation: True
  allow_init_with_backwards_motion: False
  max_global_plan_lookahead_dist: 3.0
- global_plan_viapoint_sep: -1
+ global_plan_viapoint_sep: 1
  global_plan_prune_distance: 1
  exact_arc_length: False
  feasibility_check_no_poses: 5
@@ -102,7 +102,7 @@ TebLocalPlannerROS:
  weight_inflation: 0.2
  weight_dynamic_obstacle: 10
  weight_dynamic_obstacle_inflation: 0.2
- weight_viapoint: 1
+ weight_viapoint: 5
  weight_adapt_factor: 2
 
  # Homotopy Class Planner
@@ -132,7 +132,7 @@ TebLocalPlannerROS:
  
  shrink_horizon_backup: True
  shrink_horizon_min_duration: 10
- oscillation_recovery: True
+ oscillation_recovery: False
  oscillation_v_eps: 0.1
  oscillation_omega_eps: 0.1
  oscillation_recovery_min_duration: 10
