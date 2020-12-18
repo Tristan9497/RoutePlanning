@@ -2,7 +2,7 @@ obstacle_range: 4.0
 raytrace_range: 2.5
 
 robot_radius: 0.1
-
+map_update_rate: 2.5
 transform_tolerance: 2.5
 
 plugins:
@@ -10,8 +10,9 @@ plugins:
     - {name: road,        type: "costmap_2d::ObstacleLayer"}
     - {name: my,          type: "simple_layer_namespace::MyLayer"}
 
+
     
-observation_sources: road obstacle
+observation_sources: road obstacle my
 
 obstacle:
  inflation_radius: 0.125
@@ -23,6 +24,7 @@ obstacle:
          
 my:
    enabled: true
+   
 road:
  inflation_radius: 0.125
  
