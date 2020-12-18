@@ -162,7 +162,7 @@ class Listener
 
 
 		    }
-		    catch (tf::TransformException &ex){
+		    catch (tf2::TransformException &ex){
 		        ROS_ERROR("%s",ex.what());
 		    }
 
@@ -237,14 +237,14 @@ class Listener
 						geometry_msgs::Point32 test;
 						test.x=Points[i].x*map_info.scale;
 						test.y=Points[i].y*map_info.scale;
-						if(map->data.at(MAP_INDEX(map_info,MAP_CX(map_info,Points[i].x),MAP_CY(map_info,Points[i].y)))>50){
+						//if(map->data.at(MAP_INDEX(map_info,MAP_CX(map_info,Points[i].x),MAP_CY(map_info,Points[i].y)))>50){
 
 
 							test.z=0;
 
 
-						}
-						else test.z=-1;
+						//}
+						//else test.z=-1;
 						cloud.points.push_back(test);
 					}
 
