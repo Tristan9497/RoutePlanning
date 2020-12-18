@@ -4,6 +4,7 @@
 #include "geometry_msgs/Pose.h"
 #include "geometry_msgs/Quaternion.h"
 #include "geometry_msgs/Point32.h"
+#include "geometry_msgs/PointStamped.h"
 #include "nav_msgs/Odometry.h"
 #include "std_msgs/String.h"
 #include <math.h>
@@ -16,24 +17,23 @@
 #include "road_detection/Road.h"
 
 
-
-#include <people_msgs/People.h>
-
 //PCL Stuff
 #include <sensor_msgs/PointCloud2.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/point_cloud.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
+#include <sensor_msgs/ChannelFloat32.h>
 
 //Lidar
 #include <sensor_msgs/LaserScan.h>
 #include <tf/transform_listener.h>
 
 
+
+
 //dyn_recon
 #include <dynamic_reconfigure/server.h>
 #include <arlo_navigation/markfreespaceConfig.h>
-
 
 //TODO dyn_recon
 double searchradius=1000; //distance in mm
@@ -47,14 +47,20 @@ geometry_msgs::Point position;
 bool middletrigger;
 
 ros::Publisher pub;
-ros::Publisher leftpub;
-ros::Publisher rightpub;
+ros::Publisher inflationpub;
 ros::Publisher linepub;
 sensor_msgs::PointCloud2 constructcloud(std::vector<geometry_msgs::Point32> &points, float intensity, std::string frame);
 std::vector<geometry_msgs::Point32> points;
 std::vector<geometry_msgs::Point32> navpoints;
-people_msgs::People leftLine;
-people_msgs::People rightLine;
+std::vector<geometry_msgs::Point32> scan;
+
+double leftrad=0.8;
+double rightrad=0.15;
+double middlerad=0.3;
+double leftmax=254;
+double rightmax=254;
+double middlemax=100;
+
 
 void callback(arlo_navigation::markfreespaceConfig &config, uint32_t level) {
 	middletrigger=config.middleline;
@@ -65,45 +71,61 @@ class Listener
 	public:
 		void roadCallback(const road_detection::RoadConstPtr& road)
 		{
-			people_msgs::Person leftpoint;
-			people_msgs::Person rightpoint;
-			leftLine.header.stamp=ros::Time::now();
-			leftLine.header.frame_id="base_footprint";
-			rightLine.header.stamp=ros::Time::now();
-			rightLine.header.frame_id="base_footprint";
+
+			geometry_msgs::Point32 Buffer;
+			sensor_msgs::PointCloud InflatePoints;
+			sensor_msgs::ChannelFloat32 RadInfo;
+			sensor_msgs::ChannelFloat32 MaxCost;
+
+			RadInfo.name="InflationRadius";
+			MaxCost.name="MaxCost";
+			InflatePoints.header.frame_id=road->header.frame_id;
+			InflatePoints.header.stamp=ros::Time::now();
 			//Transforming points of road_detection into sensor_msgs::PointCloud2 so they can be used for slam and the costmap
 			points.clear();
-			leftLine.people.clear();
 			//publishing borders and middle line individual to give better flexibility
 			for(int i=0;i<road->lineLeft.points.size();i++)
 			{
-				leftpoint.position.x=road->lineLeft.points[i].x;
-				leftpoint.position.y=road->lineLeft.points[i].y;
-				leftLine.people.push_back(leftpoint);
-				points.push_back(road->lineLeft.points[i]);
+				Buffer.x=road->lineLeft.points[i].x;
+				Buffer.y=road->lineLeft.points[i].y;
+
+				points.push_back(Buffer);
+			}
+			//Filtering out error points so they won't go into the costmap
+			//errorpoints are caused by roaddetection not seeing the leftline for a moment but the other lines are getting detected
+			if(road->lineLeft.points.size()!=0){
+				InflatePoints.points.push_back(Buffer);
+				RadInfo.values.push_back(leftrad);
+				MaxCost.values.push_back(leftmax);
+				InflatePoints.channels.push_back(RadInfo);
+				InflatePoints.channels.push_back(MaxCost);
+				inflationpub.publish(InflatePoints);
 			}
 			for(int j=0;j<road->lineRight.points.size();j++)
 			{
-				rightpoint.position.x=road->lineRight.points[j].x;
-				rightpoint.position.y=road->lineRight.points[j].y;
-				rightLine.people.push_back(leftpoint);
-				points.push_back(road->lineRight.points[j]);
+				Buffer.x=road->lineRight.points[j].x;
+				Buffer.y=road->lineRight.points[j].y;
+				points.push_back(Buffer);
 			}
-			leftpub.publish(leftLine);
-			rightpub.publish(rightLine);
+//			InflatePoints.points.push_back(Buffer);
+//			RadInfo.values.push_back(rightrad);
+//			MaxCost.values.push_back(rightmax);
+			for(int k=0;k<road->lineMiddle.points.size();k++)
+			{
+				Buffer.x=road->lineMiddle.points[k].x;
+				Buffer.y=road->lineMiddle.points[k].y;
+				//functionality to switch of middle line
+				if(middletrigger) points.push_back(Buffer);
+			}
+//			InflatePoints.points.push_back(Buffer);
+//			RadInfo.values.push_back(middlerad);
+//			MaxCost.values.push_back(middlemax);
+
+
 			//Line Publisher for navigation (costmap)
 			navpoints=points;
-			//functionality to switch of middle line
-			if(middletrigger)
-			{
-				for(int i=0;i<road->lineMiddle.points.size();i++)
-				{
-					navpoints.push_back(road->lineMiddle.points[i]);
-				}
-			}
+
 			linepub.publish(constructcloud(navpoints,100,"base_footprint"));
-
-
 		};
 
 	public:
@@ -111,7 +133,7 @@ class Listener
 		void scanCallback(const sensor_msgs::LaserScanConstPtr& Scan)
 		{
 			//generates combined pointcloud of lidar and roaddetection
-			std::vector<geometry_msgs::Point32> scan;
+			scan.clear();
 			geometry_msgs::Point32 scanpoint;
 			float angle;
 			float range;
@@ -127,7 +149,6 @@ class Listener
 				scan.push_back(scanpoint);
 
 			}
-			//copy smaller vector to larger and publish it as pointcloud2
 			if(scan.size()>=points.size()){
 				scan.insert( scan.end(), points.begin(), points.end() );
 				pub.publish(constructcloud(scan,100,"base_footprint"));
@@ -137,6 +158,7 @@ class Listener
 				points.insert( points.end(), scan.begin(), scan.end() );
 				pub.publish(constructcloud(points,100,"base_footprint"));
 			}
+
 		};
 
 	};
@@ -210,15 +232,19 @@ int main(int argc, char **argv)
 
 	f = boost::bind(&callback, _1, _2);
 	server.setCallback(f);
-	leftpub = n.advertise<people_msgs::People>("people",1000);
-	rightpub = n.advertise<people_msgs::People>("people",1000);
+
+	inflationpub = n.advertise<sensor_msgs::PointCloud>("/points",1000);
 	pub = n.advertise<sensor_msgs::PointCloud2>("RoadPointCloud2", 1000);
 	linepub=n.advertise<sensor_msgs::PointCloud2>("NavPointData",1000);
+
 	//TODO maybe 3 different point clouds for each line of the track
 	ros::Subscriber road = n.subscribe("/roadDetection/road", 1000, &Listener::roadCallback, &listener);
-	ros::Subscriber scan = n.subscribe("/base_scan", 1000, &Listener::scanCallback, &listener);
+	ros::Subscriber scansub = n.subscribe("/base_scan", 1000, &Listener::scanCallback, &listener);
 	//ros::Subscriber map = n.subscribe("/map", 1000, &Listener::mapCallback, &listener);
 	//ros::Subscriber odom = n.subscribe("/odom", 1000, &Listener::odomCallback, &listener);
+
+	//copy smaller vector to larger and publish it as pointcloud2
+
 
 	ros::spin();
   return 0;
