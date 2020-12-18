@@ -3,10 +3,21 @@
 #include <ros/ros.h>
 #include <costmap_2d/layer.h>
 #include <costmap_2d/layered_costmap.h>
-#include <costmap_2d/GenericPluginConfig.h>
+#include <geometry_msgs/Point32.h>
+#include <geometry_msgs/PointStamped.h>
 #include <dynamic_reconfigure/server.h>
+//tf2
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/buffer_interface.h>
+#include <tf2_sensor_msgs/tf2_sensor_msgs.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_ros/transform_listener.h>
+#include <tf2_ros/buffer_client.h>
+
 #include <sensor_msgs/PointCloud.h>
 #include <math.h>
+#include <string.h>
+
 namespace simple_layer_namespace
 {
 
@@ -25,13 +36,21 @@ public:
   }
 
   virtual void matchSize();
+  geometry_msgs::Point32 TransformPoint(geometry_msgs::Point32 point, std::string frame,std::string frame2);
 protected:
   void lineCallback(const sensor_msgs::PointCloud& points);
   ros::Subscriber line_sub_;
   sensor_msgs::PointCloud linepoints;
+  boost::recursive_mutex lock_;
+
 private:
-  void reconfigureCB(costmap_2d::GenericPluginConfig &config, uint32_t level);
-  dynamic_reconfigure::Server<costmap_2d::GenericPluginConfig> *dsrv_;
+  void reconfigureCB(simple_layers::ProgressiveLayerConfig &config, uint32_t level);
+  dynamic_reconfigure::Server<simple_layers::ProgressiveLayerConfig> *dsrv_;
+  std::string topic;
+  double oldx;
+  double oldy;
+
+
 };
 }
 #endif
