@@ -14,6 +14,14 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   road_detection
   tf2_geometry_msgs
+  tf2
+  tf2_ros
+  tf2_msgs
+  tf2_sensor_msgs
+  people_msgs
+  visualization_msgs
+
+
 )
 
 
@@ -29,6 +37,7 @@ find_package(catkin REQUIRED COMPONENTS
  generate_dynamic_reconfigure_options(
    cfg/markfreespace.cfg
    cfg/posefinder.cfg
+   cfg/progressivelayer.cfg
  )
 
 
@@ -47,11 +56,13 @@ include_directories(
 
 add_executable(markfreespace src/markfreespace.cpp)
 add_executable(posefinder src/posefinder.cpp)
+add_executable(radialposefinder src/radialposefinder.cpp)
 
 add_dependencies(markfreespace ${${PROJECT_NAME}_EXPORTED_TARGETS} arlo_navigation_generate_messages_cpp)
 add_dependencies(posefinder ${${PROJECT_NAME}_EXPORTED_TARGETS} arlo_navigation_generate_messages_cpp)
+add_dependencies(radialposefinder ${PROJECT_NAME}_gencfg)
 
 target_link_libraries(markfreespace ${catkin_LIBRARIES})
 target_link_libraries(posefinder ${catkin_LIBRARIES})
-
+target_link_libraries(radialposefinder ${catkin_LIBRARIES})
 
