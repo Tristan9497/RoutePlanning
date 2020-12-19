@@ -6,3 +6,13 @@ Simulation/meshes/
 *.user
 
 *.workspace
+
+simple_layers/src/inflater.cpp
+
+simple_layers/src/path_costmap_layer.cpp
+
+src/CMakeLists.txt
+
+simple_layers/include/simple_layers/path_costmap_layer.h
+
+simple_layers/include/simple_layers/inflater.h
