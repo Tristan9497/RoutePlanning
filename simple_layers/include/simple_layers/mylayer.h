@@ -36,19 +36,21 @@ public:
   }
 
   virtual void matchSize();
-  geometry_msgs::Point32 TransformPoint(geometry_msgs::Point32 point, std::string frame,std::string frame2);
+  geometry_msgs::Point32 TransformPoint(geometry_msgs::Point32 point,std::string frame2);
 protected:
   void lineCallback(const sensor_msgs::PointCloud& points);
   ros::Subscriber line_sub_;
   sensor_msgs::PointCloud linepoints;
   boost::recursive_mutex lock_;
+  bool rolling_window_;
+  std::string topic;
+  double oldx;
+  double oldy;
 
 private:
   void reconfigureCB(simple_layers::ProgressiveLayerConfig &config, uint32_t level);
   dynamic_reconfigure::Server<simple_layers::ProgressiveLayerConfig> *dsrv_;
-  std::string topic;
-  double oldx;
-  double oldy;
+
 
 
 };

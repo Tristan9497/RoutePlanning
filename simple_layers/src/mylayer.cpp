@@ -15,6 +15,8 @@ MyLayer::MyLayer() {}
 void MyLayer::onInitialize()
 {
   ros::NodeHandle nh("~/" + name_);
+  //necessary since static and rolling can't be treated the same
+  rolling_window_ = layered_costmap_->isRolling();
   current_ = true;
   default_value_ = NO_INFORMATION;
   matchSize();
@@ -25,6 +27,7 @@ void MyLayer::onInitialize()
   dsrv_->setCallback(cb);
   line_sub_ = nh.subscribe(topic, 1, &MyLayer::lineCallback, this);
   ros::param::set("/use_sim_time",true);
+
 
 }
 
@@ -49,13 +52,12 @@ void MyLayer::reconfigureCB(simple_layers::ProgressiveLayerConfig &config, uint3
   topic = config.point_topic;
 
 }
-geometry_msgs::Point32 MyLayer::TransformPoint(geometry_msgs::Point32 point, std::string frame,std::string frame2)
+geometry_msgs::Point32 MyLayer::TransformPoint(geometry_msgs::Point32 point,std::string frame2)
 	{
 	geometry_msgs::TransformStamped transformStamped;
 	tf2_ros::Buffer tfBuffer;
 	tf2_ros::TransformListener tfListener(tfBuffer);
-	//function that transforms a point32 from frame2 to frame1 and returns the transformed point
-	//if transformation fails an empty point is returned and an error msg gets printed
+	//function that transforms a point32 from frame2 to the global frame of the costmap and returns the transformed point
 	geometry_msgs::Point pt;
 	geometry_msgs::Point32 pt32;
 
@@ -63,21 +65,19 @@ geometry_msgs::Point32 MyLayer::TransformPoint(geometry_msgs::Point32 point, std
 	pt.y=point.y;
 	pt.z=point.z;
 
-
     try {
-        transformStamped = tfBuffer.lookupTransform( frame,frame2,ros::Time(0),ros::Duration(1));
+        transformStamped = tfBuffer.lookupTransform( layered_costmap_->getGlobalFrameID(),frame2,ros::Time(0),ros::Duration(1));
 
         tf2::doTransform(pt,pt, transformStamped);
     	pt32.x=pt.x;
     	pt32.y=pt.y;
     	pt32.z=pt.z;
-
     	return pt32;
 
     }
     catch (tf2::TransformException &ex)
     {
-        ROS_WARN("%s  empty point returned", ex.what());
+        ROS_WARN("%s", ex.what());
     }
 
 
@@ -85,6 +85,9 @@ geometry_msgs::Point32 MyLayer::TransformPoint(geometry_msgs::Point32 point, std
 void MyLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, double* min_x,
                                            double* min_y, double* max_x, double* max_y)
 {
+	// robot pose has to be updated, otherwise we get huge offset in case rolling window costmap is selected
+  if (rolling_window_)
+	updateOrigin(robot_x - getSizeInMetersX() / 2, robot_y - getSizeInMetersY() / 2);
   if (!enabled_)
     return;
 
@@ -100,12 +103,15 @@ void MyLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, dou
   double res=MyLayer::getResolution();
   geometry_msgs::Point32 pt;
   geometry_msgs::Point32 tpt;
-
+  if(linepoints.points.size()>0){
+//  ROS_INFO("%d",linepoints.points.size());
+//  ROS_INFO("%d",linepoints.channels.size());
+//  ROS_INFO("%d",linepoints.channels.at(1).values.size());
 	for(int k=0; k<linepoints.points.size();k++){
 		std::string cloudtopic=linepoints.header.frame_id.c_str();
 		pt.x=linepoints.points.at(k).x;
 		pt.y=linepoints.points.at(k).y;
-		tpt=TransformPoint(pt, "map",cloudtopic);
+		tpt=TransformPoint(pt,cloudtopic);
 
 		  radius=linepoints.channels.at(0).values.at(k);
 		  maxcost=linepoints.channels.at(1).values.at(k);
@@ -148,6 +154,8 @@ void MyLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, dou
 			  j+=res;
 		  }
 	  }
+  }
+	linepoints.points.clear();
   }
 }
 
