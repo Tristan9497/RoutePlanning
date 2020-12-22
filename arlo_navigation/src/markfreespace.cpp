@@ -53,8 +53,11 @@ sensor_msgs::PointCloud2 constructcloud(std::vector<geometry_msgs::Point32> &poi
 std::vector<geometry_msgs::Point32> points;
 std::vector<geometry_msgs::Point32> navpoints;
 std::vector<geometry_msgs::Point32> scan;
+sensor_msgs::PointCloud InflatePoints;
+sensor_msgs::ChannelFloat32 RadInfo;
+sensor_msgs::ChannelFloat32 MaxCost;
 
-double leftrad=0.8;
+double leftrad=0.85;
 double rightrad=0.15;
 double middlerad=0.3;
 double leftmax=254;
@@ -72,10 +75,17 @@ class Listener
 		void roadCallback(const road_detection::RoadConstPtr& road)
 		{
 
+
 			geometry_msgs::Point32 Buffer;
-			sensor_msgs::PointCloud InflatePoints;
-			sensor_msgs::ChannelFloat32 RadInfo;
-			sensor_msgs::ChannelFloat32 MaxCost;
+
+
+
+			//desperate try to prevent out of range error in costmaap layer
+			RadInfo.values.clear();
+			MaxCost.values.clear();
+			InflatePoints.channels.clear();
+			InflatePoints.points.clear();
+
 
 			RadInfo.name="InflationRadius";
 			MaxCost.name="MaxCost";
@@ -95,11 +105,10 @@ class Listener
 			//errorpoints are caused by roaddetection not seeing the leftline for a moment but the other lines are getting detected
 			if(road->lineLeft.points.size()!=0){
 				InflatePoints.points.push_back(Buffer);
+//				leftrad=road->laneWidthLeft+road->laneWidthRight/2;
+//				ROS_INFO("%f",road->laneWidthLeft);
 				RadInfo.values.push_back(leftrad);
 				MaxCost.values.push_back(leftmax);
-				InflatePoints.channels.push_back(RadInfo);
-				InflatePoints.channels.push_back(MaxCost);
-				inflationpub.publish(InflatePoints);
 			}
 			for(int j=0;j<road->lineRight.points.size();j++)
 			{
@@ -107,9 +116,14 @@ class Listener
 				Buffer.y=road->lineRight.points[j].y;
 				points.push_back(Buffer);
 			}
-//			InflatePoints.points.push_back(Buffer);
-//			RadInfo.values.push_back(rightrad);
-//			MaxCost.values.push_back(rightmax);
+//			if(road->lineRight.points.size()!=0){
+//				InflatePoints.points.push_back(Buffer);
+////				rightrad=road->laneWidthRight/2;
+////				ROS_INFO("%f",road->laneWidthLeft);
+//				RadInfo.values.push_back(rightrad);
+//				MaxCost.values.push_back(rightmax);
+//			}
+
 			for(int k=0;k<road->lineMiddle.points.size();k++)
 			{
 				Buffer.x=road->lineMiddle.points[k].x;
@@ -117,15 +131,12 @@ class Listener
 				//functionality to switch of middle line
 				if(middletrigger) points.push_back(Buffer);
 			}
-//			InflatePoints.points.push_back(Buffer);
-//			RadInfo.values.push_back(middlerad);
-//			MaxCost.values.push_back(middlemax);
 
 
 			//Line Publisher for navigation (costmap)
 			navpoints=points;
 
-			linepub.publish(constructcloud(navpoints,100,"base_footprint"));
+
 		};
 
 	public:
@@ -243,10 +254,22 @@ int main(int argc, char **argv)
 	//ros::Subscriber map = n.subscribe("/map", 1000, &Listener::mapCallback, &listener);
 	//ros::Subscriber odom = n.subscribe("/odom", 1000, &Listener::odomCallback, &listener);
 
+	//TODO configure frequency
+	ros::Duration rate(0.1);
 	//copy smaller vector to larger and publish it as pointcloud2
+	while(n.ok()){
+		linepub.publish(constructcloud(navpoints,100,"base_footprint"));
+		if(InflatePoints.points.size()>0){
+			InflatePoints.channels.push_back(RadInfo);
+			InflatePoints.channels.push_back(MaxCost);
 
+			inflationpub.publish(InflatePoints);
+		}
 
-	ros::spin();
+		ros::spinOnce();
+		rate.sleep();
+	}
+
   return 0;
 }
 
