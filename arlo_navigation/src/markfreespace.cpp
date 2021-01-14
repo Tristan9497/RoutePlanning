@@ -57,7 +57,7 @@ sensor_msgs::PointCloud InflatePoints;
 sensor_msgs::ChannelFloat32 RadInfo;
 sensor_msgs::ChannelFloat32 MaxCost;
 
-double leftrad=0.85;
+double leftrad;
 double rightrad=0.15;
 double middlerad=0.3;
 double leftmax=254;
@@ -93,6 +93,7 @@ class Listener
 			InflatePoints.header.stamp=ros::Time::now();
 			//Transforming points of road_detection into sensor_msgs::PointCloud2 so they can be used for slam and the costmap
 			points.clear();
+			leftrad=road->laneWidthLeft+ 0.6*road->laneWidthRight;
 			//publishing borders and middle line individual to give better flexibility
 			for(int i=0;i<road->lineLeft.points.size();i++)
 			{
@@ -162,12 +163,12 @@ class Listener
 			}
 			if(scan.size()>=points.size()){
 				scan.insert( scan.end(), points.begin(), points.end() );
-				pub.publish(constructcloud(scan,100,"base_footprint"));
+				if(scan.size()>0) pub.publish(constructcloud(scan,100,"base_footprint"));
 			}
 			else
 			{
 				points.insert( points.end(), scan.begin(), scan.end() );
-				pub.publish(constructcloud(points,100,"base_footprint"));
+				if(points.size()>0) pub.publish(constructcloud(points,100,"base_footprint"));
 			}
 
 		};
@@ -250,7 +251,7 @@ int main(int argc, char **argv)
 
 	//TODO maybe 3 different point clouds for each line of the track
 	ros::Subscriber road = n.subscribe("/roadDetection/road", 1000, &Listener::roadCallback, &listener);
-	ros::Subscriber scansub = n.subscribe("/base_scan", 1000, &Listener::scanCallback, &listener);
+	ros::Subscriber scansub = n.subscribe("/scan_filtered", 1000, &Listener::scanCallback, &listener);
 	//ros::Subscriber map = n.subscribe("/map", 1000, &Listener::mapCallback, &listener);
 	//ros::Subscriber odom = n.subscribe("/odom", 1000, &Listener::odomCallback, &listener);
 
