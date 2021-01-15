@@ -28,7 +28,8 @@
 #include <sensor_msgs/LaserScan.h>
 #include <tf/transform_listener.h>
 
-
+//Services
+#include "arlo_navigation/clearleftlane.h"
 
 
 //dyn_recon
@@ -45,7 +46,7 @@ geometry_msgs::Point position;
 //TODO make these configurable using dyn_recon
 
 bool middletrigger;
-
+bool blockagetrigger=true;
 ros::Publisher pub;
 ros::Publisher inflationpub;
 ros::Publisher linepub;
@@ -64,10 +65,11 @@ double leftmax=254;
 double rightmax=254;
 double middlemax=100;
 
-
 void callback(arlo_navigation::markfreespaceConfig &config, uint32_t level) {
 	middletrigger=config.middleline;
 }
+
+
 
 class Listener
 	{
@@ -105,11 +107,13 @@ class Listener
 			//Filtering out error points so they won't go into the costmap
 			//errorpoints are caused by roaddetection not seeing the leftline for a moment but the other lines are getting detected
 			if(road->lineLeft.points.size()!=0){
-				InflatePoints.points.push_back(Buffer);
-//				leftrad=road->laneWidthLeft+road->laneWidthRight/2;
-//				ROS_INFO("%f",road->laneWidthLeft);
-				RadInfo.values.push_back(leftrad);
-				MaxCost.values.push_back(leftmax);
+				if(blockagetrigger==true){
+					InflatePoints.points.push_back(Buffer);
+	//				leftrad=road->laneWidthLeft+road->laneWidthRight/2;
+	//				ROS_INFO("%f",road->laneWidthLeft);
+					RadInfo.values.push_back(leftrad);
+					MaxCost.values.push_back(leftmax);
+				}
 			}
 			for(int j=0;j<road->lineRight.points.size();j++)
 			{
@@ -161,10 +165,12 @@ class Listener
 				scan.push_back(scanpoint);
 
 			}
+
 			if(scan.size()>=points.size()){
 				scan.insert( scan.end(), points.begin(), points.end() );
 				if(scan.size()>0) pub.publish(constructcloud(scan,100,"base_footprint"));
 			}
+
 			else
 			{
 				points.insert( points.end(), scan.begin(), scan.end() );
@@ -172,6 +178,16 @@ class Listener
 			}
 
 		};
+	public:
+		bool clearleftline(arlo_navigation::clearleftlaneRequest &request,arlo_navigation::clearleftlaneResponse &response)
+		{
+			//inverting this bit switches the blockage of the left lane on and off.
+			//is meant to be controlled by the pose finder and can be used in escape manouvers
+			ROS_INFO("Blockage of Left Lane has been removed");
+			blockagetrigger=request.trigger;
+			response.result=blockagetrigger;
+			return true;
+		}
 
 	};
 
@@ -254,7 +270,7 @@ int main(int argc, char **argv)
 	ros::Subscriber scansub = n.subscribe("/scan_filtered", 1000, &Listener::scanCallback, &listener);
 	//ros::Subscriber map = n.subscribe("/map", 1000, &Listener::mapCallback, &listener);
 	//ros::Subscriber odom = n.subscribe("/odom", 1000, &Listener::odomCallback, &listener);
-
+	ros::ServiceServer clearblockage = n.advertiseService("clearblockage", &Listener::clearleftline, &listener);
 	//TODO configure frequency
 	ros::Duration rate(0.1);
 	//copy smaller vector to larger and publish it as pointcloud2

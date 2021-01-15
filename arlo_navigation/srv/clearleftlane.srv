@@ -1,0 +1,3 @@
+bool trigger #This Trigger is meant to enbal and disable the progressive cost of the road
+---
+bool result #returns true if the service was successfull

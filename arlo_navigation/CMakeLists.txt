@@ -20,11 +20,15 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_sensor_msgs
   people_msgs
   visualization_msgs
+  message_generation
 
 
 )
 
-
+add_service_files(
+	FILES
+	clearleftlane.srv
+)
 
  generate_messages(
    DEPENDENCIES
@@ -44,13 +48,13 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS
   LIBRARIES arlo_navigation
-  CATKIN_DEPENDS dynamic_reconfigure geometry_msgs nav_msgs roscpp rospy sensor_msgs std_msgs
+  CATKIN_DEPENDS dynamic_reconfigure geometry_msgs nav_msgs roscpp rospy sensor_msgs std_msgs message_runtime
   DEPENDS
 )
 
 
 include_directories(
-  include
+ # include
   ${catkin_INCLUDE_DIRS}
 )
 
