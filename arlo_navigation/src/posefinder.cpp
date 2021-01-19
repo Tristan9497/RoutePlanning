@@ -39,11 +39,11 @@ bool goaltrigger=false;
 bool removeblockage=false;
 double roadangle;
 double robot_diameter=0.4;
-
+double furthestpoint;
 
 move_base_msgs::MoveBaseGoal goal;
 ros::Publisher pub;
-std::vector<geometry_msgs::Point32> scan;
+std::vector<geometry_msgs::PointStamped> scan;
 geometry_msgs::Pose currentpose;
 
 //storing the latest road data for data loss cases
@@ -53,7 +53,7 @@ road_detection::Line MiddleLine;
 road_detection::Line LeftLane;
 road_detection::Line RightLane;
 geometry_msgs::Point getPointTransform(std::string frame, ros::Time &Time,geometry_msgs::Point &Point);
-
+std::string scanframe;
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
 //should be reference???
@@ -124,29 +124,19 @@ geometry_msgs::Point getPointTransform(std::string frame, ros::Time &Time)
 	geometry_msgs::TransformStamped transform;
 	geometry_msgs::Point PointT;
 	try{
+
 	  transform = tfBuffer.lookupTransform(frame,frame,Time);
 	  PointT.x=transform.transform.translation.x;
 	  PointT.y=transform.transform.translation.y;
 	  PointT.z=transform.transform.translation.z;
+	  return PointT;
 	}
 	catch (tf2::TransformException &ex) {
 	  ROS_WARN("%s",ex.what());
 	  ros::Duration(1.0).sleep();
 	}
-//	//get transformed point of different time in same frame
-//		tf2_ros::Buffer tfBuffer;
-//		tf2_ros::TransformListener tfListener(tfBuffer);
-//		geometry_msgs::TransformStamped transformStamped;
-//		geometry_msgs::Point PointT;
-//		try{
-//		  transformStamped = tfBuffer.lookupTransform(frame,frame,Time);
-//		  tf2::doTransform(Point, PointT, transformStamped);
-//		}
-//		catch (tf2::TransformException &ex) {
-//		  ROS_WARN("%s",ex.what());
-//		  ros::Duration(1.0).sleep();
-//		}
-		return PointT;
+
+
 	}
 class Listener
 	{
@@ -163,6 +153,10 @@ class Listener
 			geometry_msgs::Point LeftPoint;
 			geometry_msgs::Point MiddlePoint;
 			geometry_msgs::Point RightPoint;
+			ros::Duration Timedif;
+			geometry_msgs::TransformStamped transformStamped;
+			tf2_ros::Buffer tfBuffer;
+			tf2_ros::TransformListener tfListener(tfBuffer);
 
 			//DataSync
 			if(road->laneLeft.points.size()>0)
@@ -188,103 +182,83 @@ class Listener
 			}
 			roadangle=aproxroadangle();
 
-
+			furthestpoint=sqrt(pow(LeftLine.points.back().x,2)+pow(LeftLine.points.back().y,2));
+			searchradius=furthestpoint+robot_diameter;
 			road_detection::Line Line;
-			for(int i=0; i<scan.size();i++){
-//				Scan.x=scan.at(i).x;
-//				Scan.y=scan.at(i).y;
-//				Scan.z=scan.at(i).z;
-				//get transformed point for every point relative to the latest occurance of the line
-//				LeftPoint =getPointTransform("odom",LeftLine.header.stamp,Scan);
-//				MiddlePoint =getPointTransform("odom",MiddleLine.header.stamp,Scan);
-//				RightPoint =getPointTransform("odom",RightLine.header.stamp,Scan);
 
-
-				geometry_msgs::Point LTrans=getPointTransform("base_link",LeftLine.header.stamp);
-				geometry_msgs::Point RTrans=getPointTransform("base_link",LeftLine.header.stamp);
-				geometry_msgs::Point MTrans=getPointTransform("base_link",LeftLine.header.stamp);
-
-				if(scan.at(i).x>0){
-					ros::Time test = ros::Time::now() - ros::Duration(1.0);
-					geometry_msgs::PointStamped Test;
-					Test.header.stamp=ros::Time::now();
-					Test.header.frame_id="base_link";
-					Test.point.x=scan.at(1).x;
-					Test.point.y=scan.at(1).y;
-					pub.publish(Test);
-					Test.point.x-=getPointTransform("base_link",test).x;
-					Test.point.y-=getPointTransform("base_link",test).y;
-					pub.publish(Test);
-					//check whether the point is in the lane by projecting it on to the 3 roadlines and comparing their y values
-					//exact calculation not necessary since road makes wide curves
-					if(polynomial(LeftPoint.x+LTrans.x, LeftLine.polynomial.a)>LeftPoint.y+LTrans.y&&polynomial(scan.at(i).x+MTrans.x, MiddleLine.polynomial.a)<MiddlePoint.y+MTrans.y)
-					{
-						obstacleleft=true;
-
-						if(LeftPoint.x+LTrans.x<xobsleftmin)xobsleftmin=LeftPoint.x+LTrans.x;
-						if(LeftPoint.x+LTrans.x>xobsleftmax)xobsleftmax=LeftPoint.x+LTrans.x;
-					}
-					else if(polynomial(RightPoint.x+RTrans.x, RightLine.polynomial.a)<RightPoint.y+RTrans.y&&polynomial(MiddlePoint.x+MTrans.x, MiddleLine.polynomial.a)>MiddlePoint.y+MTrans.x)
-					{
-						obstacleright=true;
-
-						if(RightPoint.x+RTrans.x<xobsrightmin)xobsrightmin=RightPoint.x+RTrans.x;
-						if(RightPoint.x+RTrans.x>xobsrightmax)xobsrightmax=RightPoint.x+RTrans.x;
-					}
-				}
-
-			}
-
-
-			if(obstacleleft&&!obstacleright)
+			if(scan.size()>0)
 			{
-				ROS_INFO("LeftLane Blocked");
-				Line=RightLane;
-				removeblockage=false;
-//				constructgoal(Line);
+				Timedif=ros::Time::now()-scan.at(0).header.stamp;
 			}
-
-			//chicanes
-//			else if(obstacleleft&&obstacleright&&(xobsleftmin>(xobsrightmax+robot_diameter)))
-//			{
-//				ROS_INFO("Road Blocked chicane left to right");
-//				Line=RightLane;
-////				constructgoal(Line);
-//			}
-//			else if(obstacleleft&&obstacleright&&(xobsrightmin>(xobsleftmax+robot_diameter)))
-//			{
-//				ROS_INFO("Road Blocked chicane right to left");
-//				Line=LeftLane;
-////				constructgoal(Line);
-//			}
-
-			//fullblock
-//			else if(obstacleleft&&obstacleright&&(((xobsrightmax-xobsleftmin)<robot_diameter)||((xobsleftmax-xobsrightmin)<robot_diameter)))
-//			{
-//				ROS_INFO("Road Blocked");
-//				goaltrigger=false;
-//				obstacleleft=false;
-//				obstacleright=false;
-//			}
-			else if((!obstacleleft&&obstacleright)||!Rightside)
-			{
-				ROS_INFO("RightLane Blocked");
-				Line=LeftLane;
-				removeblockage=true;
-//				constructgoal(Line);
-			}
-
-			else if(!obstacleright||!obstacleleft){
+			else {
 				ROS_INFO("Road Free");
 				removeblockage=false;
 				Line=RightLane;
-//				constructgoal(Line);
+				Timedif=ros::Duration(1);
 			}
+
+			//check if the scanned point is infront of the robot and if it is in a reasonable timeframe (not older thaen 500ms)
+			if(Timedif.toSec()<=0.5){
+				for(int i=0; i<scan.size();i++){
+					if(scan.at(0).point.x>0){
+						geometry_msgs::PointStamped Test;
+						Test.header.frame_id=scan.at(i).header.frame_id;
+						Test.header.stamp=scan.at(i).header.stamp;
+						Test.point.x=scan.at(i).point.x;
+						Test.point.y=scan.at(i).point.y;
+						Test.point.z=scan.at(i).point.z;
+						try{
+							//transform scanned point into the frame of the road detection then compare it with the road
+							transformStamped = tfBuffer.lookupTransform( road->header.frame_id,Test.header.frame_id,Test.header.stamp,ros::Duration(1));
+
+							tf2::doTransform(Test,Test, transformStamped);
+							pub.publish(Test);
+							//check whether the point is in the lane by projecting it on to the 3 roadlines and comparing their y values
+							//exact calculation not necessary since road makes wide curves
+							if(polynomial(Test.point.x, LeftLine.polynomial.a)>Test.point.y && polynomial(Test.point.x, MiddleLine.polynomial.a)<Test.point.y)
+							{
+								obstacleleft=true;
+							}
+							else if(polynomial(Test.point.x, RightLine.polynomial.a)<Test.point.y && polynomial(Test.point.x, MiddleLine.polynomial.a)>Test.point.y)
+							{
+								obstacleright=true;
+							}
+						}
+						catch(tf2::TransformException &ex)
+						{
+							ROS_WARN("%s", ex.what());
+						}
+					}
+				}
+				if(obstacleleft&&!obstacleright)
+				{
+					ROS_INFO("LeftLane Blocked");
+					Line=RightLane;
+					removeblockage=false;
+	//				constructgoal(Line);
+				}
+
+				else if(!obstacleleft&&obstacleright)
+				{
+					ROS_INFO("RightLane Blocked");
+					Line=LeftLane;
+					removeblockage=true;
+	//				constructgoal(Line);
+				}
+				else if(!obstacleleft&&!obstacleright)
+				{
+					ROS_INFO("Road Free");
+					removeblockage=false;
+					Line=RightLane;
+				}
+		}
+
+
     };
 	public:
 		void scanCallback(const sensor_msgs::LaserScanConstPtr& Scan)
 		{
-			geometry_msgs::Point32 scanpoint;
+			geometry_msgs::PointStamped scanpoint;
 			scan.clear();
 			double range,angle,minangle,maxangle;
 			minangle=M_PI-(searchangle/2)+roadangle;
@@ -294,10 +268,12 @@ class Listener
 					range=Scan->ranges.at(i);
 					angle=(i*Scan->angle_increment)+Scan->angle_min;
 					if((range<searchradius)&&(angle>minangle)&&(angle<maxangle)){
-						//offset value from arlo_2stack urdf
-						scanpoint.x=range*cos(angle)+0.175;
-						scanpoint.y=range*sin(angle);
-						scanpoint.z=0.0;
+
+						scanpoint.header.frame_id=Scan->header.frame_id.c_str();
+						scanpoint.header.stamp=Scan->header.stamp;
+						scanpoint.point.x=range*cos(angle);
+						scanpoint.point.y=range*sin(angle);
+						scanpoint.point.z=0.0;
 
 						scan.push_back(scanpoint);
 					}
@@ -343,12 +319,12 @@ int main(int argc, char* argv[])
 		//switching left lane on and off
 		if(removeblockage)
 		{
-			req.trigger=true;
+			req.trigger=false;
 			client.call(req,res);
 		}
 		else
 		{
-			req.trigger=false;
+			req.trigger=true;
 			client.call(req,res);
 		}
 
