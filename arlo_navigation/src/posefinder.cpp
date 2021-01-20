@@ -1,5 +1,7 @@
 #include <ros/ros.h>
 #include "nav_msgs/Odometry.h"
+#include <Eigen/Dense>
+
 
 //TF
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
@@ -17,6 +19,8 @@
 #include "sensor_msgs/LaserScan.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "nav_msgs/Odometry.h"
+#include "visualization_msgs/Marker.h"
+
 //custom message types
 #include "road_detection/LineMatch.h"
 #include "road_detection/Line.h"
@@ -30,6 +34,8 @@
 //Services
 #include "arlo_navigation/clearleftlane.h"
 
+using Eigen::MatrixXd;
+using Eigen::Vector2d;
 
 double searchradius=5;
 double searchangle=60*M_PI/180;
@@ -43,9 +49,10 @@ double furthestpoint;
 
 move_base_msgs::MoveBaseGoal goal;
 ros::Publisher pub;
+ros::Publisher marker_pub;
 std::vector<geometry_msgs::PointStamped> scan;
 geometry_msgs::Pose currentpose;
-
+visualization_msgs::Marker marker;
 //storing the latest road data for data loss cases
 road_detection::Line LeftLine;
 road_detection::Line RightLine;
@@ -191,7 +198,7 @@ class Listener
 				Timedif=ros::Time::now()-scan.at(0).header.stamp;
 			}
 			else {
-				ROS_INFO("Road Free");
+				//ROS_INFO("Road Free");
 				removeblockage=false;
 				Line=RightLane;
 				Timedif=ros::Duration(1);
@@ -251,10 +258,104 @@ class Listener
 					removeblockage=false;
 					Line=RightLane;
 				}
-		}
+			}
+
+			//least square circle approximation as discribed by Randy Bullock in his Least-Squares Circle Fit Paper
+			//used to predict the upcoming road that cannot be seen by the camera
+			MatrixXd m(2,2);
+			Vector2d b;
+			Vector2d x;
+
+			//defining sums
+			double Suuu,Svvv,Suvv,Svuu,Suv,Suu,Svv=0;
+			double u,v,xa,ya=0;
+			double r=0;
+			//first the averages will be build
+			for (int i=0;i<LeftLine.points.size();i++)
+			{
+				xa+=LeftLine.points.at(i).x;
+				ya+=LeftLine.points.at(i).y;
+			}
+			xa=xa/LeftLine.points.size();
+			ya=ya/LeftLine.points.size();
+
+			//new the Sums need to be calculated
+			for (int i=0;i<LeftLine.points.size();i++)
+			{
+				u=LeftLine.points.at(i).x-xa;
+				v=LeftLine.points.at(i).y-ya;
+
+				Suu+=u*u;
+				Svv+=v*v;
+				Suv+=u*v;
+				Suvv+=u*v*v;
+				Svuu+=v*u*u;
+				Suuu+=u*u*u;
+				Svvv+=v*v*v;
+			}
+			m(0,0)=Suu;
+			m(0,1)=Suv;
+			m(1,0)=Suv;
+			m(1,1)=Svv;
+
+			m=m.inverse();
+
+			b(0)=0.5*(Suuu+Suvv);
+			b(1)=0.5*(Svvv+Svuu);
+
+			//multiplying b with the inverse of m to solve the linear equation system
+			x=m*b;
+			//calculating radius
+			r=sqrt(pow(x(0),2)+pow(x(1),2)+(Suu+Svv)/LeftLine.points.size());
+
+			//traslating into original coordinates
+			x(0)=x(0)+xa;
+			x(1)=x(1)+ya;
+
+			/////////only for dubugging
+			//publishing estimated circle
 
 
-    };
+		    // Set the frame ID and timestamp.  See the TF tutorials for information on these.
+		    marker.header.frame_id = "base_footprint";
+		    marker.header.stamp = ros::Time::now();
+
+		    // Set the namespace and id for this marker.  This serves to create a unique ID
+		    // Any marker sent with the same namespace and id will overwrite the old one
+		    marker.ns = "basic_shapes";
+		    marker.id = 0;
+
+		    // Set the marker type.  Initially this is CUBE, and cycles between that and SPHERE, ARROW, and CYLINDER
+
+
+		    marker.type = visualization_msgs::Marker::CYLINDER;
+
+		    // Set the marker action.  Options are ADD, DELETE, and new in ROS Indigo: 3 (DELETEALL)
+		    marker.action = visualization_msgs::Marker::ADD;
+			marker.pose.position.x=x(0);
+			marker.pose.position.y=x(1);
+			marker.pose.position.z = 0;
+			marker.pose.orientation.x = 0.0;
+			marker.pose.orientation.y = 0.0;
+			marker.pose.orientation.z = 0.0;
+			marker.pose.orientation.w = 1.0;
+			marker.scale.x=r*2;
+			marker.scale.y=r*2;
+			marker.scale.z=1;
+			marker.scale.z = 0.0;
+		    marker.color.r = 0.0f;
+		    marker.color.g = 1.0f;
+		    marker.color.b = 0.0f;
+		    marker.color.a = 0.5;
+		    marker.lifetime = ros::Duration();
+		    //ROS_INFO("x: %f, y: %f",x(0),x(1));
+
+
+
+
+
+
+		};
 	public:
 		void scanCallback(const sensor_msgs::LaserScanConstPtr& Scan)
 		{
@@ -306,7 +407,14 @@ int main(int argc, char* argv[])
 	arlo_navigation::clearleftlaneRequest req;
 	arlo_navigation::clearleftlaneResponse res;
 
+	////For debugging only
+	marker_pub = n.advertise<visualization_msgs::Marker>("Circle", 1);
 
+
+
+
+
+	/////
 
 
 	while(!ac.waitForServer(ros::Duration(5.0))){
@@ -315,7 +423,7 @@ int main(int argc, char* argv[])
 	ros::Rate r=1;
 
 	while(n.ok()){
-
+		marker_pub.publish(marker);
 		//switching left lane on and off
 		if(removeblockage)
 		{
