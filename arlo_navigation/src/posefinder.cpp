@@ -47,6 +47,13 @@ double roadangle;
 double robot_diameter=0.4;
 double furthestpoint;
 
+struct CIRCLE
+	{
+	double x;
+	double y;
+	double r;
+	};
+
 move_base_msgs::MoveBaseGoal goal;
 ros::Publisher pub;
 ros::Publisher marker_pub;
@@ -65,6 +72,8 @@ std::string scanframe;
 std::string roadframe;
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
+
+
 //should be reference???
 double polynomial(double x, road_detection::Line::_polynomial_type::_a_type a) {
 	double xp = 1;
@@ -76,7 +85,45 @@ double polynomial(double x, road_detection::Line::_polynomial_type::_a_type a) {
 	}
 	return result;
 }
-void lastsquarecircle(road_detection::Line &Line,double &xc,double &yc, double &r)
+void circleintersect(struct CIRCLE c1,struct CIRCLE c2, double searchrad)
+	{
+		// evaluating the circles and finding a point
+		//since we are only determining it in the base_footprint frame we dont need to think about the robot position
+		//Based on Paul Bourke Circle Spere Paper
+		double a,d,h;
+		geometry_msgs::Point32 p2,p31,p32,p41,p42,pres;
+
+		//intersect with left circle
+		d=sqrt(pow(c1.x,2)+pow(c1.y,2));
+		a=(pow(searchrad,2)-pow(c1.r,2)+pow(d,2))/2*d;
+		h=sqrt(pow(c1.r,2)-pow(a,2));
+
+		p2.x=c1.x*a/d;
+		p2.y=c1.y*a/d;
+		p31.x=p2.x+(h*c1.y)/d;
+		p31.y=p2.y-(h*c1.x)/d;
+		p32.x=p2.x-(h*c1.y)/d;
+		p32.y=p2.y+(h*c1.x)/d;
+
+
+
+		//intersect with right circle
+		d=sqrt(pow(c2.x,2)+pow(c2.y,2));
+		a=(pow(searchrad,2)-pow(c2.r,2)+pow(d,2))/2*d;
+		h=sqrt(pow(c2.r,2)-pow(a,2));
+
+		p2.x=c2.x*a/d;
+		p2.y=c2.y*a/d;
+		p41.x=p2.x+(h*c2.y)/d;
+		p41.y=p2.y-(h*c2.x)/d;
+		p42.x=p2.x-(h*c2.y)/d;
+		p42.y=p2.y+(h*c2.x)/d;
+		//check which intersect is closer to the current trajectory of the robot
+		if (atan2(p31.y,p31.x)>atan2(p32.y,p32.x)) p31=p32;
+		//since this
+		if (atan2(p41.y,p41.x)<atan2(p42.y,p42.x)) p41=p42;
+	}
+void lastsquarecircle(road_detection::Line &Line,struct CIRCLE &circle)
 
 	{
 		//least square circle approximation as discribed by Randy Bullock in his Least-Squares Circle Fit Paper
@@ -128,39 +175,15 @@ void lastsquarecircle(road_detection::Line &Line,double &xc,double &yc, double &
 
 		//multiplying b with the inverse of m to solve the linear equation system since m*x=b so x=m⁻¹*b
 		x=m*b;
+
 		//calculating radius
-		r=sqrt(pow(x(0),2)+pow(x(1),2)+(Suu+Svv)/size);
+		circle.r=sqrt(pow(x(0),2)+pow(x(1),2)+(Suu+Svv)/size);
 
 		//traslating into original coordinates
-		xc=x(0)+xa;
-		yc=x(1)+ya;
+		circle.x=x(0)+xa;
+		circle.y=x(1)+ya;
 
-		/////////only for dubugging
-		//publishing estimated circle
-		marker.header.frame_id = "base_footprint";
-		marker.header.stamp = ros::Time::now();
-		marker.ns = "basic_shapes";
-		marker.id = 0;
-		marker.type = visualization_msgs::Marker::CYLINDER;
-		marker.action = visualization_msgs::Marker::ADD;
-		marker.pose.position.x=xc;
-		marker.pose.position.y=yc;
-		marker.pose.position.z = 0;
-		marker.pose.orientation.x = 0.0;
-		marker.pose.orientation.y = 0.0;
-		marker.pose.orientation.z = 0.0;
-		marker.pose.orientation.w = 1.0;
-		marker.scale.x=r*2;
-		marker.scale.y=r*2;
-		marker.scale.z=1;
-		marker.scale.z = 0.0;
-		marker.color.r = 0.0f;
-		marker.color.g = 1.0f;
-		marker.color.b = 0.0f;
-		marker.color.a = 0.5;
-		marker.lifetime = ros::Duration();
-		//ROS_INFO("x: %f, y: %f",x(0),x(1));
-		///////
+
 
 	}
 
@@ -380,14 +403,13 @@ int main(int argc, char* argv[])
 	while(!ac.waitForServer(ros::Duration(5.0))){
 		ROS_INFO("Waiting for the move_base action server to come up");
 	}
-	ros::Rate rate=1;
-	double x,y,r;
+	ros::Rate rate=0.5;
+
+	//parameters for both circles
+	struct CIRCLE leftcircle,rightcircle;
 	while(n.ok()){
+		//enabling or disabling the blockage of the left lane
 		checkroadblockage();
-		lastsquarecircle(LeftLine,x,y,r);
-		marker_pub.publish(marker);
-		lastsquarecircle(RightLine,x,y,r);
-		marker_pub2.publish(marker);
 		//switching left lane on and off
 		if(removeblockage)
 		{
@@ -400,6 +422,49 @@ int main(int argc, char* argv[])
 			client.call(req,res);
 		}
 
+
+		//predicting the future trace of the lanes with approximated circles
+		lastsquarecircle(RightLine,leftcircle);
+		//lastsquarecircle(RightLine,rightcircle);
+		/////////only for dubugging
+		//publishing estimated circle
+		marker.header.frame_id = "base_footprint";
+		marker.header.stamp = LeftLine.header.stamp;
+		marker.ns = "basic_shapes";
+		marker.id = 0;
+		marker.type = visualization_msgs::Marker::CYLINDER;
+		marker.action = visualization_msgs::Marker::ADD;
+		marker.pose.position.x=leftcircle.x;
+		marker.pose.position.y=leftcircle.y;
+		marker.pose.position.z = 0;
+		marker.pose.orientation.x = 0.0;
+		marker.pose.orientation.y = 0.0;
+		marker.pose.orientation.z = 0.0;
+		marker.pose.orientation.w = 1.0;
+		marker.scale.x=leftcircle.r*2;
+		marker.scale.y=leftcircle.r*2;
+		marker.scale.z=1;
+		marker.color.r = 0.0f;
+		marker.color.g = 1.0f;
+		marker.color.b = 0.0f;
+		marker.color.a = 0.5;
+		marker.lifetime = ros::Duration();
+		//ROS_INFO("x: %f, y: %f",x(0),x(1));
+		///////
+		marker_pub.publish(marker);
+//		marker.header.stamp = RightLine.header.stamp;
+//		marker.pose.position.x=rightcircle.x;
+//		marker.pose.position.y=rightcircle.y;
+//		marker.scale.x=rightcircle.r*2;
+//		marker.scale.y=rightcircle.r*2;
+//		marker_pub2.publish(marker);
+		//lastsquarecircle(RightLine,rightcircle);
+
+		//intersecting both circles and finding the point in the middle
+		//circleintersect(leftcircle,rightcircle,searchradius);
+
+
+		//sending goal to move_base via actionserver
 //		ac.waitForResult(ros::Duration(5));
 //		if(goaltrigger)
 //		{
