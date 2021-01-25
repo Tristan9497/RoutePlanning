@@ -2,7 +2,6 @@
 #include "nav_msgs/Odometry.h"
 #include <Eigen/Dense>
 
-
 //TF
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include <tf2_ros/transform_listener.h>
@@ -52,8 +51,8 @@ struct CIRCLE
 	double x;
 	double y;
 	double r;
+	ros::Time Stamp;
 	};
-
 move_base_msgs::MoveBaseGoal goal;
 ros::Publisher pub;
 ros::Publisher marker_pub;
@@ -71,8 +70,6 @@ road_detection::Line RightLane;
 std::string scanframe;
 std::string roadframe;
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
-
-
 
 //should be reference???
 double polynomial(double x, road_detection::Line::_polynomial_type::_a_type a) {
@@ -123,13 +120,13 @@ void circleintersect(struct CIRCLE c1,struct CIRCLE c2, double searchrad)
 		//since this
 		if (atan2(p41.y,p41.x)<atan2(p42.y,p42.x)) p41=p42;
 	}
-void lastsquarecircle(road_detection::Line &Line,struct CIRCLE &circle)
+struct CIRCLE lastsquarecircle(road_detection::Line Line)
 
 	{
 		//least square circle approximation as discribed by Randy Bullock in his Least-Squares Circle Fit Paper
 		//takes a Point32 array and calculates the best fitting circle in x,y dimensions, returns the circle parameters xc,yc,r
 		//used to predict the upcoming road that cannot be seen by the camera
-
+		struct CIRCLE circle;
 		MatrixXd m(2,2);
 		Vector2d b;
 		Vector2d x;
@@ -141,49 +138,52 @@ void lastsquarecircle(road_detection::Line &Line,struct CIRCLE &circle)
 		//defining averages and parameters u,v that are the point coordinates relative to the average
 		double u,v,xa,ya=0;
 		//first the averages will be build
-		for (int i=0;i<size;i++)
-		{
-			xa+=Line.points.at(i).x;
-			ya+=Line.points.at(i).y;
+		if(size>0){
+			for (int i=0;i<size;i++)
+			{
+				xa+=Line.points.at(i).x;
+				ya+=Line.points.at(i).y;
+			}
+			xa=xa/size;
+			ya=ya/size;
+
+			//new the Sums need to be calculated
+			for (int i=0;i<size;i++)
+			{
+				u=Line.points.at(i).x-xa;
+				v=Line.points.at(i).y-ya;
+
+				Suu+=u*u;
+				Svv+=v*v;
+				Suv+=u*v;
+				Suvv+=u*v*v;
+				Svuu+=v*u*u;
+				Suuu+=u*u*u;
+				Svvv+=v*v*v;
+			}
+			m(0,0)=Suu;
+			m(0,1)=Suv;
+			m(1,0)=Suv;
+			m(1,1)=Svv;
+
+			m=m.inverse();
+
+			b(0)=0.5*(Suuu+Suvv);
+			b(1)=0.5*(Svvv+Svuu);
+
+			//multiplying b with the inverse of m to solve the linear equation system since m*x=b so x=m⁻¹*b
+			x=m*b;
+
+			//calculating radius
+			circle.r=sqrt(pow(x(0),2)+pow(x(1),2)+(Suu+Svv)/size);
+
+			//translating into original coordinates
+			circle.x=x(0)+xa;
+			circle.y=x(1)+ya;
+
 		}
-		xa=xa/size;
-		ya=ya/size;
-
-		//new the Sums need to be calculated
-		for (int i=0;i<size;i++)
-		{
-			u=Line.points.at(i).x-xa;
-			v=Line.points.at(i).y-ya;
-
-			Suu+=u*u;
-			Svv+=v*v;
-			Suv+=u*v;
-			Suvv+=u*v*v;
-			Svuu+=v*u*u;
-			Suuu+=u*u*u;
-			Svvv+=v*v*v;
-		}
-		m(0,0)=Suu;
-		m(0,1)=Suv;
-		m(1,0)=Suv;
-		m(1,1)=Svv;
-
-		m=m.inverse();
-
-		b(0)=0.5*(Suuu+Suvv);
-		b(1)=0.5*(Svvv+Svuu);
-
-		//multiplying b with the inverse of m to solve the linear equation system since m*x=b so x=m⁻¹*b
-		x=m*b;
-
-		//calculating radius
-		circle.r=sqrt(pow(x(0),2)+pow(x(1),2)+(Suu+Svv)/size);
-
-		//traslating into original coordinates
-		circle.x=x(0)+xa;
-		circle.y=x(1)+ya;
-
-
+		circle.Stamp=Line.header.stamp;
+		return circle;
 
 	}
 
@@ -197,8 +197,6 @@ void checkroadblockage(void)
 		bool obstacleright=false;
 		bool obstacleleft=false;
 		//furthestpoint=sqrt(pow(LeftLine.points.back().x,2)+pow(LeftLine.points.back().y,2));
-
-		searchradius=furthestpoint+robot_diameter;
 
 		if(scan.size()>0)
 		{
@@ -224,7 +222,7 @@ void checkroadblockage(void)
 						transformStamped = tfBuffer.lookupTransform( roadframe,Test.header.frame_id,Test.header.stamp,ros::Duration(1));
 
 						tf2::doTransform(Test,Test, transformStamped);
-						pub.publish(Test);
+						//pub.publish(Test);
 						//check whether the point is in the lane by projecting it on to the 3 roadlines and comparing their y values
 						//exact calculation not necessary since road makes wide curves
 						if(polynomial(Test.point.x, LeftLine.polynomial.a)>Test.point.y && polynomial(Test.point.x, MiddleLine.polynomial.a)<Test.point.y)
@@ -283,9 +281,74 @@ void callback(arlo_navigation::posefinderConfig &config, uint32_t level) {
 	searchangle=config.Searchangle;
 	costthreshold=config.Costthreshold;
 }
-void constructgoal(road_detection::Line &Line)
+void constructgoalbyprediction(struct CIRCLE c1,struct CIRCLE c2)
 	{
+	//angles to robot origin
+
+
 		tf2::Quaternion myQuaternion;
+		double a1=atan2(-c1.y,-c1.x);
+		double a2=atan2(-c2.y,-c2.x);
+		double x,y,z,c1x,c2x,c1y,c2y,dist,m,m1,m2=0;
+		geometry_msgs::PointStamped Test;
+		Test.header.frame_id="base_footprint";
+		Test.header.stamp=ros::Time::now();
+		if(a1>0) a1-=M_PI/5;
+		else a1+=M_PI/5;
+		if(a2>0) a2-=M_PI/5;
+		else a2+=M_PI/5;
+		c1x=c1.x+c1.r*cos(a1);
+		c1y=c1.y+c1.r*sin(a1);
+		c2x=c2.x+c2.r*cos(a2);
+		c2y=c2.y+c2.r*sin(a2);
+		//find the point at three quaters so its in the middle of the right lane
+		x=(c1x+3*c2x)/4;
+		y=(c1y+3*c2y)/4;
+		dist=sqrt(x*x+y*y);
+		if(dist>4){
+			x=4*x/dist;
+			y=4*y/dist;
+		}
+
+		//Gradient of the Goal must be calculated using the derivative of a circle
+		//since we weighted the position this gets weighted equaly
+		if(y>0){
+			//left curve
+			m1=(c1x)/sqrt(c1.r*c1.r-c1x*c1x);
+			m2=(c2x)/sqrt(c2.r*c2.r-c2x*c2x);
+		}
+		else
+		{
+			//right curve
+			m1=-(c1x)/sqrt(c1.r*c1.r-c1x*c1x);
+			m2=-(c2x)/sqrt(c2.r*c2.r-c2x*c2x);
+		}
+		m=(m1+3*m2)/4;
+		//ROS_INFO("%f",m);
+		Test.point.x=x;
+		Test.point.y=y;
+		Test.point.z=0;
+		goaltrigger=true;
+		goal.target_pose.header.frame_id="base_footprint";
+		goal.target_pose.header.stamp = c1.Stamp;
+		goal.target_pose.pose.position.x=x;
+		goal.target_pose.pose.position.y=y;
+		goal.target_pose.pose.position.z=0;
+		myQuaternion.setRPY( 0, 0, atan(m) );
+		myQuaternion=myQuaternion.normalized();
+		goal.target_pose.pose.orientation.x=myQuaternion.getX();
+		goal.target_pose.pose.orientation.y=myQuaternion.getY();
+		goal.target_pose.pose.orientation.z=myQuaternion.getZ();
+		goal.target_pose.pose.orientation.w=myQuaternion.getW();
+		//TODO fix goal angle and tf transform for circle sinto the past
+
+
+
+
+	}
+void constructgoal(road_detection::Line Line)
+	{
+	tf2::Quaternion myQuaternion;
 		int j,size;
 		float angle,x,y;
 		goaltrigger=true;
@@ -314,11 +377,12 @@ class Listener
 	public:
 		void roadCallback(const road_detection::RoadConstPtr& road)
 		{
-			roadframe=road->header.frame_id.c_str();
+
 			//DataSync so each Line has always the newest data
 			if(road->laneLeft.points.size()>0)
 			{
 				LeftLane=road->laneLeft;
+
 			}
 			if(road->laneRight.points.size()>0)
 			{
@@ -337,7 +401,8 @@ class Listener
 			{
 				MiddleLine=road->lineMiddle;
 			}
-			roadangle=aproxroadangle();
+			searchradius=road->laneWidthLeft+ 0.6*road->laneWidthRight;
+			//roadangle=aproxroadangle();
 		};
 	public:
 		void scanCallback(const sensor_msgs::LaserScanConstPtr& Scan)
@@ -424,12 +489,13 @@ int main(int argc, char* argv[])
 
 
 		//predicting the future trace of the lanes with approximated circles
-		lastsquarecircle(RightLine,leftcircle);
-		//lastsquarecircle(RightLine,rightcircle);
+		leftcircle=lastsquarecircle(LeftLine);
+		rightcircle=lastsquarecircle(RightLine);
+		constructgoalbyprediction(leftcircle,rightcircle);
 		/////////only for dubugging
 		//publishing estimated circle
 		marker.header.frame_id = "base_footprint";
-		marker.header.stamp = LeftLine.header.stamp;
+		marker.header.stamp = leftcircle.Stamp;
 		marker.ns = "basic_shapes";
 		marker.id = 0;
 		marker.type = visualization_msgs::Marker::CYLINDER;
@@ -452,32 +518,31 @@ int main(int argc, char* argv[])
 		//ROS_INFO("x: %f, y: %f",x(0),x(1));
 		///////
 		marker_pub.publish(marker);
-//		marker.header.stamp = RightLine.header.stamp;
-//		marker.pose.position.x=rightcircle.x;
-//		marker.pose.position.y=rightcircle.y;
-//		marker.scale.x=rightcircle.r*2;
-//		marker.scale.y=rightcircle.r*2;
-//		marker_pub2.publish(marker);
-		//lastsquarecircle(RightLine,rightcircle);
+		marker.header.stamp = rightcircle.Stamp;
+		marker.pose.position.x=(3*rightcircle.x+leftcircle.x)/4;
+		marker.pose.position.y=(3*rightcircle.y+leftcircle.y)/4;
+		marker.scale.x=(3*rightcircle.r+leftcircle.r)/2;
+		marker.scale.y=(3*rightcircle.r+leftcircle.r)/2;
+		marker_pub2.publish(marker);
 
 		//intersecting both circles and finding the point in the middle
 		//circleintersect(leftcircle,rightcircle,searchradius);
 
 
 		//sending goal to move_base via actionserver
-//		ac.waitForResult(ros::Duration(5));
-//		if(goaltrigger)
-//		{
-//			ac.sendGoal(goal);
-//
-//
-//			ROS_INFO("goal send");
-//
-//		}
-//		else
-//		{
-//			ac.cancelAllGoals();
-//		}
+		//ac.waitForResult(ros::Duration(5));
+		if(goaltrigger)
+		{
+			ac.sendGoal(goal);
+
+
+			ROS_INFO("goal send");
+
+		}
+		else
+		{
+			ac.cancelAllGoals();
+		}
 
     //TODO maybe 3 different point clouds for each line of the track
 		ros::spinOnce();
