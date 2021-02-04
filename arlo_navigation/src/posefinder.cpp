@@ -53,6 +53,12 @@ struct CIRCLE
 	double r;
 	ros::Time Stamp;
 	};
+struct LINE
+	{
+	double m;
+	double b;
+	ros::Time Stamp;
+	};
 move_base_msgs::MoveBaseGoal goal;
 ros::Publisher pub;
 ros::Publisher marker_pub;
@@ -120,7 +126,33 @@ void circleintersect(struct CIRCLE c1,struct CIRCLE c2, double searchrad)
 		//since this
 		if (atan2(p41.y,p41.x)<atan2(p42.y,p42.x)) p41=p42;
 	}
-struct CIRCLE lastsquarecircle(road_detection::Line Line)
+struct LINE leastsquareline(road_detection::Line Line)
+	{
+		//least square line aproximation https://www.mathsisfun.com/data/least-squares-regression.html
+		struct LINE line;
+		double Sx,Sy,Sxx,Sxy,N;
+		N=Line.points.size();
+		for(int i=0;i<N;i++)
+		{
+			Sx+=Line.points.at(i).x;
+			Sy+=Line.points.at(i).y;
+			Sxy+=Line.points.at(i).x+Line.points.at(i).y;
+			Sxx+=Line.points.at(i).x*2;
+		}
+		try{
+			line.m=((N*Sxy)-(Sx*Sy))/((N*Sxx)-pow(Sx,2));
+			line.b=(Sy-line.m*Sx)/N;
+			line.Stamp = Line.header.stamp;
+			return line;
+		}
+		catch(...)
+		{
+			//Division by zero occured caused by all points having the same x
+			// In this case we can't return anything, but this shouldn't
+			//ever occur in this application
+		}
+	}
+struct CIRCLE leastsquarecircle(road_detection::Line Line)
 
 	{
 		//least square circle approximation as discribed by Randy Bullock in his Least-Squares Circle Fit Paper
