@@ -40,7 +40,7 @@ double searchradius=5;
 double searchangle=60*M_PI/180;
 double costthreshold=100;
 bool Rightside;
-bool goaltrigger=false;
+
 bool removeblockage=false;
 double roadangle;
 double robot_diameter=0.4;
@@ -59,11 +59,9 @@ struct LINE
 	double b;
 	ros::Time Stamp;
 	};
-move_base_msgs::MoveBaseGoal goal;
+
+
 ros::Publisher pub;
-ros::Publisher marker_pub;
-ros::Publisher marker_pub2;
-ros::Publisher marker_pub3;
 std::vector<geometry_msgs::PointStamped> scan;
 geometry_msgs::Pose currentpose;
 
@@ -89,102 +87,6 @@ double polynomial(double x, road_detection::Line::_polynomial_type::_a_type a) {
 	}
 	return result;
 }
-
-struct LINE leastsquareline(road_detection::Line Line)
-	{
-		//least square line aproximation https://www.mathsisfun.com/data/least-squares-regression.html
-		struct LINE line;
-		double Sx,Sy,Sxx,Sxy,N;
-		N=Line.points.size();
-		for(int i=0;i<N;i++)
-		{
-			Sx+=Line.points.at(i).x;
-			Sy+=Line.points.at(i).y;
-			Sxy+=Line.points.at(i).x*Line.points.at(i).y;
-			Sxx+=Line.points.at(i).x*Line.points.at(i).x;
-		}
-		try{
-			line.m=((N*Sxy)-(Sx*Sy))/((N*Sxx)-pow(Sx,2));
-			line.b=(Sy-line.m*Sx)/N;
-			line.Stamp = Line.header.stamp;
-			return line;
-		}
-		catch(...)
-		{
-			//Division by zero occured caused by all points having the same x
-			//or b the Input-Line not containing any point
-			// In this case we can't return anything, but this shouldn't
-			//ever occur in this application
-
-			//C++ doesn't offer a division by zero exception thats why we are catching all of them
-		}
-	}
-struct CIRCLE leastsquarecircle(road_detection::Line Line)
-
-	{
-		//least square circle approximation as discribed by Randy Bullock in his Least-Squares Circle Fit Paper
-		//takes a Point32 array and calculates the best fitting circle in x,y dimensions, returns the circle parameters xc,yc,r
-		//used to predict the upcoming road that cannot be seen by the camera
-		struct CIRCLE circle;
-		MatrixXd m(2,2);
-		Vector2d b;
-		Vector2d x;
-		//define size so we don't have to do this all the time
-		int size=Line.points.size();
-		//defining sums
-		double Suuu,Svvv,Suvv,Svuu,Suv,Suu,Svv=0;
-
-		//defining averages and parameters u,v that are the point coordinates relative to the average
-		double u,v,xa,ya=0;
-		//first the averages will be build
-		if(size>0){
-			for (int i=0;i<size;i++)
-			{
-				xa+=Line.points.at(i).x;
-				ya+=Line.points.at(i).y;
-			}
-			xa=xa/size;
-			ya=ya/size;
-
-			//new the Sums need to be calculated
-			for (int i=0;i<size;i++)
-			{
-				u=Line.points.at(i).x-xa;
-				v=Line.points.at(i).y-ya;
-
-				Suu+=u*u;
-				Svv+=v*v;
-				Suv+=u*v;
-				Suvv+=u*v*v;
-				Svuu+=v*u*u;
-				Suuu+=u*u*u;
-				Svvv+=v*v*v;
-			}
-			m(0,0)=Suu;
-			m(0,1)=Suv;
-			m(1,0)=Suv;
-			m(1,1)=Svv;
-
-			m=m.inverse();
-
-			b(0)=0.5*(Suuu+Suvv);
-			b(1)=0.5*(Svvv+Svuu);
-
-			//multiplying b with the inverse of m to solve the linear equation system since m*x=b so x=m⁻¹*b
-			x=m*b;
-
-			//calculating radius
-			circle.r=sqrt(pow(x(0),2)+pow(x(1),2)+(Suu+Svv)/size);
-
-			//translating into original coordinates
-			circle.x=x(0)+xa;
-			circle.y=x(1)+ya;
-
-		}
-		circle.Stamp=Line.header.stamp;
-		return circle;
-
-	}
 
 void checkroadblockage(void)
 	{
@@ -256,23 +158,6 @@ void checkroadblockage(void)
 			}
 		}
 	}
-double aproxroadangle(void)
-	{
-	//approximate the road width based on the angle of the road relative to the robots direction
-	//TODO check reliability
-		double dx=	((LeftLine.points.at(1).x-LeftLine.points.at(0).x)+
-					(RightLine.points.at(1).x-RightLine.points.at(0).x)+
-					(MiddleLine.points.at(1).x-MiddleLine.points.at(0).x)+
-					(LeftLane.points.at(1).x-LeftLane.points.at(0).x)+
-					(RightLane.points.at(1).x-RightLane.points.at(0).x))/5;
-		double dy=	((LeftLine.points.at(1).y-LeftLine.points.at(0).y)+
-					(RightLine.points.at(1).y-RightLine.points.at(0).y)+
-					(MiddleLine.points.at(1).y-MiddleLine.points.at(0).y)+
-					(LeftLane.points.at(1).y-LeftLane.points.at(0).y)+
-					(RightLane.points.at(1).y-RightLane.points.at(0).y))/5;
-
-		return atan(dy/dx);
-	}
 
 void callback(arlo_navigation::posefinderConfig &config, uint32_t level) {
 	Rightside=config.Side;
@@ -280,97 +165,6 @@ void callback(arlo_navigation::posefinderConfig &config, uint32_t level) {
 	searchangle=config.Searchangle;
 	costthreshold=config.Costthreshold;
 }
-void constructgoalbycircles(struct CIRCLE c1,struct CIRCLE c2, double dist)
-	{
-
-		tf2::Quaternion myQuaternion;
-
-		//polar angles from circle origin to position of robot
-		//since we are in the base_footprint frame robot is at 0,0
-		double a1=atan2(-c1.y,-c1.x);
-		double a2=atan2(-c2.y,-c2.x);
-		double x,y,z,c1x,c2x,c1y,c2y,d,m,m1,m2=0;
-
-
-		//calc polar angle of new point for both circles
-		//calc orientation of goal
-		if(c1.y>0)
-		{
-			a1+=M_PI/3;
-			m1=a1+M_PI/2;
-		}
-		else
-		{
-		a1-=M_PI/3;
-		m1=a1-M_PI/2;
-		}
-		if(c2.y>0)
-		{
-			a2+=M_PI/3;
-			m2=a2+M_PI/2;
-		}
-		else
-		{
-		a2-=M_PI/3;
-		m2=a2-M_PI/2;
-		}
-
-		//calc cartesian coordinates
-		c1x=c1.x+c1.r*cos(a1);
-		c1y=c1.y+c1.r*sin(a1);
-		c2x=c2.x+c2.r*cos(a2);
-		c2y=c2.y+c2.r*sin(a2);
-
-		//find the point at three quaters so its in the middle of the right lane
-		x=(c1x+3*c2x)/4;
-		y=(c1y+3*c2y)/4;
-		m=(m1+3*m2)/4;
-
-		goaltrigger=true;
-		goal.target_pose.header.frame_id="base_footprint";
-		goal.target_pose.header.stamp = c1.Stamp;
-		goal.target_pose.pose.position.x=x;
-		goal.target_pose.pose.position.y=y;
-		goal.target_pose.pose.position.z=0;
-		myQuaternion.setRPY( 0, 0, m );
-		myQuaternion=myQuaternion.normalized();
-		goal.target_pose.pose.orientation.x=myQuaternion.getX();
-		goal.target_pose.pose.orientation.y=myQuaternion.getY();
-		goal.target_pose.pose.orientation.z=myQuaternion.getZ();
-		goal.target_pose.pose.orientation.w=myQuaternion.getW();
-
-	}
-void constructgoalbylines(struct LINE l1,struct LINE l2, double dist)
-	{
-		tf2::Quaternion myQuaternion;
-
-		double l1x,l2x,l1y,l2y;
-		double a1,a2;
-		double x,y,m;
-		a1=atan(l1.m);
-		a2=atan(l2.m);
-		l1x=x=cos(a1)*(dist+cos(M_PI/2-a1)*l1.b);
-		l1y=l1x*l1.m+l1.b;
-		l2x=x=cos(a2)*(dist+cos(M_PI/2-a2)*l2.b);
-		l2y=l2x*l2.m+l2.b;
-
-		x=(l1x+3*l2x)/4;
-		y=(l1y+3*l2y)/4;
-		m=(l1.m+3*l2.m)/4;
-
-		goal.target_pose.header.frame_id="base_footprint";
-		goal.target_pose.header.stamp = l1.Stamp;
-		goal.target_pose.pose.position.x=x;
-		goal.target_pose.pose.position.y=y;
-		goal.target_pose.pose.position.z=0;
-		myQuaternion.setRPY( 0, 0, atan(m) );
-		myQuaternion=myQuaternion.normalized();
-		goal.target_pose.pose.orientation.x=myQuaternion.getX();
-		goal.target_pose.pose.orientation.y=myQuaternion.getY();
-		goal.target_pose.pose.orientation.z=myQuaternion.getZ();
-		goal.target_pose.pose.orientation.w=myQuaternion.getW();
-
-	}
 
 
 class Drawer
@@ -513,6 +307,298 @@ class Listener
 				}
     };
 	};
+class GoalFinder
+	{
+
+private:
+	int Finder=0;
+	bool goaltrigger=true;//might be neccessary to handle error scenarios
+
+	Drawer draw;
+	//functions to approximate the future road based on least squared error calculations
+	struct LINE leastsquareline(road_detection::Line Line)
+		{
+			//least square line aproximation https://www.mathsisfun.com/data/least-squares-regression.html
+			struct LINE line;
+			double Sx,Sy,Sxx,Sxy,N;
+			N=Line.points.size();
+			for(int i=0;i<N;i++)
+			{
+				Sx+=Line.points.at(i).x;
+				Sy+=Line.points.at(i).y;
+				Sxy+=Line.points.at(i).x*Line.points.at(i).y;
+				Sxx+=Line.points.at(i).x*Line.points.at(i).x;
+			}
+			try{
+				line.m=((N*Sxy)-(Sx*Sy))/((N*Sxx)-pow(Sx,2));
+				line.b=(Sy-line.m*Sx)/N;
+				line.Stamp = Line.header.stamp;
+				return line;
+			}
+			catch(...)
+			{
+				//Division by zero occured caused by all points having the same x
+				//or b the Input-Line not containing any point
+				// In this case we can't return anything, but this shouldn't
+				//ever occur in this application
+
+				//C++ doesn't offer a division by zero exception thats why we are catching all of them
+			}
+		}
+	struct CIRCLE leastsquarecircle(road_detection::Line Line)
+
+		{
+			//least square circle approximation as discribed by Randy Bullock in his Least-Squares Circle Fit Paper
+			//takes a Point32 array and calculates the best fitting circle in x,y dimensions, returns the circle parameters xc,yc,r
+			//used to predict the upcoming road that cannot be seen by the camera
+			struct CIRCLE circle;
+			MatrixXd m(2,2);
+			Vector2d b;
+			Vector2d x;
+			//define size so we don't have to do this all the time
+			int size=Line.points.size();
+			//defining sums
+			double Suuu,Svvv,Suvv,Svuu,Suv,Suu,Svv=0;
+
+			//defining averages and parameters u,v that are the point coordinates relative to the average
+			double u,v,xa,ya=0;
+			//first the averages will be build
+			if(size>0){
+				for (int i=0;i<size;i++)
+				{
+					xa+=Line.points.at(i).x;
+					ya+=Line.points.at(i).y;
+				}
+				xa=xa/size;
+				ya=ya/size;
+
+				//new the Sums need to be calculated
+				for (int i=0;i<size;i++)
+				{
+					u=Line.points.at(i).x-xa;
+					v=Line.points.at(i).y-ya;
+
+					Suu+=u*u;
+					Svv+=v*v;
+					Suv+=u*v;
+					Suvv+=u*v*v;
+					Svuu+=v*u*u;
+					Suuu+=u*u*u;
+					Svvv+=v*v*v;
+				}
+				m(0,0)=Suu;
+				m(0,1)=Suv;
+				m(1,0)=Suv;
+				m(1,1)=Svv;
+
+				m=m.inverse();
+
+				b(0)=0.5*(Suuu+Suvv);
+				b(1)=0.5*(Svvv+Svuu);
+
+				//multiplying b with the inverse of m to solve the linear equation system since m*x=b so x=m⁻¹*b
+				x=m*b;
+
+				//calculating radius
+				circle.r=sqrt(pow(x(0),2)+pow(x(1),2)+(Suu+Svv)/size);
+
+				//translating into original coordinates
+				circle.x=x(0)+xa;
+				circle.y=x(1)+ya;
+
+			}
+			circle.Stamp=Line.header.stamp;
+			return circle;
+
+		}
+
+	//goal constructors for different road approximations
+	void constructgoalbycircles(struct CIRCLE c1,struct CIRCLE c2, double dist, double angle)
+		{
+			//angle is in radiant
+			tf2::Quaternion myQuaternion;
+
+			//polar angles from circle origin to position of robot
+			//since we are in the base_footprint frame robot is at 0,0
+			double a1=atan2(-c1.y,-c1.x);
+			double a2=atan2(-c2.y,-c2.x);
+			double x,y,z,c1x,c2x,c1y,c2y,d,m,m1,m2=0;
+
+
+			//if the approximated circles are very large
+			//the covered distance is bigger than the distance we want to plan ahead
+			//so we need to check that and adjust the angle accordingly
+			if(((c1.r+3*c2.r)/4*angle)>dist)angle=dist*4/(c1.r+3*c2.r);
+
+			//calc polar angle of new point for both circles
+			//calc orientation of goal
+			if(c1.y>0)
+			{
+				a1+=angle;
+				m1=a1+M_PI/2;
+			}
+			else
+			{
+			a1-=angle;
+			m1=a1-M_PI/2;
+			}
+			if(c2.y>0)
+			{
+				a2+=angle;
+				m2=a2+M_PI/2;
+			}
+			else
+			{
+			a2-=angle;
+			m2=a2-M_PI/2;
+			}
+
+			//calc cartesian coordinates
+			c1x=c1.x+c1.r*cos(a1);
+			c1y=c1.y+c1.r*sin(a1);
+			c2x=c2.x+c2.r*cos(a2);
+			c2y=c2.y+c2.r*sin(a2);
+
+			//find the point at three quaters so its in the middle of the right lane
+			x=(c1x+3*c2x)/4;
+			y=(c1y+3*c2y)/4;
+			m=(m1+3*m2)/4;
+
+			goaltrigger=true;
+			goal.target_pose.header.frame_id="base_footprint";
+			goal.target_pose.header.stamp = c1.Stamp;
+			goal.target_pose.pose.position.x=x;
+			goal.target_pose.pose.position.y=y;
+			goal.target_pose.pose.position.z=0;
+			myQuaternion.setRPY( 0, 0, m );
+			myQuaternion=myQuaternion.normalized();
+			goal.target_pose.pose.orientation.x=myQuaternion.getX();
+			goal.target_pose.pose.orientation.y=myQuaternion.getY();
+			goal.target_pose.pose.orientation.z=myQuaternion.getZ();
+			goal.target_pose.pose.orientation.w=myQuaternion.getW();
+
+		}
+	void constructgoalbylines(struct LINE l1,struct LINE l2, double dist)
+		{
+			tf2::Quaternion myQuaternion;
+
+			double l1x,l2x,l1y,l2y;
+			double a1,a2,off1,off2;
+			double x,y,m;
+
+
+			//geometric calculations to find point on crooked line in the right distance
+			//if robot is turned on the road roadline will become so slanted that calulating with x only
+			//will be inaccurate
+			a1=atan(l1.m);
+			a2=atan(l2.m);
+			off1=cos(M_PI/2-a1)*l1.b;
+			off2=cos(M_PI/2-a2)*l2.b;
+			if(l1.m<0)l1x=x=cos(a1)*(dist+off1);
+			else l1x=x=cos(a1)*(dist-off1);
+			if(l2.m<0)l2x=x=cos(a2)*(dist+off2);
+			else l2x=x=cos(a2)*(dist-off2);
+			l1y=l1x*l1.m+l1.b;
+			l2y=l2x*l2.m+l2.b;
+
+			//find goal at ratio between both points
+			x=(l1x+3*l2x)/4;
+			y=(l1y+3*l2y)/4;
+			m=(l1.m+3*l2.m)/4;
+
+			goal.target_pose.header.frame_id="base_footprint";
+			goal.target_pose.header.stamp = l1.Stamp;
+			goal.target_pose.pose.position.x=x;
+			goal.target_pose.pose.position.y=y;
+			goal.target_pose.pose.position.z=0;
+			myQuaternion.setRPY( 0, 0, atan(m) );
+			myQuaternion=myQuaternion.normalized();
+			goal.target_pose.pose.orientation.x=myQuaternion.getX();
+			goal.target_pose.pose.orientation.y=myQuaternion.getY();
+			goal.target_pose.pose.orientation.z=myQuaternion.getZ();
+			goal.target_pose.pose.orientation.w=myQuaternion.getW();
+
+		}
+	void sendgoal()
+	{
+		//sending goal to move_base via actionserver
+		//ac.waitForResult(ros::Duration(5));
+		if(goaltrigger)
+		{
+			ac.sendGoal(goal);
+
+		}
+		else
+		{
+			ac.cancelAllGoals();
+		}
+	}
+public:
+	//Tuneable parameters TODO dynamic recon
+	double CRadThresh=8;//The Threshold radius of the approximated circles if the circles get larger line approx will be used
+	double GoalDist=4;//The Distance, at which a goal should be found
+	double GoalAngle=M_PI/3;//The angle, we think we can trust the circle approximation
+	GoalFinder() : ac("move_base",true){}
+	MoveBaseClient ac;
+
+
+	move_base_msgs::MoveBaseGoal goal;
+	struct CIRCLE leftcircle,rightcircle;
+	struct LINE leftline, rightline;
+	//goal manager used to determine which goal needs to be build
+	void constructgoal()
+			{
+				leftcircle=leastsquarecircle(LeftLine);
+				rightcircle=leastsquarecircle(RightLine);
+				switch (Finder)
+				{
+					case 0:
+						//Circle approximation
+						if(LeftLine.points.size()>0&&LeftLine.points.size()>0){
+							//switching to line approx since straight is coming up
+							if(leftcircle.r>CRadThresh||rightcircle.r>CRadThresh)
+							{
+								Finder=1;
+								break;
+							}
+							else
+							{
+								constructgoalbycircles(leftcircle, rightcircle, GoalDist, GoalAngle);
+								sendgoal();
+								draw.circles(leftcircle,rightcircle);
+							}
+						}
+						break;
+
+					case 1:
+						//Line approximation
+						if(LeftLine.points.size()>0&&LeftLine.points.size()>0){
+							leftline=leastsquareline(LeftLine);
+							rightline=leastsquareline(RightLine);
+							//switching to circle approx since a corner is comming up
+							if(leftcircle.r<CRadThresh&&rightcircle.r<CRadThresh)
+							{
+								Finder=0;
+								break;
+							}
+							else
+							{
+								constructgoalbylines(leftline, rightline, GoalDist);
+								sendgoal();
+								draw.lines(leftline,rightline);
+							}
+						}
+						break;
+
+					case 2:
+						//Goal from Costmap TODO
+						if(LeftLine.points.size()>0&&LeftLine.points.size()>0){
+						}
+						break;
+				}
+			}
+	};
+
 
 int main(int argc, char* argv[])
 {
@@ -522,8 +608,8 @@ int main(int argc, char* argv[])
 
 	ros::NodeHandle n;
 	Listener listener;
-	Drawer draw;
-	MoveBaseClient ac("move_base", true);
+	GoalFinder finder;
+
 
 	dynamic_reconfigure::Server<arlo_navigation::posefinderConfig> server;
 	dynamic_reconfigure::Server<arlo_navigation::posefinderConfig>::CallbackType f;
@@ -538,13 +624,12 @@ int main(int argc, char* argv[])
 	arlo_navigation::clearleftlaneRequest req;
 	arlo_navigation::clearleftlaneResponse res;
 
-	while(!ac.waitForServer(ros::Duration(5.0))){
+	//wait untill the actionserverclient in the goalfinder finds the movebase server
+	while(!finder.ac.waitForServer(ros::Duration(5.0))){
 		ROS_INFO("Waiting for the move_base action server to come up");
 	}
-	ros::Rate rate=0.5;
 
-	//parameters for both circles
-	struct CIRCLE leftcircle,rightcircle;
+	ros::Rate rate=0.5;
 	while(n.ok()){
 		//enabling or disabling the blockage of the left lane
 		checkroadblockage();
@@ -560,51 +645,11 @@ int main(int argc, char* argv[])
 			client.call(req,res);
 		}
 
-		//predicting the future trace of the lanes with approximated circles
-		leftcircle=leastsquarecircle(LeftLine);
-		rightcircle=leastsquarecircle(RightLine);
+		//requesting the goalfinder to construct a new goal
+		finder.constructgoal();
 
-		if(leftcircle.r>8||rightcircle.r>8)
-		{
-			struct LINE leftline,rightline;
-			leftline=leastsquareline(LeftLine);
-			rightline=leastsquareline(RightLine);
-			//if the radii of the circles are larger than the specified threshold we treat them as lines to get more accurate goals for this edge case
-			constructgoalbylines(leftline, rightline, 4);
-			ROS_INFO("Constructed with lines");
-
-			draw.lines(leftline,rightline);
-
-		}
-		else
-		{
-			constructgoalbycircles(leftcircle,rightcircle,4);
-			draw.circles(leftcircle,rightcircle);
-			ROS_INFO("Constructed with circles");
-		}
-
-
-
-
-		//sending goal to move_base via actionserver
-		//ac.waitForResult(ros::Duration(5));
-		if(goaltrigger)
-		{
-			ac.sendGoal(goal);
-
-
-			ROS_INFO("goal send");
-
-		}
-		else
-		{
-			ac.cancelAllGoals();
-		}
-
-    //TODO maybe 3 different point clouds for each line of the track
 		ros::spinOnce();
 		rate.sleep();
-
 	}
 	return 0;
 }
