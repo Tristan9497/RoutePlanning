@@ -63,9 +63,10 @@ move_base_msgs::MoveBaseGoal goal;
 ros::Publisher pub;
 ros::Publisher marker_pub;
 ros::Publisher marker_pub2;
+ros::Publisher marker_pub3;
 std::vector<geometry_msgs::PointStamped> scan;
 geometry_msgs::Pose currentpose;
-visualization_msgs::Marker marker;
+
 //storing the latest road data for data loss cases
 road_detection::Line LeftLine;
 road_detection::Line RightLine;
@@ -88,44 +89,7 @@ double polynomial(double x, road_detection::Line::_polynomial_type::_a_type a) {
 	}
 	return result;
 }
-void circleintersect(struct CIRCLE c1,struct CIRCLE c2, double searchrad)
-	{
-		// evaluating the circles and finding a point
-		//since we are only determining it in the base_footprint frame we dont need to think about the robot position
-		//Based on Paul Bourke Circle Spere Paper
-		double a,d,h;
-		geometry_msgs::Point32 p2,p31,p32,p41,p42,pres;
 
-		//intersect with left circle
-		d=sqrt(pow(c1.x,2)+pow(c1.y,2));
-		a=(pow(searchrad,2)-pow(c1.r,2)+pow(d,2))/2*d;
-		h=sqrt(pow(c1.r,2)-pow(a,2));
-
-		p2.x=c1.x*a/d;
-		p2.y=c1.y*a/d;
-		p31.x=p2.x+(h*c1.y)/d;
-		p31.y=p2.y-(h*c1.x)/d;
-		p32.x=p2.x-(h*c1.y)/d;
-		p32.y=p2.y+(h*c1.x)/d;
-
-
-
-		//intersect with right circle
-		d=sqrt(pow(c2.x,2)+pow(c2.y,2));
-		a=(pow(searchrad,2)-pow(c2.r,2)+pow(d,2))/2*d;
-		h=sqrt(pow(c2.r,2)-pow(a,2));
-
-		p2.x=c2.x*a/d;
-		p2.y=c2.y*a/d;
-		p41.x=p2.x+(h*c2.y)/d;
-		p41.y=p2.y-(h*c2.x)/d;
-		p42.x=p2.x-(h*c2.y)/d;
-		p42.y=p2.y+(h*c2.x)/d;
-		//check which intersect is closer to the current trajectory of the robot
-		if (atan2(p31.y,p31.x)>atan2(p32.y,p32.x)) p31=p32;
-		//since this
-		if (atan2(p41.y,p41.x)<atan2(p42.y,p42.x)) p41=p42;
-	}
 struct LINE leastsquareline(road_detection::Line Line)
 	{
 		//least square line aproximation https://www.mathsisfun.com/data/least-squares-regression.html
@@ -136,8 +100,8 @@ struct LINE leastsquareline(road_detection::Line Line)
 		{
 			Sx+=Line.points.at(i).x;
 			Sy+=Line.points.at(i).y;
-			Sxy+=Line.points.at(i).x+Line.points.at(i).y;
-			Sxx+=Line.points.at(i).x*2;
+			Sxy+=Line.points.at(i).x*Line.points.at(i).y;
+			Sxx+=Line.points.at(i).x*Line.points.at(i).x;
 		}
 		try{
 			line.m=((N*Sxy)-(Sx*Sy))/((N*Sxx)-pow(Sx,2));
@@ -148,8 +112,11 @@ struct LINE leastsquareline(road_detection::Line Line)
 		catch(...)
 		{
 			//Division by zero occured caused by all points having the same x
+			//or b the Input-Line not containing any point
 			// In this case we can't return anything, but this shouldn't
 			//ever occur in this application
+
+			//C++ doesn't offer a division by zero exception thats why we are catching all of them
 		}
 	}
 struct CIRCLE leastsquarecircle(road_detection::Line Line)
@@ -313,56 +280,86 @@ void callback(arlo_navigation::posefinderConfig &config, uint32_t level) {
 	searchangle=config.Searchangle;
 	costthreshold=config.Costthreshold;
 }
-void constructgoalbyprediction(struct CIRCLE c1,struct CIRCLE c2)
+void constructgoalbycircles(struct CIRCLE c1,struct CIRCLE c2, double dist)
 	{
-	//angles to robot origin
-
 
 		tf2::Quaternion myQuaternion;
+
+		//polar angles from circle origin to position of robot
+		//since we are in the base_footprint frame robot is at 0,0
 		double a1=atan2(-c1.y,-c1.x);
 		double a2=atan2(-c2.y,-c2.x);
-		double x,y,z,c1x,c2x,c1y,c2y,dist,m,m1,m2=0;
-		geometry_msgs::PointStamped Test;
-		Test.header.frame_id="base_footprint";
-		Test.header.stamp=ros::Time::now();
-		if(a1>0) a1-=M_PI/5;
-		else a1+=M_PI/5;
-		if(a2>0) a2-=M_PI/5;
-		else a2+=M_PI/5;
+		double x,y,z,c1x,c2x,c1y,c2y,d,m,m1,m2=0;
+
+
+		//calc polar angle of new point for both circles
+		//calc orientation of goal
+		if(c1.y>0)
+		{
+			a1+=M_PI/3;
+			m1=a1+M_PI/2;
+		}
+		else
+		{
+		a1-=M_PI/3;
+		m1=a1-M_PI/2;
+		}
+		if(c2.y>0)
+		{
+			a2+=M_PI/3;
+			m2=a2+M_PI/2;
+		}
+		else
+		{
+		a2-=M_PI/3;
+		m2=a2-M_PI/2;
+		}
+
+		//calc cartesian coordinates
 		c1x=c1.x+c1.r*cos(a1);
 		c1y=c1.y+c1.r*sin(a1);
 		c2x=c2.x+c2.r*cos(a2);
 		c2y=c2.y+c2.r*sin(a2);
+
 		//find the point at three quaters so its in the middle of the right lane
 		x=(c1x+3*c2x)/4;
 		y=(c1y+3*c2y)/4;
-		dist=sqrt(x*x+y*y);
-		if(dist>4){
-			x=4*x/dist;
-			y=4*y/dist;
-		}
-
-		//Gradient of the Goal must be calculated using the derivative of a circle
-		//since we weighted the position this gets weighted equaly
-		if(y>0){
-			//left curve
-			m1=(c1x)/sqrt(c1.r*c1.r-c1x*c1x);
-			m2=(c2x)/sqrt(c2.r*c2.r-c2x*c2x);
-		}
-		else
-		{
-			//right curve
-			m1=-(c1x)/sqrt(c1.r*c1.r-c1x*c1x);
-			m2=-(c2x)/sqrt(c2.r*c2.r-c2x*c2x);
-		}
 		m=(m1+3*m2)/4;
-		//ROS_INFO("%f",m);
-		Test.point.x=x;
-		Test.point.y=y;
-		Test.point.z=0;
+
 		goaltrigger=true;
 		goal.target_pose.header.frame_id="base_footprint";
 		goal.target_pose.header.stamp = c1.Stamp;
+		goal.target_pose.pose.position.x=x;
+		goal.target_pose.pose.position.y=y;
+		goal.target_pose.pose.position.z=0;
+		myQuaternion.setRPY( 0, 0, m );
+		myQuaternion=myQuaternion.normalized();
+		goal.target_pose.pose.orientation.x=myQuaternion.getX();
+		goal.target_pose.pose.orientation.y=myQuaternion.getY();
+		goal.target_pose.pose.orientation.z=myQuaternion.getZ();
+		goal.target_pose.pose.orientation.w=myQuaternion.getW();
+
+	}
+void constructgoalbylines(struct LINE l1,struct LINE l2, double dist)
+	{
+		tf2::Quaternion myQuaternion;
+
+		double l1x,l2x,l1y,l2y;
+		double a1,a2;
+		double x,y,m;
+		a1=atan(l1.m);
+		a2=atan(l2.m);
+		l1x=x=cos(a1)*(dist+cos(M_PI/2-a1)*l1.b);
+		l1y=l1x*l1.m+l1.b;
+		l2x=x=cos(a2)*(dist+cos(M_PI/2-a2)*l2.b);
+		l2y=l2x*l2.m+l2.b;
+
+		x=(l1x+3*l2x)/4;
+		y=(l1y+3*l2y)/4;
+		m=(l1.m+3*l2.m)/4;
+
+		goal.target_pose.header.frame_id="base_footprint";
+		goal.target_pose.header.stamp = l1.Stamp;
 		goal.target_pose.pose.position.x=x;
 		goal.target_pose.pose.position.y=y;
 		goal.target_pose.pose.position.z=0;
@@ -372,38 +369,93 @@ void constructgoalbyprediction(struct CIRCLE c1,struct CIRCLE c2)
 		goal.target_pose.pose.orientation.y=myQuaternion.getY();
 		goal.target_pose.pose.orientation.z=myQuaternion.getZ();
 		goal.target_pose.pose.orientation.w=myQuaternion.getW();
-		//TODO fix goal angle and tf transform for circle sinto the past
-
-
-
 
 	}
-void constructgoal(road_detection::Line Line)
+
+
+class Drawer
 	{
-	tf2::Quaternion myQuaternion;
-		int j,size;
-		float angle,x,y;
-		goaltrigger=true;
-		j=Line.points.size()-1;
-		angle=atan((Line.points.at(j).y-Line.points.at(j-1).y)/(Line.points.at(j).x-Line.points.at(j-1).x));
-		x=Line.points.at(j).x;
-		y=Line.points.at(j).y;
-		size=Line.points.size();
-		ROS_INFO("x:%f,y:%f",x,y);
-		goal.target_pose.header.frame_id="base_footprint";
-		goal.target_pose.header.stamp = ros::Time::now();
-		goal.target_pose.pose.position.x=x;
-		goal.target_pose.pose.position.y=y;
-		goal.target_pose.pose.position.z=0;
-		myQuaternion.setRPY( 0, 0, angle );
-		myQuaternion=myQuaternion.normalized();
-		goal.target_pose.pose.orientation.x=myQuaternion.getX();
-		goal.target_pose.pose.orientation.y=myQuaternion.getY();
-		goal.target_pose.pose.orientation.z=myQuaternion.getZ();
-		goal.target_pose.pose.orientation.w=myQuaternion.getW();
-	}
+	//class for the draw functions so the publishers don't need to be defined all the time but only for the debugging
+	//keeps things more tidy
+	private:
+		ros::NodeHandle n;
+		ros::Publisher line_pub = n.advertise<visualization_msgs::Marker>("Lines", 1);
+		ros::Publisher circle_pub1 = n.advertise<visualization_msgs::Marker>("Circle1", 1);
+		ros::Publisher circle_pub2 = n.advertise<visualization_msgs::Marker>("Circle2", 1);
+	////For debugging only
+	public:
 
+		void circles(struct CIRCLE c1,struct CIRCLE c2)
+			{
+			//function to visualize predicted circles
+				visualization_msgs::Marker marker;
+				marker.header.frame_id = "base_footprint";
+				marker.header.stamp = c1.Stamp;
+				marker.ns = "basic_shapes";
+				marker.id = 0;
+				marker.type = visualization_msgs::Marker::CYLINDER;
+				marker.action = visualization_msgs::Marker::ADD;
+				marker.scale.x=c1.r*2;
+				marker.scale.y=c1.r*2;
+				marker.scale.z=1;
+				marker.pose.position.x=c1.x;
+				marker.pose.position.y=c1.y;
+				marker.pose.position.z = 0;
+				marker.pose.orientation.x = 0.0;
+				marker.pose.orientation.y = 0.0;
+				marker.pose.orientation.z = 0.0;
+				marker.pose.orientation.w = 1.0;
+				marker.color.r = 0.0f;
+				marker.color.g = 1.0f;
+				marker.color.b = 0.0f;
+				marker.color.a = 0.5;
+				marker.lifetime = ros::Duration();
+				circle_pub1.publish(marker);
+				marker.header.stamp = c2.Stamp;
+				marker.scale.x=c2.r*2;
+				marker.scale.y=c2.r*2;
+				marker.pose.position.x=c2.x;
+				marker.pose.position.y=c2.y;
+				circle_pub2.publish(marker);
+		}
+		void lines(struct LINE l1,struct LINE l2)
+		{
+		//function to visualize predicted lines
+			geometry_msgs::Point p;
+			visualization_msgs::Marker marker;
+			marker.header.frame_id = "base_footprint";
+			marker.header.stamp = l1.Stamp;
+			marker.ns = "basic_shapes";
+			marker.id = 0;
+			marker.type = visualization_msgs::Marker::LINE_LIST;
+			marker.action = visualization_msgs::Marker::ADD;
+			marker.scale.x=0.1;
+			marker.color.r = 0.0f;
+			marker.color.g = 1.0f;
+			marker.color.b = 0.0f;
+			marker.color.a = 0.5;
+			marker.lifetime = ros::Duration();
+			//ROS_INFO("x: %f, y: %f",x(0),x(1));
+			///////
 
+			marker.points.clear();
+			p.x=0;
+			p.y=l1.b;
+			marker.points.push_back(p);
+			p.x=4;
+			p.y=l1.m*4+l1.b;
+			marker.points.push_back(p);
+			p.x=0;
+			p.y=l2.b;
+			marker.points.push_back(p);
+			p.x=4;
+			p.y=l2.m*4+l2.b;
+			marker.points.push_back(p);
+
+			line_pub.publish(marker);
+		};
+
+	};
 class Listener
 	{
 	public:
@@ -462,16 +514,15 @@ class Listener
     };
 	};
 
-
-
 int main(int argc, char* argv[])
 {
-  // This must be called before anything else ROS-related
+
 	ros::init(argc, argv, "posefinder");
 
 
 	ros::NodeHandle n;
 	Listener listener;
+	Drawer draw;
 	MoveBaseClient ac("move_base", true);
 
 	dynamic_reconfigure::Server<arlo_navigation::posefinderConfig> server;
@@ -486,16 +537,6 @@ int main(int argc, char* argv[])
 	ros::ServiceClient client = n.serviceClient<arlo_navigation::clearleftlane>("clearblockage");
 	arlo_navigation::clearleftlaneRequest req;
 	arlo_navigation::clearleftlaneResponse res;
-
-	////For debugging only
-	marker_pub = n.advertise<visualization_msgs::Marker>("Circle", 1);
-	marker_pub2 = n.advertise<visualization_msgs::Marker>("Circle2", 1);
-
-
-
-
-	/////
-
 
 	while(!ac.waitForServer(ros::Duration(5.0))){
 		ROS_INFO("Waiting for the move_base action server to come up");
@@ -519,46 +560,30 @@ int main(int argc, char* argv[])
 			client.call(req,res);
 		}
 
-
 		//predicting the future trace of the lanes with approximated circles
-		leftcircle=lastsquarecircle(LeftLine);
-		rightcircle=lastsquarecircle(RightLine);
-		constructgoalbyprediction(leftcircle,rightcircle);
-		/////////only for dubugging
-		//publishing estimated circle
-		marker.header.frame_id = "base_footprint";
-		marker.header.stamp = leftcircle.Stamp;
-		marker.ns = "basic_shapes";
-		marker.id = 0;
-		marker.type = visualization_msgs::Marker::CYLINDER;
-		marker.action = visualization_msgs::Marker::ADD;
-		marker.pose.position.x=leftcircle.x;
-		marker.pose.position.y=leftcircle.y;
-		marker.pose.position.z = 0;
-		marker.pose.orientation.x = 0.0;
-		marker.pose.orientation.y = 0.0;
-		marker.pose.orientation.z = 0.0;
-		marker.pose.orientation.w = 1.0;
-		marker.scale.x=leftcircle.r*2;
-		marker.scale.y=leftcircle.r*2;
-		marker.scale.z=1;
-		marker.color.r = 0.0f;
-		marker.color.g = 1.0f;
-		marker.color.b = 0.0f;
-		marker.color.a = 0.5;
-		marker.lifetime = ros::Duration();
-		//ROS_INFO("x: %f, y: %f",x(0),x(1));
-		///////
-		marker_pub.publish(marker);
-		marker.header.stamp = rightcircle.Stamp;
-		marker.pose.position.x=(3*rightcircle.x+leftcircle.x)/4;
-		marker.pose.position.y=(3*rightcircle.y+leftcircle.y)/4;
-		marker.scale.x=(3*rightcircle.r+leftcircle.r)/2;
-		marker.scale.y=(3*rightcircle.r+leftcircle.r)/2;
-		marker_pub2.publish(marker);
+		leftcircle=leastsquarecircle(LeftLine);
+		rightcircle=leastsquarecircle(RightLine);
 
-		//intersecting both circles and finding the point in the middle
-		//circleintersect(leftcircle,rightcircle,searchradius);
+		if(leftcircle.r>8||rightcircle.r>8)
+		{
+			struct LINE leftline,rightline;
+			leftline=leastsquareline(LeftLine);
+			rightline=leastsquareline(RightLine);
+			//if the radii of the circles are larger than the specified threshold we treat them as lines to get more accurate goals for this edge case
+			constructgoalbylines(leftline, rightline, 4);
+			ROS_INFO("Constructed with lines");
+
+			draw.lines(leftline,rightline);
+
+		}
+		else
+		{
+			constructgoalbycircles(leftcircle,rightcircle,4);
+			draw.circles(leftcircle,rightcircle);
+			ROS_INFO("Constructed with circles");
+		}
+
+
 
 
 		//sending goal to move_base via actionserver
