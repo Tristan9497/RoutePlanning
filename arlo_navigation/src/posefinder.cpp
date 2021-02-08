@@ -16,6 +16,7 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/Point32.h"
 #include "sensor_msgs/LaserScan.h"
+#include "sensor_msgs/PointCloud.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "nav_msgs/Odometry.h"
 #include "visualization_msgs/Marker.h"
@@ -36,16 +37,13 @@
 using Eigen::MatrixXd;
 using Eigen::Vector2d;
 
-double searchradius=5;
-double searchangle=60*M_PI/180;
-double costthreshold=100;
-bool Rightside;
-
-bool removeblockage=false;
-double roadangle;
-double robot_diameter=0.4;
-double furthestpoint;
-
+//Structs
+struct APoint
+{
+	double x;	//average x
+	double y;	//average y
+	int N;		//amount of points included in the average
+};
 struct CIRCLE
 	{
 	double x;
@@ -59,21 +57,47 @@ struct LINE
 	double b;
 	ros::Time Stamp;
 	};
+struct map_inf {
+
+    double size_x;
+    double size_y;
+    double scale;
+    double origin_x;
+    double origin_y;
+};
+
+//definitions to help with map coordinates and indices
+#define MAP_INDEX(map, i, j) ((i) + (j) * map.size_x)
+//get coordinates relative to /map frame from cell coordinates
+#define MAP_WXGX(map, i) (map.origin_x + (i - map.size_x / 2) * map.scale)
+#define MAP_WYGY(map, j) (map.origin_y + (j - map.size_y / 2) * map.scale)
+//get cell coordinates from coordinates relative to /map
+#define MAP_CX(map,i) (i-round(map.origin_x/map.scale)+floor(map.size_x/2))
+#define MAP_CY(map,j) (j-round(map.origin_y/map.scale)+floor(map.size_y/2))
+
 
 
 ros::Publisher pub;
 std::vector<geometry_msgs::PointStamped> scan;
-geometry_msgs::Pose currentpose;
-
+geometry_msgs::PoseStamped robotorigin;
 //storing the latest road data for data loss cases
 road_detection::Line LeftLine;
 road_detection::Line RightLine;
 road_detection::Line MiddleLine;
 road_detection::Line LeftLane;
 road_detection::Line RightLane;
-
-std::string scanframe;
+nav_msgs::OccupancyGrid Map;
 std::string roadframe;
+
+double searchradius=5;
+double searchangle=60*M_PI/180;
+double costthreshold=100;
+bool Rightside;
+
+bool removeblockage=false;
+double roadangle;
+double robot_diameter=0.4;
+
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
 //should be reference???
@@ -166,7 +190,6 @@ void callback(arlo_navigation::posefinderConfig &config, uint32_t level) {
 	costthreshold=config.Costthreshold;
 }
 
-
 class Drawer
 	{
 	//class for the draw functions so the publishers don't need to be defined all the time but only for the debugging
@@ -174,11 +197,20 @@ class Drawer
 	private:
 		ros::NodeHandle n;
 		ros::Publisher line_pub = n.advertise<visualization_msgs::Marker>("Lines", 1);
+		ros::Publisher mappoint_pub = n.advertise<geometry_msgs::PointStamped>("mappoints", 1);
+		ros::Publisher cloud_pub = n.advertise<sensor_msgs::PointCloud>("cloudpoints", 1);
 		ros::Publisher circle_pub1 = n.advertise<visualization_msgs::Marker>("Circle1", 1);
 		ros::Publisher circle_pub2 = n.advertise<visualization_msgs::Marker>("Circle2", 1);
 	////For debugging only
 	public:
-
+		void cloud(sensor_msgs::PointCloud cloud)
+		{
+			cloud_pub.publish(cloud);
+		}
+		void mappoints(geometry_msgs::PointStamped p)
+		{
+			mappoint_pub.publish(p);
+		}
 		void circles(struct CIRCLE c1,struct CIRCLE c2)
 			{
 			//function to visualize predicted circles
@@ -282,7 +314,20 @@ class Listener
 			searchradius=road->laneWidthLeft+ 0.6*road->laneWidthRight;
 			//roadangle=aproxroadangle();
 		};
-	public:
+		void mapCallback(const nav_msgs::OccupancyGridConstPtr &map)
+		{
+
+			Map.data=map->data;//update global Map variable
+			Map.header=map->header;
+			Map.info=map->info;
+		}
+		void odomCallback(nav_msgs::Odometry odom)
+		{
+			//update global pose variable
+			robotorigin.header=odom.header;
+			robotorigin.pose=odom.pose.pose;
+
+		}
 		void scanCallback(const sensor_msgs::LaserScanConstPtr& Scan)
 		{
 			geometry_msgs::PointStamped scanpoint;
@@ -311,9 +356,11 @@ class GoalFinder
 	{
 
 private:
-	int Finder=0;
-	bool goaltrigger=true;//might be neccessary to handle error scenarios
 
+	int Finder=0;//start with searching a goal on a circle
+	bool goaltrigger=true;//might be neccessary to handle error scenarios
+	sensor_msgs::PointCloud cloud;
+	std::vector<geometry_msgs::PointStamped> goalpoints;
 	Drawer draw;
 	//functions to approximate the future road based on least squared error calculations
 	struct LINE leastsquareline(road_detection::Line Line)
@@ -411,6 +458,315 @@ private:
 			return circle;
 
 		}
+	//void construcctor for costmap
+
+	void ConstructPointCloud(double searchradius)
+	{
+		//check for not zero stamp so we only look for positions if we have received a map
+		if(Map.header.stamp.isZero()==false){
+			//this function renders a circle with sub-pixel accuracy around the circle at a given radius
+			map_inf map_info;
+			//collect all cost data in a circle of radius searchradius
+			map_info.size_x = Map.info.width;
+			map_info.size_y = Map.info.height;
+			map_info.scale = Map.info.resolution;
+			map_info.origin_x = Map.info.origin.position.x + (map_info.size_x / 2) * map_info.scale;
+			map_info.origin_y = Map.info.origin.position.y + (map_info.size_y / 2) * map_info.scale;
+
+			double gt_x = Map.info.origin.position.x;
+			double gt_y = Map.info.origin.position.y;
+
+			tf2_ros::Buffer tf_buffer;
+			tf2_ros::TransformListener tf2_listener(tf_buffer);
+			geometry_msgs::TransformStamped base_footprint_to_map;
+			geometry_msgs::TransformStamped map_to_base_footprint;
+			//tranform robot pose into map frame
+			geometry_msgs::PoseStamped pt;
+//			robotorigin.header.stamp =  Map.header.stamp;
+
+//			try{
+//				base_footprint_to_map=tf_buffer.lookupTransform("map",robotorigin.header.frame_id, ros::Time(0), ros::Duration(1.0) );
+//
+//				tf2::doTransform(robotorigin, robotorigin, base_footprint_to_map);
+//
+//
+//			}
+//			catch (tf2::TransformException &ex){
+//				ROS_ERROR("%s",ex.what());
+//			}
+
+			std::vector<geometry_msgs::Point32> Points;
+			geometry_msgs::Point32 Point;
+			double pt_x=robotorigin.pose.position.x;
+			double pt_y=robotorigin.pose.position.y;
+
+			double pt_th;// = tf::getYaw(pt.pose.orientation);
+
+
+			double minx=round((pt_x-searchradius)/map_info.scale);
+			double maxx=round((pt_x+searchradius)/map_info.scale);
+			double miny=round((pt_y-searchradius)/map_info.scale);
+			double maxy=round((pt_y+searchradius)/map_info.scale);
+
+
+			//since circle wont ever be point symetrical we need to iterate through all quadrants
+			//this is caused since we wont shift the circlecenter to the middle of the nearest field otherwise symmetry could be used
+			Points.clear();
+			//first quadrant
+			int i,j;
+			j=round(pt_y/map_info.scale);
+			for (i=maxx; i >round(pt_x/map_info.scale); i--) {
+				while(checkcellincircle(i,j,pt_x,pt_y,map_info,Points))
+				{
+
+					j++;
+				}
+				j--;
+			}
+
+			//second quadrant
+			i=round(pt_x/map_info.scale);
+			for (j=maxy; j >round(pt_y/map_info.scale); j--) {
+				while(checkcellincircle(i,j,pt_x,pt_y,map_info,Points))
+				{
+					i--;
+				}
+				i++;
+			}
+			//third quadrant
+			j=round(pt_y/map_info.scale);
+			for (i=minx; i<round(pt_x/map_info.scale); i++) {
+				while(checkcellincircle(i,j,pt_x,pt_y,map_info,Points))
+				{
+					j--;
+				}
+				j++;
+			}
+			//fourth quadrant
+			i=round(pt_x/map_info.scale);
+			for (j=miny; j <round(pt_y/map_info.scale); j++) {
+				while(checkcellincircle(i,j,pt_x,pt_y,map_info,Points))
+				{
+					i++;
+				}
+				i--;
+			}
+
+			cloud.points.clear();
+			cloud.header.stamp=robotorigin.header.stamp;
+			cloud.header.frame_id="map";
+			int cellx,celly;
+			//now we have a vector containing all cells intersected by the circle ordered by their angle starting on the x axis
+			//we need to calculate their position relative to the map frame
+			for(i=0; i<Points.size();i++)
+			{
+				cellx=MAP_CX(map_info,Points[i].x);
+				celly=MAP_CY(map_info,Points[i].y);
+
+				try{
+					//check bounds of map and don't add them to the cloud
+					if((cellx>=0&&cellx<map_info.size_x)&&(celly>=0&&celly<map_info.size_y))
+						{
+						geometry_msgs::Point32 test;
+						test.x=Points[i].x*map_info.scale;
+						test.y=Points[i].y*map_info.scale;
+						if(Map.data.at(MAP_INDEX(map_info,MAP_CX(map_info,Points[i].x),MAP_CY(map_info,Points[i].y)))>MapCostThresh){
+
+
+							test.z=0;
+							cloud.points.push_back(test);
+
+						}
+					}
+				}
+				catch(...){}
+			}
+
+			PointCloudReducer(reductionradius);//reducing the pointcloud to a minimum
+			draw.cloud(cloud);
+
+			//after the reduction we should have 4 or more points since both road borders will intersect the circle twice
+			//now we need to delete the points behind the robot easiest is to transform them into the base_footrpint frame
+			//this will make the evaluation a lot easier
+
+			geometry_msgs::PointStamped p;
+			goalpoints.clear();
+
+
+			for(int i=0;i<cloud.points.size();i++)
+			{
+				p.header.frame_id="map";
+				p.header.stamp=ros::Time::now();
+				p.point.x=cloud.points.at(i).x;
+				p.point.y=cloud.points.at(i).y;
+				p.point.z=cloud.points.at(i).z;
+				try{
+					map_to_base_footprint=tf_buffer.lookupTransform("base_footprint","map", ros::Time(0), ros::Duration(1.0) );
+					//trying to transform the points back into the base_footprint frame
+					tf2::doTransform(p,p, map_to_base_footprint);
+				}
+				catch (tf2::TransformException &ex){
+					ROS_ERROR("%s",ex.what());
+				}
+				//adding all points infront of the robot to the vector
+
+				if(p.point.x>0)
+				{
+					ROS_INFO("%s",p.header.frame_id.c_str());
+					draw.mappoints(p);
+					goalpoints.push_back(p);
+				}
+			}
+		//now we should have a cleaned up vector consisting solely of points infront of the robot on the borders
+		}
+	}
+	void PointCloudReducer(double distthresh)
+	{
+		//this function takes a point cloud and reduces it by averaging all points in a given radius
+
+		geometry_msgs::Point32 p;
+
+
+		std::vector<struct APoint> BorderPoints;
+		struct APoint POINT;
+		bool trigger;
+
+
+		for(int i=0; i<cloud.points.size();i++)
+		{
+			POINT.x=cloud.points.at(i).x;
+			POINT.y=cloud.points.at(i).y;
+			POINT.N=1;
+
+			//check if the next point is close to one of the chunks and calculate it into the average
+			//else a new chunk will be generated
+
+			trigger=true;
+			for (int j=0;j<BorderPoints.size();j++)
+			{
+				if(sqrt(pow(BorderPoints.at(j).x-POINT.x,2)+pow(BorderPoints.at(j).y-POINT.y,2))<distthresh)
+				{
+					BorderPoints.at(j).x=(BorderPoints.at(j).x*BorderPoints.at(j).N+POINT.x)/(BorderPoints.at(j).N+1);
+					BorderPoints.at(j).y=(BorderPoints.at(j).y*BorderPoints.at(j).N+POINT.y)/(BorderPoints.at(j).N+1);
+					BorderPoints.at(j).N+=1;
+					j=BorderPoints.size()+1;
+					trigger=false;
+				}
+			}
+			if(trigger)
+			{
+				BorderPoints.push_back(POINT);
+			}
+		}
+		cloud.points.clear();
+
+		for (int i=0;i<BorderPoints.size();i++)
+		{
+			p.x=BorderPoints.at(i).x;
+			p.y=BorderPoints.at(i).y;
+			p.z=0;
+			cloud.points.push_back(p);
+		}
+	}
+	bool checkcellincircle(int &i, int &j,double &pt_x,double &pt_y, map_inf &map,std::vector<geometry_msgs::Point32> &Points)
+		{
+			//this function checks the shortest distance from pt_x/pt_y to the given cell
+			//if the distance is <= the searchradius the point gets added to the Pointsvector and the function returns true
+			//else the function returns false
+			double cminx,cminy,dx,dy;
+			geometry_msgs::Point32 Point;
+
+			//transform from origin of cell to center of cell
+			if(i*map.scale>pt_x)
+				dx=abs(pt_x-i*map.scale-map.scale/2);
+			else if(i*map.scale<pt_x)
+				dx=abs(pt_x-i*map.scale+map.scale/2);
+			else dx=0;
+			if(j*map.scale>pt_y)
+				dy=abs(pt_y-j*map.scale-map.scale/2);
+			else if(j*map.scale<pt_y)
+				dy=abs(pt_y-j*map.scale+map.scale/2);
+			else dy=0;
+
+			//getting coordinates of closest point on cell edge by using intercept theorem so we don't need to use cos/sin/tan
+			if((abs(dx)>=abs(dy))||dy==0)
+			{
+				cminx=map.scale;
+				cminy=(abs(dy)/abs(dx))*map.scale;
+			}
+
+			else if((abs(dx)<abs(dy))||dx==0)
+			{
+				cminy=map.scale;
+				cminx=(abs(dx)/abs(dy))*map.scale;
+			}
+			if(sqrt(pow(dx-cminx,2)+pow(dy-cminy,2))<=GoalDist)
+			{
+				Point.x=i;
+				Point.y=j;
+				Points.push_back(Point);
+				return true;
+
+			}
+
+			else
+				{
+				return false;
+				}
+		}
+	void constructgoalbymap(void)
+	{
+
+		//since we cant be sure that the points infront of the robot are only from the road
+		//we can only take the average instead of the weighted average
+		tf2::Quaternion myQuaternion;
+
+		double x,y,m1,m2,m;
+		double xmax,xmin,ymax,ymin;
+		ROS_INFO("%d",goalpoints.size());
+		for(int i=0; i<goalpoints.size();i++)
+		{
+			x+=goalpoints.at(i).point.x;
+			y+=goalpoints.at(i).point.y;
+
+		}
+		//if circles are large the slope is calculated as a straight line from the robot to the goal
+		if(leftcircle.r>CRadThresh||rightcircle.r>CRadThresh)
+		{
+			m=atan2(y,x);
+		}
+		//else we estimate the slope the same way we do at the circle approximation
+		else
+		{
+			m1 =atan2(y-leftcircle.y,x-leftcircle.x);
+			m2 =atan2(y-rightcircle.y,x-rightcircle.x);
+			if(leftcircle.y>0) m1+=M_PI/2;
+			else m1-=M_PI/2;
+
+			if(rightcircle.y>0)m2+=M_PI/2;
+			else m2-=M_PI/2;
+			m=(m1+m2)/2;
+
+		}
+
+		x/=goalpoints.size();
+		y/=goalpoints.size();
+
+
+		goal.target_pose.header.frame_id=goalpoints.at(0).header.frame_id;
+		goal.target_pose.header.stamp = goalpoints.at(0).header.stamp;
+		goal.target_pose.pose.position.x=x;
+		goal.target_pose.pose.position.y=y;
+		goal.target_pose.pose.position.z=0;
+		myQuaternion.setRPY( 0, 0, atan(m) );
+		myQuaternion=myQuaternion.normalized();
+		goal.target_pose.pose.orientation.x=myQuaternion.getX();
+		goal.target_pose.pose.orientation.y=myQuaternion.getY();
+		goal.target_pose.pose.orientation.z=myQuaternion.getZ();
+		goal.target_pose.pose.orientation.w=myQuaternion.getW();
+		ROS_INFO("goal from map");
+
+	}
 
 	//goal constructors for different road approximations
 	void constructgoalbycircles(struct CIRCLE c1,struct CIRCLE c2, double dist, double angle)
@@ -517,6 +873,7 @@ private:
 			goal.target_pose.pose.orientation.y=myQuaternion.getY();
 			goal.target_pose.pose.orientation.z=myQuaternion.getZ();
 			goal.target_pose.pose.orientation.w=myQuaternion.getW();
+			ROS_INFO("goal from lines");
 
 		}
 	void sendgoal()
@@ -526,6 +883,7 @@ private:
 		if(goaltrigger)
 		{
 			ac.sendGoal(goal);
+			//if(ac.waitForResult(ros::Duration(0.5))==ac.){}
 
 		}
 		else
@@ -538,11 +896,18 @@ public:
 	double CRadThresh=8;//The Threshold radius of the approximated circles if the circles get larger line approx will be used
 	double GoalDist=4;//The Distance, at which a goal should be found
 	double GoalAngle=M_PI/3;//The angle, we think we can trust the circle approximation
-	GoalFinder() : ac("move_base",true){}
+	double reductionradius=1.5;
+	double MapCostThresh=50;//probability of occupancy in percent
+
+	//move base action client
+	GoalFinder() : ac("move_base",true)
+	{
+		ac.waitForServer();
+	}
 	MoveBaseClient ac;
-
-
 	move_base_msgs::MoveBaseGoal goal;
+
+
 	struct CIRCLE leftcircle,rightcircle;
 	struct LINE leftline, rightline;
 	//goal manager used to determine which goal needs to be build
@@ -550,11 +915,13 @@ public:
 			{
 				leftcircle=leastsquarecircle(LeftLine);
 				rightcircle=leastsquarecircle(RightLine);
+				ConstructPointCloud(GoalDist);
 				switch (Finder)
 				{
 					case 0:
+						if(goalpoints.size()>=1)Finder=2;
 						//Circle approximation
-						if(LeftLine.points.size()>0&&LeftLine.points.size()>0){
+						else if(LeftLine.points.size()>0&&LeftLine.points.size()>0){
 							//switching to line approx since straight is coming up
 							if(leftcircle.r>CRadThresh||rightcircle.r>CRadThresh)
 							{
@@ -563,6 +930,7 @@ public:
 							}
 							else
 							{
+								ROS_INFO("goal from circles");
 								constructgoalbycircles(leftcircle, rightcircle, GoalDist, GoalAngle);
 								sendgoal();
 								draw.circles(leftcircle,rightcircle);
@@ -571,8 +939,9 @@ public:
 						break;
 
 					case 1:
+						if(goalpoints.size()>=1)Finder=2;
 						//Line approximation
-						if(LeftLine.points.size()>0&&LeftLine.points.size()>0){
+						else if(LeftLine.points.size()>0&&LeftLine.points.size()>0){
 							leftline=leastsquareline(LeftLine);
 							rightline=leastsquareline(RightLine);
 							//switching to circle approx since a corner is comming up
@@ -583,6 +952,7 @@ public:
 							}
 							else
 							{
+								ROS_INFO("goal from lines");
 								constructgoalbylines(leftline, rightline, GoalDist);
 								sendgoal();
 								draw.lines(leftline,rightline);
@@ -591,9 +961,16 @@ public:
 						break;
 
 					case 2:
-						//Goal from Costmap TODO
-						if(LeftLine.points.size()>0&&LeftLine.points.size()>0){
+						if(goalpoints.size()>=1)
+						{
+							constructgoalbymap();
+							sendgoal();
+							ROS_INFO("goal from map");}
+						else
+						{
+							Finder=0;
 						}
+
 						break;
 				}
 			}
@@ -614,8 +991,10 @@ int main(int argc, char* argv[])
 	dynamic_reconfigure::Server<arlo_navigation::posefinderConfig> server;
 	dynamic_reconfigure::Server<arlo_navigation::posefinderConfig>::CallbackType f;
 	pub=n.advertise<geometry_msgs::PointStamped>("TestPoint", 1000);
+	ros::Subscriber map = n.subscribe("/map", 1000, &Listener::mapCallback, &listener);
 	ros::Subscriber road = n.subscribe("/roadDetection/road", 1000, &Listener::roadCallback, &listener);
 	ros::Subscriber scan = n.subscribe("/scan_filtered", 1000, &Listener::scanCallback, &listener);
+	ros::Subscriber odom = n.subscribe("/odom", 1000, &Listener::odomCallback, &listener);
 	f = boost::bind(&callback, _1, _2);
 	server.setCallback(f);
 
@@ -629,7 +1008,7 @@ int main(int argc, char* argv[])
 		ROS_INFO("Waiting for the move_base action server to come up");
 	}
 
-	ros::Rate rate=0.5;
+	ros::Rate rate=1;
 	while(n.ok()){
 		//enabling or disabling the blockage of the left lane
 		checkroadblockage();
