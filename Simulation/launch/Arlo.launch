@@ -46,5 +46,6 @@
 	    <rosparam file="$(find arlo_navigation)/config/global_costmap_params.yaml" command="load" /> 
 	    <rosparam file="$(find arlo_navigation)/config/base_local_planner_params.yaml" command="load"/>
 	</node>
+	<node name="posefinder" pkg="arlo_navigation" type="posefinder"/>
 
 </launch>

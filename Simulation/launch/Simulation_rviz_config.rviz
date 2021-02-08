@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /PointCloud21
       Splitter Ratio: 0.5
     Tree Height: 307
   - Class: rviz/Selection
@@ -165,7 +164,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.05000000074505806
       Style: Flat Squares
-      Topic: /base_scan
+      Topic: /scan_filtered
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -284,29 +283,29 @@ Visualization Manager:
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: /Circle1
       Name: Marker
       Namespaces:
-        basic_shapes: true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: /Circle2
       Name: Marker
       Namespaces:
-        basic_shapes: true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: /Lines
       Name: Marker
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -344,10 +343,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 63.70768356323242
+      Scale: 112.27471160888672
       Target Frame: <Fixed Frame>
-      X: 1.0783452987670898
-      Y: 0.21832998096942902
+      X: -0.5949981212615967
+      Y: 4.178989887237549
     Saved: ~
 Window Geometry:
   Camera:
