@@ -28,6 +28,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
 	FILES
 	clearleftlane.srv
+	goalnotfound.srv
 )
 
  generate_messages(

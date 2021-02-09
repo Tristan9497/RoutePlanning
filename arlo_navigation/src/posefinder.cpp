@@ -10,6 +10,7 @@
 
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
+#include <actionlib/client/terminal_state.h>
 
 #include <math.h>
 #include "geometry_msgs/Pose.h"
@@ -33,6 +34,7 @@
 #include <arlo_navigation/posefinderConfig.h>
 //Services
 #include "arlo_navigation/clearleftlane.h"
+#include "arlo_navigation/goalnotfound.h"
 
 using Eigen::MatrixXd;
 using Eigen::Vector2d;
@@ -88,6 +90,14 @@ road_detection::Line LeftLane;
 road_detection::Line RightLane;
 nav_msgs::OccupancyGrid Map;
 std::string roadframe;
+
+double CRadThresh=8;//The Threshold radius of the approximated circles if the circles get larger line approx will be used
+double GoalDist=4;//The Distance, at which a goal should be found
+double GoalAngle=M_PI/3;//The angle, we think we can trust the circle approximation
+double reductionradius=1.5;
+double MapCostThresh=50;//probability of occupancy in percent
+
+
 
 double searchradius=5;
 double searchangle=60*M_PI/180;
@@ -184,10 +194,11 @@ void checkroadblockage(void)
 	}
 
 void callback(arlo_navigation::posefinderConfig &config, uint32_t level) {
-	Rightside=config.Side;
-	searchradius=config.Searchradius;
-	searchangle=config.Searchangle;
-	costthreshold=config.Costthreshold;
+	CRadThresh=config.CRadThresh;
+	GoalDist=config.GoalDist;
+	GoalAngle=config.GoalAngle*M_PI;
+	reductionradius=config.reductionradius;
+	MapCostThresh=config.MapCostThresh;
 }
 
 class Drawer
@@ -361,7 +372,9 @@ private:
 	bool goaltrigger=true;//might be neccessary to handle error scenarios
 	sensor_msgs::PointCloud cloud;
 	std::vector<geometry_msgs::PointStamped> goalpoints;
-	Drawer draw;
+
+
+	MoveBaseClient ac;
 	//functions to approximate the future road based on least squared error calculations
 	struct LINE leastsquareline(road_detection::Line Line)
 		{
@@ -612,7 +625,6 @@ private:
 
 				if(p.point.x>0)
 				{
-					ROS_INFO("%s",p.header.frame_id.c_str());
 					draw.mappoints(p);
 					goalpoints.push_back(p);
 				}
@@ -723,7 +735,6 @@ private:
 
 		double x,y,m1,m2,m;
 		double xmax,xmin,ymax,ymin;
-		ROS_INFO("%d",goalpoints.size());
 		for(int i=0; i<goalpoints.size();i++)
 		{
 			x+=goalpoints.at(i).point.x;
@@ -876,35 +887,20 @@ private:
 			ROS_INFO("goal from lines");
 
 		}
-	void sendgoal()
-	{
-		//sending goal to move_base via actionserver
-		//ac.waitForResult(ros::Duration(5));
-		if(goaltrigger)
-		{
-			ac.sendGoal(goal);
-			//if(ac.waitForResult(ros::Duration(0.5))==ac.){}
 
-		}
-		else
-		{
-			ac.cancelAllGoals();
-		}
-	}
+
+
 public:
 	//Tuneable parameters TODO dynamic recon
-	double CRadThresh=8;//The Threshold radius of the approximated circles if the circles get larger line approx will be used
-	double GoalDist=4;//The Distance, at which a goal should be found
-	double GoalAngle=M_PI/3;//The angle, we think we can trust the circle approximation
-	double reductionradius=1.5;
-	double MapCostThresh=50;//probability of occupancy in percent
+
 
 	//move base action client
-	GoalFinder() : ac("move_base",true)
+	Drawer draw;
+
+	GoalFinder() : ac ("move_base",true)
 	{
 		ac.waitForServer();
-	}
-	MoveBaseClient ac;
+	};
 	move_base_msgs::MoveBaseGoal goal;
 
 
@@ -974,8 +970,45 @@ public:
 						break;
 				}
 			}
-	};
+	void sendgoal()
+	{
 
+
+		//sending goal to move_base via actionserver
+		//ac.waitForResult(ros::Duration(5));
+		if(goaltrigger)
+		{
+		    ac.sendGoal(goal,
+		    		MoveBaseClient::SimpleDoneCallback(),
+					MoveBaseClient::SimpleActiveCallback(),
+					boost::bind(&GoalFinder::fb_callback, this, _1));
+
+		    actionlib::SimpleClientGoalState state=ac.getState();
+
+	    }
+			//if(ac.waitForResult(ros::Duration(0.5))==ac.){}
+		else
+		{
+			ac.cancelAllGoals();
+		}
+	}
+	void fb_callback(const move_base_msgs::MoveBaseFeedback::ConstPtr& feedback)
+	{
+		//Doesnt return wanted results
+		//ROS_INFO("%f",feedback->base_position.pose.position.x);
+	}
+
+	bool goalnotfound(arlo_navigation::goalnotfoundRequest &request,arlo_navigation::goalnotfoundResponse &response)
+	{
+		//this service call is meant to help the robot when it doesnt find a path to the goal
+		//everytime this service gets called the Distance shrinks to 90% and a new goal will be planned
+		ConstructPointCloud(GoalDist*0.9);
+		constructgoalbymap();
+		response.result=GoalDist*0.9;
+		ROS_INFO("Constructed a new Goal since Planning failed with the old goal");
+		return true;
+	}
+	};
 
 int main(int argc, char* argv[])
 {
@@ -988,25 +1021,29 @@ int main(int argc, char* argv[])
 	GoalFinder finder;
 
 
-	dynamic_reconfigure::Server<arlo_navigation::posefinderConfig> server;
-	dynamic_reconfigure::Server<arlo_navigation::posefinderConfig>::CallbackType f;
-	pub=n.advertise<geometry_msgs::PointStamped>("TestPoint", 1000);
+
+	//pub=n.advertise<geometry_msgs::PointStamped>("TestPoint", 1000);
+
+	//subscribers
 	ros::Subscriber map = n.subscribe("/map", 1000, &Listener::mapCallback, &listener);
 	ros::Subscriber road = n.subscribe("/roadDetection/road", 1000, &Listener::roadCallback, &listener);
 	ros::Subscriber scan = n.subscribe("/scan_filtered", 1000, &Listener::scanCallback, &listener);
 	ros::Subscriber odom = n.subscribe("/odom", 1000, &Listener::odomCallback, &listener);
+
+	//dynmic reconfigure
+	dynamic_reconfigure::Server<arlo_navigation::posefinderConfig> server;
+	dynamic_reconfigure::Server<arlo_navigation::posefinderConfig>::CallbackType f;
 	f = boost::bind(&callback, _1, _2);
 	server.setCallback(f);
 
 	//service
 	ros::ServiceClient client = n.serviceClient<arlo_navigation::clearleftlane>("clearblockage");
+	ros::ServiceServer goalserver = n.advertiseService("posefinder", &GoalFinder::goalnotfound, &finder);
 	arlo_navigation::clearleftlaneRequest req;
 	arlo_navigation::clearleftlaneResponse res;
 
 	//wait untill the actionserverclient in the goalfinder finds the movebase server
-	while(!finder.ac.waitForServer(ros::Duration(5.0))){
-		ROS_INFO("Waiting for the move_base action server to come up");
-	}
+
 
 	ros::Rate rate=1;
 	while(n.ok()){
