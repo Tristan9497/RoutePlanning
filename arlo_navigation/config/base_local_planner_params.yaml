@@ -68,7 +68,7 @@ TebLocalPlannerROS:
     
  # Obstacles
     
- min_obstacle_dist: 0.25 # This value must also include our robot radius, since footprint_model is set to "point".
+ min_obstacle_dist: 0.3 # This value must also include our robot radius, since footprint_model is set to "point".
  inflation_dist: 0.0
  include_costmap_obstacles: True
  costmap_obstacles_behind_robot_dist: 1.5
@@ -94,15 +94,16 @@ TebLocalPlannerROS:
  weight_acc_lim_x: 1
  weight_acc_lim_theta: 1
  weight_kinematics_nh: 1000
- weight_kinematics_forward_drive: 20
+ weight_kinematics_forward_drive: 900
  weight_kinematics_turning_radius: 1
+ #weight_optimaltime: 1 # must be > 0
  weight_optimaltime: 1 # must be > 0
  weight_shortest_path: 0
  weight_obstacle: 200
  weight_inflation: 0.2
  weight_dynamic_obstacle: 10
  weight_dynamic_obstacle_inflation: 0.2
- weight_viapoint: 5
+ weight_viapoint: 50
  weight_adapt_factor: 2
 
  # Homotopy Class Planner
