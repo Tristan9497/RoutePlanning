@@ -380,7 +380,7 @@ private:
 		{
 			//least square line aproximation https://www.mathsisfun.com/data/least-squares-regression.html
 			struct LINE line;
-			double Sx,Sy,Sxx,Sxy,N;
+			double Sx,Sy,Sxx,Sxy,Syy2,N;
 			N=Line.points.size();
 			for(int i=0;i<N;i++)
 			{
@@ -388,11 +388,18 @@ private:
 				Sy+=Line.points.at(i).y;
 				Sxy+=Line.points.at(i).x*Line.points.at(i).y;
 				Sxx+=Line.points.at(i).x*Line.points.at(i).x;
+
 			}
 			try{
 				line.m=((N*Sxy)-(Sx*Sy))/((N*Sxx)-pow(Sx,2));
 				line.b=(Sy-line.m*Sx)/N;
 				line.Stamp = Line.header.stamp;
+
+				for(int i=0;i<Line.points.size();i++)
+				{
+					//calculating the squared error
+					Syy2+=pow(Line.points.at(i).y-(line.m*Line.points.at(i).x+line.b),2);
+				}
 				return line;
 			}
 			catch(...)
@@ -418,7 +425,7 @@ private:
 			//define size so we don't have to do this all the time
 			int size=Line.points.size();
 			//defining sums
-			double Suuu,Svvv,Suvv,Svuu,Suv,Suu,Svv=0;
+			double Suuu,Svvv,Suvv,Svuu,Suv,Suu,Svv,Syy2=0;
 
 			//defining averages and parameters u,v that are the point coordinates relative to the average
 			double u,v,xa,ya=0;
@@ -468,6 +475,14 @@ private:
 
 			}
 			circle.Stamp=Line.header.stamp;
+
+			//Calculating the squared error
+			for(int i=0;i<size;i++)
+			{
+				u=Line.points.at(i).x-xa;
+				v=Line.points.at(i).y-ya;
+				Syy2+=pow(pow((u-circle.x),2)+pow(v-circle.y,2)-pow(circle.r,2),2);
+			}
 			return circle;
 
 		}
@@ -623,7 +638,8 @@ private:
 				}
 				//adding all points infront of the robot to the vector
 
-				if(p.point.x>0)
+				//removing points outside of certain angle (+- pi/3 might be appropriate)
+				if(p.point.x>0&&atan2(p.point.y,p.point.x)<M_PI/3)
 				{
 					draw.mappoints(p);
 					goalpoints.push_back(p);
@@ -975,25 +991,19 @@ public:
 
 
 		//sending goal to move_base via actionserver
-		//ac.waitForResult(ros::Duration(5));
-		if(goaltrigger)
-		{
-		    ac.sendGoal(goal,
-		    		MoveBaseClient::SimpleDoneCallback(),
-					MoveBaseClient::SimpleActiveCallback(),
-					boost::bind(&GoalFinder::fb_callback, this, _1));
+		//syntax for a potential feedback function
+		ac.sendGoal(goal,
+				MoveBaseClient::SimpleDoneCallback(),
+				MoveBaseClient::SimpleActiveCallback(),
+				boost::bind(&GoalFinder::fb_callback, this, _1));
 
-		    actionlib::SimpleClientGoalState state=ac.getState();
+		actionlib::SimpleClientGoalState state=ac.getState();
 
-	    }
-			//if(ac.waitForResult(ros::Duration(0.5))==ac.){}
-		else
-		{
-			ac.cancelAllGoals();
-		}
+
 	}
 	void fb_callback(const move_base_msgs::MoveBaseFeedback::ConstPtr& feedback)
 	{
+
 		//Doesnt return wanted results
 		//ROS_INFO("%f",feedback->base_position.pose.position.x);
 	}
@@ -1002,9 +1012,10 @@ public:
 	{
 		//this service call is meant to help the robot when it doesnt find a path to the goal
 		//everytime this service gets called the Distance shrinks to 90% and a new goal will be planned
-		ConstructPointCloud(GoalDist*0.9);
+		ConstructPointCloud(GoalDist*0.5);
 		constructgoalbymap();
-		response.result=GoalDist*0.9;
+		sendgoal();
+		response.result=GoalDist*0.5;
 		ROS_INFO("Constructed a new Goal since Planning failed with the old goal");
 		return true;
 	}
@@ -1045,7 +1056,7 @@ int main(int argc, char* argv[])
 	//wait untill the actionserverclient in the goalfinder finds the movebase server
 
 
-	ros::Rate rate=1;
+	ros::Rate rate=0.75;
 	while(n.ok()){
 		//enabling or disabling the blockage of the left lane
 		checkroadblockage();
