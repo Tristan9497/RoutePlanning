@@ -1,0 +1,3 @@
+bool trigger #This triggers a re planning with a different/shorter goaldistance
+---
+float32 result #returns the new goaldistance

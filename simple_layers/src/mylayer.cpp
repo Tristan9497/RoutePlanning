@@ -26,6 +26,7 @@ void MyLayer::onInitialize()
       &MyLayer::reconfigureCB, this, _1, _2);
   dsrv_->setCallback(cb);
   line_sub_ = nh.subscribe(topic, 1, &MyLayer::lineCallback, this);
+  service=nh.advertiseService("MyLayer/reset", &MyLayer::reset, this);
   ros::param::set("/use_sim_time",true);
 
 
@@ -96,7 +97,7 @@ void MyLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, dou
   double cost;
   double mark_x=0;
   double mark_y=0;
-  double startcost=1;
+  double startcost=50;
   double maxcost=254;
   unsigned int mx;
   unsigned int my;
@@ -115,6 +116,7 @@ void MyLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, dou
 
 		  radius=linepoints.channels.at(0).values.at(k);
 		  maxcost=linepoints.channels.at(1).values.at(k);
+		  startcost=linepoints.channels.at(2).values.at(k);
 		  mark_x=tpt.x;
 		  mark_y=tpt.y;
 
@@ -133,10 +135,11 @@ void MyLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, dou
 					  {
 
 						  //cost=255*exp((log(50/255)*(dist/radius)));
-						  cost=-dist*((maxcost-startcost)/radius)+maxcost;
+						  cost=maxcost-dist*((maxcost-startcost)/radius);
+						  //cost=254;
 //						  ROS_INFO("%d",MyLayer::getCost(mx,my));
 
-						  if(MyLayer::getCost(mx, my)==255||MyLayer::getCost(mx, my)<cost){
+						  if(MyLayer::getCost(mx, my)>=254||MyLayer::getCost(mx, my)<cost){
 						  	setCost(mx, my, (unsigned char) cost);
 						  }
 
@@ -157,7 +160,23 @@ void MyLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, dou
   }
 	linepoints.points.clear();
   }
+
 }
+
+bool MyLayer::reset(simple_layers::reset::Request &trigger, simple_layers::reset::Response &state)
+	{
+	  for (int j = 0;j<MyLayer::getSizeInCellsX(); j++)
+	  {
+		  for (int i = 0;i<MyLayer::getSizeInCellsX(); i++)
+	    {
+	      int index = getIndex(i, j);
+
+	      	setCost(i, j, 0);
+
+	    }
+	  }
+	  return true;
+	}
 
 
 

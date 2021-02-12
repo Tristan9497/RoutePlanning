@@ -36,7 +36,7 @@
 		<param name="base_global_planner" value="global_planner/GlobalPlanner" />
 		<param name="planner_frequency" value="1.0" />
 		<param name="planner_patience" value="5.0" />
-
+		<param name="clearing_rotation_allowed" value="False" />
 		<param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" />
 		<param name="controller_frequency" value="5.0" />
 		<param name="controller_patience" value="15.0" />/>
@@ -46,5 +46,6 @@
 	    <rosparam file="$(find arlo_navigation)/config/global_costmap_params.yaml" command="load" /> 
 	    <rosparam file="$(find arlo_navigation)/config/base_local_planner_params.yaml" command="load"/>
 	</node>
+	<node name="posefinder" pkg="arlo_navigation" type="posefinder" output="screen"/>
 
 </launch>

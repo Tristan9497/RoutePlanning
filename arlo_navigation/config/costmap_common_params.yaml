@@ -16,7 +16,7 @@ my:
    
 inflation_layer:
    enabled: true
-   inflation_radius: 0.01
+   inflation_radius: 0.005
    cost_scaling_factor: 10.0
    
 obstacle_layer:
@@ -32,7 +32,7 @@ obstacle_layer:
       data_type: LaserScan
       topic: scan_filtered
       marking: true
-      clearing: false
+      clearing: true
       max_obstacle_height: 2.0
       min_obstacle_height: -2.0
       sensor_frame: hokuyo_link
