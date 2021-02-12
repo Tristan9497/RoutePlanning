@@ -4,3 +4,5 @@
 	url = https://github.com/ros-simulation/gazebo_ros_demos.git
 [submodule "image_pipeline"]
 	url = https://github.com/ros-perception/image_pipeline
+[submodule "navigation_layers"]
+	url = https://github.com/DLu/navigation_layers.git
