@@ -36,8 +36,7 @@
 #include <dynamic_reconfigure/server.h>
 #include <arlo_navigation/markfreespaceConfig.h>
 
-//TODO dyn_recon
-double searchradius=1000; //distance in mm
+
 
 geometry_msgs::Quaternion orientation;
 geometry_msgs::Point position;
@@ -54,16 +53,15 @@ sensor_msgs::PointCloud2 constructcloud(std::vector<geometry_msgs::Point32> &poi
 std::vector<geometry_msgs::Point32> points;
 std::vector<geometry_msgs::Point32> navpoints;
 std::vector<geometry_msgs::Point32> scan;
+
+
 sensor_msgs::PointCloud InflatePoints;
 sensor_msgs::ChannelFloat32 RadInfo;
 sensor_msgs::ChannelFloat32 MaxCost;
-
-double leftrad;
-double rightrad=0.15;
-double middlerad=0.3;
-double leftmax=254;
-double rightmax=254;
-double middlemax=100;
+sensor_msgs::ChannelFloat32 MinCost;
+double inflaterad;
+double maxcost=254;
+double mincost=50;
 
 void callback(arlo_navigation::markfreespaceConfig &config, uint32_t level) {
 	middletrigger=config.middleline;
@@ -82,7 +80,7 @@ class Listener
 
 
 
-			//desperate try to prevent out of range error in costmaap layer
+			//desperate try to prevent out of range error in costmap layer
 			RadInfo.values.clear();
 			MaxCost.values.clear();
 			InflatePoints.channels.clear();
@@ -95,7 +93,7 @@ class Listener
 			InflatePoints.header.stamp=ros::Time::now();
 			//Transforming points of road_detection into sensor_msgs::PointCloud2 so they can be used for slam and the costmap
 			points.clear();
-			leftrad=road->laneWidthLeft+ 0.6*road->laneWidthRight;
+			inflaterad=road->laneWidthLeft+ 0.6*road->laneWidthRight;
 			//publishing borders and middle line individual to give better flexibility
 			for(int i=0;i<road->lineLeft.points.size();i++)
 			{
@@ -111,8 +109,9 @@ class Listener
 					InflatePoints.points.push_back(Buffer);
 	//				leftrad=road->laneWidthLeft+road->laneWidthRight/2;
 	//				ROS_INFO("%f",road->laneWidthLeft);
-					RadInfo.values.push_back(leftrad);
-					MaxCost.values.push_back(leftmax);
+					RadInfo.values.push_back(inflaterad);
+					MaxCost.values.push_back(maxcost);
+					MinCost.values.push_back(mincost);
 				}
 			}
 			for(int j=0;j<road->lineRight.points.size();j++)
@@ -279,7 +278,7 @@ int main(int argc, char **argv)
 		if(InflatePoints.points.size()>0){
 			InflatePoints.channels.push_back(RadInfo);
 			InflatePoints.channels.push_back(MaxCost);
-
+			InflatePoints.channels.push_back(MinCost);
 			inflationpub.publish(InflatePoints);
 		}
 
