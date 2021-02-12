@@ -116,6 +116,7 @@ void MyLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, dou
 
 		  radius=linepoints.channels.at(0).values.at(k);
 		  maxcost=linepoints.channels.at(1).values.at(k);
+		  startcost=linepoints.channels.at(2).values.at(k);
 		  mark_x=tpt.x;
 		  mark_y=tpt.y;
 
@@ -134,11 +135,11 @@ void MyLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, dou
 					  {
 
 						  //cost=255*exp((log(50/255)*(dist/radius)));
-						  //cost=maxcost-dist*((maxcost-startcost)/radius);
-						  cost=254;
+						  cost=maxcost-dist*((maxcost-startcost)/radius);
+						  //cost=254;
 //						  ROS_INFO("%d",MyLayer::getCost(mx,my));
 
-						  if(MyLayer::getCost(mx, my)==255||MyLayer::getCost(mx, my)<cost){
+						  if(MyLayer::getCost(mx, my)>=254||MyLayer::getCost(mx, my)<cost){
 						  	setCost(mx, my, (unsigned char) cost);
 						  }
 
