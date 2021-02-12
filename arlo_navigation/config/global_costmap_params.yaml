@@ -8,9 +8,7 @@ global_costmap:
    #static_map: true
    static_map: false
    rolling_window: true
-   #always_send_full_costmap: true
-   
-   outlineMap: true
+
    #origin_x: -12.5
    #origin_y: -12.5
    width: 9.0
