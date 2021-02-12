@@ -4,7 +4,5 @@
 	url = https://github.com/ros-simulation/gazebo_ros_demos.git
 [submodule "image_pipeline"]
 	url = https://github.com/ros-perception/image_pipeline
-[submodule "slam_gmapping"]
-	url = https://github.com/ros-perception/slam_gmapping.git
 [submodule "slider_publisher"]
 	url = https://github.com/oKermorgant/slider_publisher.git
