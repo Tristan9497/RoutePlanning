@@ -988,8 +988,12 @@ public:
 			}
 	void sendgoal()
 	{
-
-
+		//transforming the goal into the odom frame since the costmaps are fixed to that
+		geometry_msgs::TransformStamped transformStamped;
+		tf2_ros::Buffer tfBuffer;
+		tf2_ros::TransformListener tf2_listener(tfBuffer);
+		transformStamped=tfBuffer.lookupTransform("odom",goal.target_pose.header.frame_id, ros::Time(0), ros::Duration(10.0) );
+		tf2::doTransform(goal.target_pose,goal.target_pose, transformStamped);
 		//sending goal to move_base via actionserver
 		//syntax for a potential feedback function
 		ac.sendGoal(goal,
