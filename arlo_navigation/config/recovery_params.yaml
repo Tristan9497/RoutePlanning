@@ -1,0 +1,7 @@
+recovery_behaviors:
+  - name: 'costmap_reset_conservative'
+    type: 'clear_costmap_recovery/ClearCostmapRecovery'
+    
+costmap_reset_conservative:
+  reset_distance: 1.5
+  layer_names: ["my"]
