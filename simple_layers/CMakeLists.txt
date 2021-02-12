@@ -13,10 +13,15 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_ros
   tf2_msgs
   tf2_sensor_msgs
+  std_msgs
+  message_generation
   
 )
 
-
+add_service_files(
+  FILES
+  reset.srv
+)
 
  generate_messages(
    DEPENDENCIES

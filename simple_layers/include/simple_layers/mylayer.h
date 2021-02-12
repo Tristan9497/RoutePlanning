@@ -17,7 +17,7 @@
 #include <sensor_msgs/PointCloud.h>
 #include <math.h>
 #include <string.h>
-
+#include <simple_layers/reset.h>
 namespace simple_layer_namespace
 {
 
@@ -34,7 +34,9 @@ public:
   {
     return true;
   }
-
+  //service to reset the layer usable as recovery or to help the planner to get past obstacles
+  ros::ServiceServer service;
+  bool reset(simple_layers::reset::Request &trigger, simple_layers::reset::Response &state);
   virtual void matchSize();
   geometry_msgs::Point32 TransformPoint(geometry_msgs::Point32 point,std::string frame2);
 protected:
@@ -48,6 +50,7 @@ protected:
   double oldy;
 
 private:
+
   void reconfigureCB(simple_layers::ProgressiveLayerConfig &config, uint32_t level);
   dynamic_reconfigure::Server<simple_layers::ProgressiveLayerConfig> *dsrv_;
 
