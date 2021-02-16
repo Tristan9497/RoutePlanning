@@ -6,6 +6,4 @@
 	url = https://github.com/ros-perception/image_pipeline
 [submodule "navigation_layers"]
 	url = https://github.com/DLu/navigation_layers.git
-[submodule "robot_localization"]
-	path = robot_localization
-	url = https://github.com/cra-ros-pkg/robot_localization.git
+
