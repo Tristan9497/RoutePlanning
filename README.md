@@ -3,5 +3,14 @@ This Package is supposed to be the base for the autonomous navigation of our rob
 
 The Robot is supposed to follow a road on the correct lanes and dodge upcoming obstacles as needed. At the same time it is maping the surounding area and is localizing itself in the map.
 
+The route following and obstacle avoidance will be acomplished using move base and sending new goals in a given interval.
+
+Goals will be found by appordimating either circles or lines on the border of the road extracted by a roaddetection node.
+After the first round the slam result should be good enough, so we can extract new goals straight from there.
+
+The global and the local costmap are both non static or rolling window so the robot will "forget" old obstacles.
+
+To get the global planner to work like it is requiered here a few changes have been made that are located in my fork of David Lu's navigation repo
+
 This work will be done during my bachelor thesis and hopefully will be improved and used by other people in the future
 
