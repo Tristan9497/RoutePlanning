@@ -47,8 +47,8 @@ add_service_files(
 
 
 catkin_package(
-  INCLUDE_DIRS
-  LIBRARIES arlo_navigation
+  INCLUDE_DIRS 
+  LIBRARIES arlo_navigation simple_layers
   CATKIN_DEPENDS dynamic_reconfigure geometry_msgs nav_msgs roscpp rospy sensor_msgs std_msgs message_runtime
   DEPENDS
 )
