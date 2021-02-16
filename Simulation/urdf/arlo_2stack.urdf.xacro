@@ -111,7 +111,7 @@
 
       <visual>
         
-        <origin xyz="0 0.02 0.050625" rpy="-1.5707 0 0"/>
+        <origin xyz="0 0.02 0.050625" rpy="-1.570796327 0 0"/>
         <geometry>
           <mesh filename="package://Simulation/meshes/28971-Caster-Wheel-Kit-v1.0_simplified.stl"/>
         </geometry>
@@ -120,7 +120,7 @@
         </material>
       </visual>
       <collision>
-        <origin xyz="0 0.02 0" rpy="-1.5707 0 1.5707"/>
+        <origin xyz="0 0.02 0" rpy="-1.570796327 0 1.570796327"/>
         <geometry>
     	  <sphere radius="0.050625"/>
         </geometry>
@@ -149,7 +149,7 @@
 
       <visual>
         
-        <origin xyz="0 0.02 0.050625" rpy="-1.5707 0 0"/>
+        <origin xyz="0 0.02 0.050625" rpy="-1.570796327 0 0"/>
         <geometry>
           <mesh filename="package://Simulation/meshes/28971-Caster-Wheel-Kit-v1.0_simplified.stl"/>
         </geometry>
@@ -158,7 +158,7 @@
         </material>
       </visual>
       <collision>
-        <origin xyz="0 0.02 0" rpy="-1.5707 0 1.5707"/>
+        <origin xyz="0 0.02 0" rpy="-1.570796327 0 1.570796327"/>
         <geometry>
     	  <sphere radius="0.050625"/>
         </geometry>
@@ -191,7 +191,7 @@
       </inertial>
 
       <visual>
-        <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+        <origin xyz="0 0 0" rpy="0 1.570796327 1.570796327"/>
         <geometry>
           <cylinder radius="0.00635" length="0.00635"/>
         </geometry>
@@ -199,7 +199,7 @@
       </visual>
 
       <collision>
-        <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+        <origin xyz="0 0 0" rpy="0 1.570796327 1.570796327"/>
         <geometry>
           <cylinder radius="0.00635" length="0.00635"/>
         </geometry>
@@ -222,7 +222,7 @@
       </inertial>
 
       <visual>
-        <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+        <origin xyz="0 0 0" rpy="0 1.570796327 1.570796327"/>
         <geometry>
           <cylinder radius="0.00635" length="0.00635"/>
         </geometry>
@@ -230,7 +230,7 @@
       </visual>
 
       <collision>
-        <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+        <origin xyz="0 0 0" rpy="0 1.570796327 1.570796327"/>
         <geometry>
           <cylinder radius="0.00635" length="0.00635"/>
         </geometry>
@@ -253,7 +253,7 @@
       </inertial>
 
       <visual>
-        <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+        <origin xyz="0 0 0" rpy="0 1.570796327 1.570796327"/>
         <geometry>
           <cylinder radius="0.0762" length="0.03175"/>
         </geometry>
@@ -261,7 +261,7 @@
       </visual>
 
       <collision>
-        <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+        <origin xyz="0 0 0" rpy="0 1.570796327 1.570796327"/>
         <geometry>
           <cylinder radius="0.0762" length="0.03175"/>
         </geometry>
@@ -295,7 +295,7 @@
       </inertial>
 
       <visual>
-        <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+        <origin xyz="0 0 0" rpy="0 1.570796327 1.570796327"/>
         <geometry>
           <cylinder radius="0.0762" length="0.03175"/>
         </geometry>
@@ -303,7 +303,7 @@
       </visual>
 
       <collision>
-        <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+        <origin xyz="0 0 0" rpy="0 1.570796327 1.570796327"/>
         <geometry>
           <cylinder radius="0.0762" length="0.03175"/>
         </geometry>

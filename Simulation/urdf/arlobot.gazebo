@@ -99,17 +99,17 @@
     <plugin name="differential_drive_controller" filename="libgazebo_ros_diff_drive.so">
       <legacyMode>false</legacyMode>
       <alwaysOn>true</alwaysOn>
-      <updateRate>10</updateRate>
+      <updateRate>30</updateRate>
       <leftJoint>left_wheel_joint</leftJoint>
       <rightJoint>right_wheel_joint</rightJoint>
-      <wheelSeparation>0.34295</wheelSeparation>
+      <wheelSeparation>0.38105</wheelSeparation>
       <wheelDiameter>0.1524</wheelDiameter>
-      <torque>5</torque>
+      <torque>6.6037</torque><!--form paralx website motor kit arlo (85 Inch Lbs)-->
       <commandTopic>cmd_vel</commandTopic>
       <odometryTopic>odom</odometryTopic>
       <odometryFrame>odom</odometryFrame>
       <robotBaseFrame>base_footprint</robotBaseFrame>
-      <odometrySource>0</odometrySource><!--encoder=0 simulation=1-->
+      <odometrySource>encoder</odometrySource>
       
     </plugin>
   </gazebo>
