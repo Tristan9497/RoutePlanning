@@ -50,7 +50,7 @@ protected:
   double oldy;
 
 private:
-
+  bool layertrigger,sim_time;
   void reconfigureCB(simple_layers::ProgressiveLayerConfig &config, uint32_t level);
   dynamic_reconfigure::Server<simple_layers::ProgressiveLayerConfig> *dsrv_;
 

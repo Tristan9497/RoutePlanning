@@ -25,10 +25,26 @@ void MyLayer::onInitialize()
   dynamic_reconfigure::Server<simple_layers::ProgressiveLayerConfig>::CallbackType cb = boost::bind(
       &MyLayer::reconfigureCB, this, _1, _2);
   dsrv_->setCallback(cb);
+
+  //define subcribers and services
   line_sub_ = nh.subscribe(topic, 1, &MyLayer::lineCallback, this);
   service=nh.advertiseService("MyLayer/reset", &MyLayer::reset, this);
-  ros::param::set("/use_sim_time",true);
 
+  //
+
+  //get the parameters of the layer
+  if(!nh.getParam("/enabled", enabled_))
+  {
+	  ROS_WARN("Layer: %s is inactive",name_.c_str());
+  }
+
+
+  //if we are in the simulation we need to set sim_time to true else we want to use real time
+  if(nh.getParam("/sim_time",sim_time))
+  {
+	  ros::param::set("/use_sim_time",true);
+  }
+  layertrigger=true;
 
 }
 
@@ -53,12 +69,14 @@ void MyLayer::reconfigureCB(simple_layers::ProgressiveLayerConfig &config, uint3
   topic = config.point_topic;
 
 }
+
+//function that transforms a point32 from frame2 to the global frame of the costmap and returns the transformed point
 geometry_msgs::Point32 MyLayer::TransformPoint(geometry_msgs::Point32 point,std::string frame2)
 	{
 	geometry_msgs::TransformStamped transformStamped;
 	tf2_ros::Buffer tfBuffer;
 	tf2_ros::TransformListener tfListener(tfBuffer);
-	//function that transforms a point32 from frame2 to the global frame of the costmap and returns the transformed point
+
 	geometry_msgs::Point pt;
 	geometry_msgs::Point32 pt32;
 
@@ -87,16 +105,23 @@ void MyLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, dou
                                            double* min_y, double* max_x, double* max_y)
 {
 	// robot pose has to be updated, otherwise we get huge offset in case rolling window costmap is selected
+
   if (rolling_window_)
 	updateOrigin(robot_x - getSizeInMetersX() / 2, robot_y - getSizeInMetersY() / 2);
-  if (!enabled_)
+
+  //return if the layer is in reset mode or if it hasn't been enabled
+
+  if (!enabled_||!layertrigger)
     return;
 
+
+  //ELSE INFLATE EVERY POINT IN THE CLOUD BY ITS INDIVIDUAL RADIUS AND COSTS
   double radius;
   double dist;
   double cost;
   double mark_x=0;
   double mark_y=0;
+  //default values... true values come with the pointcloud as channel info
   double startcost=50;
   double maxcost=254;
   unsigned int mx;
@@ -105,9 +130,7 @@ void MyLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, dou
   geometry_msgs::Point32 pt;
   geometry_msgs::Point32 tpt;
   if(linepoints.points.size()>0){
-//  ROS_INFO("%d",linepoints.points.size());
-//  ROS_INFO("%d",linepoints.channels.size());
-//  ROS_INFO("%d",linepoints.channels.at(1).values.size());
+
 	for(int k=0; k<linepoints.points.size();k++){
 		std::string cloudtopic=linepoints.header.frame_id.c_str();
 		pt.x=linepoints.points.at(k).x;
@@ -140,7 +163,7 @@ void MyLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, dou
 //						  ROS_INFO("%d",MyLayer::getCost(mx,my));
 
 						  if(MyLayer::getCost(mx, my)>=254||MyLayer::getCost(mx, my)<cost){
-						  	setCost(mx, my, (unsigned char) cost);
+							setCost(mx, my, (unsigned char) cost);
 						  }
 
 
@@ -163,18 +186,35 @@ void MyLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, dou
 
 }
 
+
+//this service switches off the layer and resets its content depending on the trigger
+//with trigger=true the layer will be reseted
+//with false the default behavior will be started again
+
 bool MyLayer::reset(simple_layers::reset::Request &trigger, simple_layers::reset::Response &state)
 	{
-	  for (int j = 0;j<MyLayer::getSizeInCellsX(); j++)
-	  {
-		  for (int i = 0;i<MyLayer::getSizeInCellsX(); i++)
-	    {
-	      int index = getIndex(i, j);
+	if(trigger.trigger==true)
+	{
+		layertrigger=false;
+		  for (int j = 0;j<MyLayer::getSizeInCellsX(); j++)
+		  {
+			  for (int i = 0;i<MyLayer::getSizeInCellsX(); i++)
+		    {
+		      int index = getIndex(i, j);
 
-	      	setCost(i, j, 0);
+		      	setCost(i, j, 0);
 
-	    }
-	  }
+		    }
+		  }
+
+		  state.state=false;
+	}
+	else
+	{
+		layertrigger=true;
+
+		state.state=true;
+	}
 	  return true;
 	}
 
