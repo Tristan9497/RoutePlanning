@@ -3,7 +3,7 @@
 	<param name="/use_sim_time" value="true"/>
     <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find Simulation)/urdf/common_default.urdf.xacro'" />
     <arg name="x" default="0"/>
-    <arg name="y" default="-0.225"/>
+    <arg name="y" default="-0.45"/>
     <arg name="z" default="0"/>
 
     <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
