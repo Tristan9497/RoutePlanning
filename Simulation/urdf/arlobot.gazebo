@@ -109,7 +109,7 @@
       <odometryTopic>odom</odometryTopic>
       <odometryFrame>odom</odometryFrame>
       <robotBaseFrame>base_footprint</robotBaseFrame>
-      <odometrySource>encoder</odometrySource>
+      <odometrySource>world</odometrySource>
       
     </plugin>
   </gazebo>
