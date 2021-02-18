@@ -1,0 +1,73 @@
+\chapter{Theoretical Background}
+\label{theoretical_background}
+This chapter will cover the needed theoretical background about the Gazebo Simulation, the Sensor Plugins, ROS and all of the used ROS packages.
+
+\section{ROS}
+
+
+
+\subsection{Nodes}
+\subsection{Topics/Services/Actions}
+All three are possibilities for the data exchange between nodes.
+
+According to :::::
+Services and actions can be used like the subscriber/publisher structure but are meant for the intercommunication between nodes. A service is more or less a function in a different node that has the option to receive data and respond to it.
+\subsection{RVIZ}
+\subsection{TF}
+In most cases robots that are controlled by ros have a so called tf\_tree. This tree is the coordinate frame structure of the robot. In it every sensor and actor has its own coordinate frame.\\
+ The structure in most trees of mobile platforms is quite similar which is caused by the REP105 (ROS Enhanced Proposals) this contains a definition of recommended names for the robot frames and their order in the tree. But it should be noted that not every frame that is defined in the norm has to be in every tree. The basic structure mostly starts at a so called fixed frame. This Frame will be the not changing frame in the environment. At moving robots this is often earth, map or odom, while in stationary robots this can even be base\_link.\\
+ 
+
+The tree is normally build up like in the following image. 
+
+TF2 is the successor of TF and is a very powerful tool in the ROS environment. With it it is possible to transform sensor\_msgs and geometry\_msgs from one frame in another. Furthermore it offers the possibility to transform old data into the present or at any other point in the past.
+
+\subsubsection{Robot Hardware Description}
+The robot hardware description consists of one or more URDF(Unified Robot Description Format) based xml file. Its purpose is to define the shape and geometric of every part of the robot. 
+
+\subsubsection{robot\_state\_publisher}
+This task of this package is to build the 
+
+\section{Gazebo}
+
+
+\subsection{Plugins}
+Gazebo offers a wide selection of pre made plugins that can be incorporated into a simulated robot by attaching the plugin to the right tf\_frame and configuring its parameters.
+\subsubsection{Camera}
+\subsubsection{Lidar}
+\subsubsection{Differential Controller}
+\subsubsection{IMU}
+\subsection{Models}
+
+
+\section{navigation stack}
+\subsection{mobe\_base}
+\subsection{global\_planner}
+\subsubsection{base\_global\_planner}
+\subsection{local\_planner}
+\subsubsection{teb\_local\_planner}
+\subsubsection{base\_local\_planner}
+\subsubsection{dwa\_local\_planner}
+\subsection{costmap\_2d}
+\subsubsection{global map}
+\subsubsection{local map}
+\subsubsection{layer}
+
+\section{cartographer} 
+\section{Carolo-Cup}
+The carolo cup is an event hosted by the University Braunschweig and is an event in which the teams of many different universities can compete against each other and present their work and progress in the field of autonomous driving.
+
+There are two different levels of difficulty the carolo basic cup and the carolo master cup.
+
+
+
+
+
+
+
+
+
+
+
+
+
