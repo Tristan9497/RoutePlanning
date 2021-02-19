@@ -14,7 +14,7 @@
 			<uri>model://Simulation/gazebo_models/GroundPlane50x50</uri>
 		</include>
 		<include>
-			<uri>model://Simulation/gazebo_models/Track_wide</uri>
+			<uri>model://Simulation/gazebo_models/Track_90</uri>
 		</include>
 	</world>
 </sdf>
