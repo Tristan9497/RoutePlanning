@@ -1,15 +1,11 @@
-robot_radius: 0.225
+robot_radius: 0.05
 
 
 map_update_rate: 2.5
 transform_tolerance: 2.5
 
 
-static:
-   enabled: true
-   map_topic: map
-   
-   
+ 
    
 my:
    enabled: true

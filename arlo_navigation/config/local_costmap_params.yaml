@@ -1,6 +1,6 @@
 local_costmap:
    map_type: costmap
-   global_frame: map
+   global_frame: odom
    
    robot_base_frame: base_footprint
    update_frequency: 5.0
@@ -17,7 +17,7 @@ local_costmap:
       
       
       
-      - {name: my,                type: "simple_layer_namespace::MyLayer"}
+      #- {name: my,                type: "simple_layer_namespace::MyLayer"}
       - {name: obstacle_layer,    type: "costmap_2d::ObstacleLayer"}
       - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
       
