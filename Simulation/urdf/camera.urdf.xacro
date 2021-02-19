@@ -3,8 +3,8 @@
 
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
-	<xacro:property name="camera_angle" value="${45 *180/M_PI}" /><!--angle measured from horizontal downwards-->
-	<xacro:property name="camera_hight" value="${0.45-0.10125}" /><!--since this is relative to the base_link we have to substract 0.10125 from the hight we want-->
+	<xacro:property name="camera_angle" value="${70 *M_PI/180}" /><!--angle measured from horizontal downwards-->
+	<xacro:property name="camera_hight" value="${0.6-0.10125}" /><!--since this is relative to the base_link we have to substract 0.10125 from the hight we want-->
 	<xacro:property name="camera_xoffset" value="0.18" />
 	
 	<xacro:macro name="camera" params="parent">
@@ -31,7 +31,7 @@
 		</link>
 		
 		<joint name="camera_joint" type="fixed">
-			<axis xyz="0 1 0" />
+			<axis xyz="0 1 0"/>
 		    <origin xyz="${camera_xoffset} 0 ${camera_hight}" rpy="0 ${camera_angle} 0"/>
 		    <parent link="${parent}"/>
 		    <child link="camera_link"/>

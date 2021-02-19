@@ -261,7 +261,7 @@
       <collision>
         <origin xyz="0 0 0" rpy="0 ${M_PI/2} ${M_PI/2}"/>
         <geometry>
-          <cylinder radius="0.0762" length="0.03175"/>
+          <cylinder radius="0.0762" length="0.001"/>
         </geometry>
         <surface>
 	        <friction>
@@ -274,8 +274,7 @@
       </collision>
     </link>
 
-    <!-- Fixed because we never rotate it anyway, it is just for show -->
-    <!-- NOTE This may prevent gazebo from working with this model -->
+
     <joint name="left_wheel_joint" type="continuous">
       <origin xyz="0 0.01905 0" rpy="0 0 0"/>
       <parent link="left_axle_link"/>
@@ -303,7 +302,7 @@
       <collision>
         <origin xyz="0 0 0" rpy="0 ${M_PI/2} ${M_PI/2}"/>
         <geometry>
-          <cylinder radius="0.0762" length="0.03175"/>
+          <cylinder radius="0.0762" length="0.001"/>
         </geometry>
         <surface>
 	        <friction>
