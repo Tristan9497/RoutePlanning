@@ -7,12 +7,60 @@ This chapter will cover the needed theoretical background about the Gazebo Simul
 
 
 \subsection{Nodes}
+\subsection{Plugins}
 \subsection{Topics/Services/Actions}
 All three are possibilities for the data exchange between nodes.
 
 According to :::::
 Services and actions can be used like the subscriber/publisher structure but are meant for the intercommunication between nodes. A service is more or less a function in a different node that has the option to receive data and respond to it.
 \subsection{RVIZ}
+
+
+\subsection{REP}
+REP's (short for ROS enhanced proposals) are guidelines made and maintained by the ros community. It is highly advisable to follow the guidelines as much as possible.
+
+Complying to these guidelines allows external people easier comprehension of the structure of the robot and eliminates misunderstandings.
+
+The most important REP's in this project are REP 103 and REP 105.
+\subsubsection{REP 103}
+	
+	"This REP provides a reference for the units and coordinate conventions used within ROS"\cite{REP103}\\  
+	
+	\textbf{Coordinate Frame}
+	\begin{itemize}
+		\item \textbf{X-Axis} - Forward
+		\item \textbf{Y-Axis} - Left
+		\item \textbf{Z-Axis} - Up
+	\end{itemize}
+	
+	\textbf{Units}\\
+	Units will always be represented in SI Units and their derived units.\\
+	
+	\textbf{The order of preference for rotations}
+	\begin{enumerate}
+		\item Quaternion
+		\item Rotation matrix
+		\item fixed axis roll, pitch, yaw
+		\item Euler angles
+	\end{enumerate}
+	\cite{REP103}
+	
+\subsubsection{REP 105}
+	"This REP specifies naming conventions and semantic meaning for coordinate frames of mobile platforms used with ROS."\cite{REP105}\\
+	
+	REP103 Applies for all fixed coordinate frames.
+	
+	\textbf{Coordinate Frames}
+	\begin{itemize}
+		\item \textbf{base\_link} is a fixed frame on the robot base. It serves as the reference points for all of hardware mounted on the robot itself like sensors.
+		\item \textbf{odom} is a world fixed frame that serves as the reference for the pose of the robot.\\ Since the pose of the robot will drift over time it wont serve as a good long term reference.\\In most cases the odom frame will be computed using localization sensors like wheel odometry, imu's, visual odometry, etc. which leads to a continuous frame.
+		\item \textbf{map} is a world fixed coordinate frame that serves as the reference for the odometry frame. It is also the base for a map of the environment such as the ones provided by slam algorithms. The frame is time discrete since it is mostly computed by localization algorithms.
+	\end{itemize}
+	
+	That tree can be extended by an earth frame that would be the reference for the localization of the map in the earth. Which is useful, for long range robot platforms.\cite{REP105}
+	
+	
+	
 \subsection{TF}
 In most cases robots that are controlled by ros have a so called tf\_tree. This tree is the coordinate frame structure of the robot. In it every sensor and actor has its own coordinate frame.\\
  The structure in most trees of mobile platforms is quite similar which is caused by the REP105 (ROS Enhanced Proposals) this contains a definition of recommended names for the robot frames and their order in the tree. But it should be noted that not every frame that is defined in the norm has to be in every tree. The basic structure mostly starts at a so called fixed frame. This Frame will be the not changing frame in the environment. At moving robots this is often earth, map or odom, while in stationary robots this can even be base\_link.\\
@@ -22,11 +70,11 @@ The tree is normally build up like in the following image.
 
 TF2 is the successor of TF and is a very powerful tool in the ROS environment. With it it is possible to transform sensor\_msgs and geometry\_msgs from one frame in another. Furthermore it offers the possibility to transform old data into the present or at any other point in the past.
 
-\subsubsection{Robot Hardware Description}
+\subsubsection{URDF and xacro}
 The robot hardware description consists of one or more URDF(Unified Robot Description Format) based xml file. Its purpose is to define the shape and geometric of every part of the robot. 
 
 \subsubsection{robot\_state\_publisher}
-This task of this package is to build the 
+	This package uses the robot hardware description and builds up the tf\_tree using static\_transform\_publishers.
 
 \section{Gazebo}
 
