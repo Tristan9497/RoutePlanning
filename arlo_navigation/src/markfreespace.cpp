@@ -37,6 +37,11 @@
 #include <arlo_navigation/markfreespaceConfig.h>
 
 
+//ft2
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+#include <tf2_ros/transform_listener.h>
+#include <geometry_msgs/TransformStamped.h>
+
 
 geometry_msgs::Quaternion orientation;
 geometry_msgs::Point position;
@@ -49,10 +54,10 @@ bool blockagetrigger=true;
 ros::Publisher pub;
 ros::Publisher inflationpub;
 ros::Publisher linepub;
-sensor_msgs::PointCloud2 constructcloud(std::vector<geometry_msgs::Point32> &points, float intensity, std::string frame);
-std::vector<geometry_msgs::Point32> points;
+sensor_msgs::PointCloud2 constructcloud(std::vector<geometry_msgs::Point32> &points, float intensity, std::string frame, ros::Time stamp);
+
 std::vector<geometry_msgs::Point32> navpoints;
-std::vector<geometry_msgs::Point32> scan;
+
 
 
 sensor_msgs::PointCloud InflatePoints;
@@ -60,18 +65,49 @@ sensor_msgs::ChannelFloat32 RadInfo;
 sensor_msgs::ChannelFloat32 MaxCost;
 sensor_msgs::ChannelFloat32 MinCost;
 double inflaterad;
-double maxcost=254;
-double mincost=50;
+double maxcost=150;
+double mincost=20;
+
+double clearrad,obstaclerad,inflatedist,cleardist;
+
 
 void callback(arlo_navigation::markfreespaceConfig &config, uint32_t level) {
 	middletrigger=config.middleline;
+
+	inflaterad=config.LeftInflation;
+	clearrad=config.RightRemoval;
+	obstaclerad=config.ObstacleRemoval;
+
+	inflatedist=config.InflPointDistance;
+	cleardist=config.ClearPointDistance;
 }
 
 
 
 class Listener
 	{
+	private:
+		road_detection::Line Left,Right,Middle;
+		double lwidth,rwidth;
+		ros::Time obstaclstamp;
+
+		std::vector<geometry_msgs::Point32> points;
+		std::vector<geometry_msgs::Point32> scan;
+		std::vector<geometry_msgs::Point32> obstacles;
+
+		double polynomial(double x, road_detection::Line::_polynomial_type::_a_type a) {
+			double xp = 1;
+			double result = 0;
+
+			for ( int i = 0; i < a.size(); i++ ) {
+				result += xp * a[i];
+				xp *= x;
+			}
+			return result;
+		}
 	public:
+		std::string roadframe="base_footprint";//starting value since wee have to wait for the road detection
+		ros::Time roadstamp;
 		void roadCallback(const road_detection::RoadConstPtr& road)
 		{
 
@@ -79,21 +115,15 @@ class Listener
 			geometry_msgs::Point32 Buffer;
 
 
-
-			//desperate try to prevent out of range error in costmap layer
-			RadInfo.values.clear();
-			MaxCost.values.clear();
-			InflatePoints.channels.clear();
-			InflatePoints.points.clear();
-
-
-			RadInfo.name="InflationRadius";
-			MaxCost.name="MaxCost";
-			InflatePoints.header.frame_id=road->header.frame_id;
-			InflatePoints.header.stamp=ros::Time::now();
+			Left=road->lineLeft;
+			Right=road->lineRight;
+			lwidth=road->laneWidthLeft;
+			rwidth=road->laneWidthRight;
+			roadframe=road->header.frame_id;
+			roadstamp=road->header.stamp;
 			//Transforming points of road_detection into sensor_msgs::PointCloud2 so they can be used for slam and the costmap
 			points.clear();
-			inflaterad=road->laneWidthLeft+ 0.6*road->laneWidthRight;
+
 			//publishing borders and middle line individual to give better flexibility
 			for(int i=0;i<road->lineLeft.points.size();i++)
 			{
@@ -102,31 +132,16 @@ class Listener
 
 				points.push_back(Buffer);
 			}
-			//Filtering out error points so they won't go into the costmap
-			//errorpoints are caused by roaddetection not seeing the leftline for a moment but the other lines are getting detected
-			if(road->lineLeft.points.size()!=0){
-				if(blockagetrigger==true){
-					InflatePoints.points.push_back(Buffer);
-	//				leftrad=road->laneWidthLeft+road->laneWidthRight/2;
-	//				ROS_INFO("%f",road->laneWidthLeft);
-					RadInfo.values.push_back(inflaterad);
-					MaxCost.values.push_back(maxcost);
-					MinCost.values.push_back(mincost);
-				}
-			}
+
+			inflaterad=road->laneWidthRight*0.4;
+
 			for(int j=0;j<road->lineRight.points.size();j++)
 			{
 				Buffer.x=road->lineRight.points[j].x;
 				Buffer.y=road->lineRight.points[j].y;
+
 				points.push_back(Buffer);
 			}
-//			if(road->lineRight.points.size()!=0){
-//				InflatePoints.points.push_back(Buffer);
-////				rightrad=road->laneWidthRight/2;
-////				ROS_INFO("%f",road->laneWidthLeft);
-//				RadInfo.values.push_back(rightrad);
-//				MaxCost.values.push_back(rightmax);
-//			}
 
 			for(int k=0;k<road->lineMiddle.points.size();k++)
 			{
@@ -141,43 +156,155 @@ class Listener
 			navpoints=points;
 
 
-		};
+		}
+		void Inflate()
+		{
+			geometry_msgs::Point32 Buffer, Old;
 
-	public:
+			RadInfo.values.clear();
+			MaxCost.values.clear();
+			InflatePoints.channels.clear();
+			InflatePoints.points.clear();
+
+
+			RadInfo.name="InflationRadius";
+			MaxCost.name="MaxCost";
+			InflatePoints.header.frame_id=Left.header.frame_id;
+			InflatePoints.header.stamp=Left.header.stamp;
+
+			ROS_INFO("width %f+%f=%f",lwidth,rwidth,lwidth+rwidth);
+			if(inflatedist==0&&Left.points.size()>0)
+			{
+
+				Buffer.x=Left.points.back().x;
+				Buffer.y=Left.points.back().y;
+				InflatePoints.points.push_back(Buffer);
+				RadInfo.values.push_back(lwidth+rwidth*inflaterad);
+				MaxCost.values.push_back(maxcost);
+				MinCost.values.push_back(mincost);
+			}
+			else{
+				for(int i=0;i<Left.points.size();i++)
+				{
+					Buffer.x=Left.points[i].x;
+					Buffer.y=Left.points[i].y;
+
+					if(i==0||sqrt(pow(Old.x-Buffer.x,2)+pow(Old.y-Buffer.y,2))>inflatedist){
+
+						InflatePoints.points.push_back(Buffer);
+						RadInfo.values.push_back(lwidth+rwidth*inflaterad);
+						MaxCost.values.push_back(maxcost);
+						MinCost.values.push_back(mincost);
+						Old=Buffer;
+					}
+				}
+			}
+			if(cleardist==0&&Right.points.size()>0)
+			{
+				Buffer.x=Right.points.back().x;
+				Buffer.y=Right.points.back().y;
+				InflatePoints.points.push_back(Buffer);
+				RadInfo.values.push_back(rwidth*clearrad);//adding points of right line so we allways have a free lane on the right even when street moves
+				MaxCost.values.push_back(0);
+				MinCost.values.push_back(0);
+			}
+			else{
+				for(int j=0;j<Right.points.size();j++)
+				{
+					Buffer.x=Right.points[j].x;
+					Buffer.y=Right.points[j].y;
+
+					if(j==0||sqrt(pow(Old.x-Buffer.x,2)+pow(Old.y-Buffer.y,2))>cleardist){
+
+						InflatePoints.points.push_back(Buffer);
+						RadInfo.values.push_back(rwidth*clearrad);//adding points of right line so we allways have a free lane on the right even when street moves
+						MaxCost.values.push_back(0);
+						MinCost.values.push_back(0);
+						Old=Buffer;
+					}
+				}
+			}
+
+
+			for(int j=0;j<obstacles.size();j++)
+			{
+				Buffer.x=obstacles[j].x;
+				Buffer.y=obstacles[j].y;
+
+				if(j==0||sqrt(pow(Old.x-Buffer.x,2)+pow(Old.y-Buffer.y,2))>obstaclerad*0.66){
+
+					InflatePoints.points.push_back(Buffer);
+					RadInfo.values.push_back(obstaclerad);//adding points of right line so we allways have a free lane on the right even when street moves
+					MaxCost.values.push_back(0);
+					MinCost.values.push_back(0);
+					Old=Buffer;
+				}
+			}
+		}
 
 		void scanCallback(const sensor_msgs::LaserScanConstPtr& Scan)
 		{
 			//generates combined pointcloud of lidar and roaddetection
 			scan.clear();
+			obstacles.clear();
 			geometry_msgs::Point32 scanpoint;
+			geometry_msgs::PointStamped tpt;
 			float angle;
 			float range;
+
+			geometry_msgs::TransformStamped transformStamped;
+			tf2_ros::Buffer tfBuffer;
+			tf2_ros::TransformListener tfListener(tfBuffer);
+
 			for(int i=0;i<Scan->ranges.size();i++)
 			{
 				angle=(i*Scan->angle_increment)+Scan->angle_min;
 				range=Scan->ranges.at(i);
 				//offset value from arlo_2stack urdf
 
-				scanpoint.x=range*cos(angle)+0.175;
-				scanpoint.y=range*sin(angle);
-				scanpoint.z=0.0;
-				scan.push_back(scanpoint);
+				tpt.point.x=range*cos(angle);
+				tpt.point.y=range*sin(angle);
+				tpt.point.z=0.0;
+				try{
+					//transform scanned point into the frame of the road detection then compare it with the road
+					transformStamped = tfBuffer.lookupTransform( roadframe,Scan->header.frame_id,Scan->header.stamp,ros::Duration(1));
+
+					tf2::doTransform(tpt,tpt, transformStamped);
+					scanpoint.x=tpt.point.x;
+					scanpoint.y=tpt.point.y;
+					scanpoint.z=tpt.point.z;
+					//pub.publish(Test);
+					//check whether the point is in the lane by projecting it on to the 3 roadlines and comparing their y values
+					//exact calculation not necessary since road makes wide curves
+					if(polynomial(scanpoint.x, Left.polynomial.a)>scanpoint.y && polynomial(scanpoint.x, Right.polynomial.a)<scanpoint.y)
+					{
+						obstacles.push_back(scanpoint);
+					}
+//					else if(polynomial(scanpoint.point.x, Right.polynomial.a)<scanpoint.point.y && polynomial(scanpoint.point.x, Middle.polynomial.a)>scanpoint.point.y)
+//					{
+//					}
+					scan.push_back(scanpoint);
+
+				}
+				catch(tf2::TransformException &ex)
+				{
+					//ROS_WARN("%s", ex.what());
+				}
 
 			}
 
 			if(scan.size()>=points.size()){
 				scan.insert( scan.end(), points.begin(), points.end() );
-				if(scan.size()>0) pub.publish(constructcloud(scan,100,"base_footprint"));
+				if(scan.size()>0) pub.publish(constructcloud(scan,100,"base_footprint",roadstamp));
 			}
 
 			else
 			{
 				points.insert( points.end(), scan.begin(), scan.end() );
-				if(points.size()>0) pub.publish(constructcloud(points,100,"base_footprint"));
+				if(points.size()>0) pub.publish(constructcloud(points,100,"base_footprint",roadstamp));
 			}
 
-		};
-	public:
+		}
 		bool clearleftline(arlo_navigation::clearleftlaneRequest &request,arlo_navigation::clearleftlaneResponse &response)
 		{
 			//inverting this bit switches the blockage of the left lane on and off.
@@ -192,7 +319,7 @@ class Listener
 
 
 
-sensor_msgs::PointCloud2 constructcloud(std::vector<geometry_msgs::Point32> &points, float intensity, std::string frame)
+sensor_msgs::PointCloud2 constructcloud(std::vector<geometry_msgs::Point32> &points, float intensity, std::string frame, ros::Time stamp)
 	{
 
 	//Construct PointCloud2 Message with given array of points tf_frame and intensity
@@ -202,7 +329,7 @@ sensor_msgs::PointCloud2 constructcloud(std::vector<geometry_msgs::Point32> &poi
 		const uint32_t POINT_STEP = 16;
 		sensor_msgs::PointCloud2 msg;
 		msg.header.frame_id =frame;
-		msg.header.stamp = ros::Time::now();
+		msg.header.stamp = stamp;
 		msg.fields.resize(4);
 		msg.fields[0].name = "x";
 		msg.fields[0].offset = 0;
@@ -270,18 +397,27 @@ int main(int argc, char **argv)
 	//ros::Subscriber map = n.subscribe("/map", 1000, &Listener::mapCallback, &listener);
 	//ros::Subscriber odom = n.subscribe("/odom", 1000, &Listener::odomCallback, &listener);
 	ros::ServiceServer clearblockage = n.advertiseService("clearblockage", &Listener::clearleftline, &listener);
+
 	//TODO configure frequency
-	ros::Duration rate(0.1);
+	ros::Rate rate(10);
+	ros::Rate inflaterate(0.25);
+	ros::Time oldstamp;
 	//copy smaller vector to larger and publish it as pointcloud2
 	while(n.ok()){
-		linepub.publish(constructcloud(navpoints,100,"base_footprint"));
-		if(InflatePoints.points.size()>0){
-			InflatePoints.channels.push_back(RadInfo);
-			InflatePoints.channels.push_back(MaxCost);
-			InflatePoints.channels.push_back(MinCost);
-			inflationpub.publish(InflatePoints);
-		}
+		linepub.publish(constructcloud(navpoints,100,"base_footprint",listener.roadstamp));
+		if((ros::Time::now().sec-oldstamp.sec)>inflaterate.cycleTime().sec)
+		{
+			listener.Inflate();
+			if(InflatePoints.points.size()>0){
 
+
+				InflatePoints.channels.push_back(RadInfo);
+				InflatePoints.channels.push_back(MaxCost);
+				InflatePoints.channels.push_back(MinCost);
+				inflationpub.publish(InflatePoints);
+			}
+			oldstamp=ros::Time::now();
+		}
 		ros::spinOnce();
 		rate.sleep();
 	}
