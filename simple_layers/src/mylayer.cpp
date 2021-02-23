@@ -117,14 +117,14 @@ void MyLayer::drawCost(int mx, int my,unsigned int xc,unsigned int yc, unsigned 
 				// in this case cost calculation is pointless and we set all cells to 255 or NO_information
 				if(maxcost==0)
 				{
-					setCost(xc+i,yc+my,NO_INFORMATION);
-					setCost(xc-i,yc+my,NO_INFORMATION);
-					setCost(xc+i,yc-my,NO_INFORMATION);
-					setCost(xc-i,yc-my,NO_INFORMATION);
-					setCost(xc+my,yc+i,NO_INFORMATION);
-					setCost(xc-my,yc+i,NO_INFORMATION);
-					setCost(xc+my,yc-i,NO_INFORMATION);
-					setCost(xc-my,yc-i,NO_INFORMATION);
+					MyLayer::setCost(xc+i,yc+my,NO_INFORMATION);
+					MyLayer::setCost(xc-i,yc+my,NO_INFORMATION);
+					MyLayer::setCost(xc+i,yc-my,NO_INFORMATION);
+					MyLayer::setCost(xc-i,yc-my,NO_INFORMATION);
+					MyLayer::setCost(xc+my,yc+i,NO_INFORMATION);
+					MyLayer::setCost(xc-my,yc+i,NO_INFORMATION);
+					MyLayer::setCost(xc+my,yc-i,NO_INFORMATION);
+					MyLayer::setCost(xc-my,yc-i,NO_INFORMATION);
 				}
 				//calculating the cost for the distance of the cell and set all 8 cell at the same time
 				else
@@ -140,28 +140,28 @@ void MyLayer::drawCost(int mx, int my,unsigned int xc,unsigned int yc, unsigned 
 
 					//projecting the cell into all other octants so we reduce computation be roughly 7/8
 					if(MyLayer::getCost(xc+i,yc+ my)==NO_INFORMATION||MyLayer::getCost(xc+i,yc+ my)<cost){
-					  setCost(xc+i,yc+ my, (unsigned char) cost);
+						MyLayer::setCost(xc+i,yc+ my, (unsigned char) cost);
 					}
 					if(MyLayer::getCost(xc-i,yc+ my)==NO_INFORMATION||MyLayer::getCost(xc-i,yc+ my)<cost){
-					  setCost(xc-i,yc+ my, (unsigned char) cost);
+						MyLayer::setCost(xc-i,yc+ my, (unsigned char) cost);
 					}
 					if(MyLayer::getCost(xc+i,yc- my)==NO_INFORMATION||MyLayer::getCost(xc+i,yc- my)<cost){
-					  setCost(xc+i,yc- my, (unsigned char) cost);
+						MyLayer::setCost(xc+i,yc- my, (unsigned char) cost);
 					}
 					if(MyLayer::getCost(xc-i,yc- my)==NO_INFORMATION||MyLayer::getCost(xc-i,yc- my)<cost){
-					  setCost(xc-i,yc- my, (unsigned char) cost);
+						MyLayer::setCost(xc-i,yc- my, (unsigned char) cost);
 					}
 					if(MyLayer::getCost(xc+ my,yc+i)==NO_INFORMATION||MyLayer::getCost(xc+ my,yc+i)<cost){
-					  setCost(xc+ my,yc+i, (unsigned char) cost);
+						MyLayer::setCost(xc+ my,yc+i, (unsigned char) cost);
 					}
 					if(MyLayer::getCost(xc+ my,yc-i)==NO_INFORMATION||MyLayer::getCost(xc+ my,yc-i)<cost){
-					  setCost(xc+ my,yc-i, (unsigned char) cost);
+						MyLayer::setCost(xc+ my,yc-i, (unsigned char) cost);
 					}
 					if(MyLayer::getCost(xc- my,yc+i)==NO_INFORMATION||MyLayer::getCost(xc- my,yc+i)<cost){
-					  setCost(xc- my,yc+i, (unsigned char) cost);
+						MyLayer::setCost(xc- my,yc+i, (unsigned char) cost);
 					}
 					if(MyLayer::getCost(xc- my,yc-i)==NO_INFORMATION||MyLayer::getCost(xc- my,yc-i)<cost){
-					  setCost(xc- my,yc-i, (unsigned char) cost);
+						MyLayer::setCost(xc- my,yc-i, (unsigned char) cost);
 					}
 				}
 			}
