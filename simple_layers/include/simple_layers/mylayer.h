@@ -40,6 +40,7 @@ public:
   virtual void matchSize();
   geometry_msgs::Point32 TransformPoint(geometry_msgs::Point32 point,std::string frame2);
 protected:
+  void drawCost(int mx, int my,unsigned int xc,unsigned int yc, unsigned int rad, double maxcost, double startcost);
   void lineCallback(const sensor_msgs::PointCloud& points);
   ros::Subscriber line_sub_;
   sensor_msgs::PointCloud linepoints;

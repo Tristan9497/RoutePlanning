@@ -31,9 +31,9 @@ void MyLayer::onInitialize()
   service=nh.advertiseService("MyLayer/reset", &MyLayer::reset, this);
 
   //
-
+  nh.getParam("/enabled", enabled_);
   //get the parameters of the layer
-  if(!nh.getParam("/enabled", enabled_))
+  if(!enabled_)
   {
 	  ROS_WARN("Layer: %s is inactive",name_.c_str());
   }
@@ -101,6 +101,76 @@ geometry_msgs::Point32 MyLayer::TransformPoint(geometry_msgs::Point32 point,std:
 
 
 	}
+void MyLayer::drawCost(int mx, int my,unsigned int xc,unsigned int yc, unsigned int rad, double maxcost, double startcost)
+	{
+		//draw a line from mx to -mx at my with the correct cost
+		double cost,dist,dx,dy,res,radius;
+
+		int px,py;
+		res=MyLayer::resolution_;
+		//ROS_INFO("%f",maxcost);
+		//setCost(xc+mx,yc+my,250);
+
+		//iterating over every cell in the row at my that is part of the first octant
+		for (int i=my;i<mx;i++){
+				//if maxcost is zero we want to clear something in the layer
+				// in this case cost calculation is pointless and we set all cells to 255 or NO_information
+				if(maxcost==0)
+				{
+					setCost(xc+i,yc+my,NO_INFORMATION);
+					setCost(xc-i,yc+my,NO_INFORMATION);
+					setCost(xc+i,yc-my,NO_INFORMATION);
+					setCost(xc-i,yc-my,NO_INFORMATION);
+					setCost(xc+my,yc+i,NO_INFORMATION);
+					setCost(xc-my,yc+i,NO_INFORMATION);
+					setCost(xc+my,yc-i,NO_INFORMATION);
+					setCost(xc-my,yc-i,NO_INFORMATION);
+				}
+				//calculating the cost for the distance of the cell and set all 8 cell at the same time
+				else
+				{
+					dx=i*res;
+					dy=my*res;
+					radius=rad*res;
+					dist=sqrt(dx*dx+dy*dy);
+
+
+					//linear decaying cost distribution
+					cost=maxcost-dist*((maxcost-startcost)/radius);
+
+					//projecting the cell into all other octants so we reduce computation be roughly 7/8
+					if(MyLayer::getCost(xc+i,yc+ my)==NO_INFORMATION||MyLayer::getCost(xc+i,yc+ my)<cost){
+					  setCost(xc+i,yc+ my, (unsigned char) cost);
+					}
+					if(MyLayer::getCost(xc-i,yc+ my)==NO_INFORMATION||MyLayer::getCost(xc-i,yc+ my)<cost){
+					  setCost(xc-i,yc+ my, (unsigned char) cost);
+					}
+					if(MyLayer::getCost(xc+i,yc- my)==NO_INFORMATION||MyLayer::getCost(xc+i,yc- my)<cost){
+					  setCost(xc+i,yc- my, (unsigned char) cost);
+					}
+					if(MyLayer::getCost(xc-i,yc- my)==NO_INFORMATION||MyLayer::getCost(xc-i,yc- my)<cost){
+					  setCost(xc-i,yc- my, (unsigned char) cost);
+					}
+					if(MyLayer::getCost(xc+ my,yc+i)==NO_INFORMATION||MyLayer::getCost(xc+ my,yc+i)<cost){
+					  setCost(xc+ my,yc+i, (unsigned char) cost);
+					}
+					if(MyLayer::getCost(xc+ my,yc-i)==NO_INFORMATION||MyLayer::getCost(xc+ my,yc-i)<cost){
+					  setCost(xc+ my,yc-i, (unsigned char) cost);
+					}
+					if(MyLayer::getCost(xc- my,yc+i)==NO_INFORMATION||MyLayer::getCost(xc- my,yc+i)<cost){
+					  setCost(xc- my,yc+i, (unsigned char) cost);
+					}
+					if(MyLayer::getCost(xc- my,yc-i)==NO_INFORMATION||MyLayer::getCost(xc- my,yc-i)<cost){
+					  setCost(xc- my,yc-i, (unsigned char) cost);
+					}
+				}
+			}
+
+	}
+
+//This function transforms the incoming pointcloud and inflates the coordinate using bresenham based circle rasterization
+//The incoming pointcloud should have channel values for radius, maxcost and startcost for every point
+//This allows the layer to inflate every incoming point differently (usefull for clearing)
 void MyLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, double* min_x,
                                            double* min_y, double* max_x, double* max_y)
 {
@@ -117,70 +187,72 @@ void MyLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, dou
 
   //ELSE INFLATE EVERY POINT IN THE CLOUD BY ITS INDIVIDUAL RADIUS AND COSTS
   double radius;
-  double dist;
-  double cost;
-  double mark_x=0;
-  double mark_y=0;
   //default values... true values come with the pointcloud as channel info
-  double startcost=50;
-  double maxcost=254;
-  unsigned int mx;
-  unsigned int my;
+  double startcost;
+  double maxcost;
+
+  //parameters in pixel dimension needs to be unsigned so we prevent out of range errors
+  unsigned int xc,yc,rad;
+
+  int mx,my;//coordinates of current pixel
+
+  int error,dx,dy;//parameters of bresenham algorithm
+
   double res=MyLayer::getResolution();
+
   geometry_msgs::Point32 pt;
   geometry_msgs::Point32 tpt;
+
+
   if(linepoints.points.size()>0){
 
-	for(int k=0; k<linepoints.points.size();k++){
+
+	  for(int k=0; k<linepoints.points.size();k++){
 		std::string cloudtopic=linepoints.header.frame_id.c_str();
 		pt.x=linepoints.points.at(k).x;
 		pt.y=linepoints.points.at(k).y;
 		tpt=TransformPoint(pt,cloudtopic);
 
-		  radius=linepoints.channels.at(0).values.at(k);
-		  maxcost=linepoints.channels.at(1).values.at(k);
-		  startcost=linepoints.channels.at(2).values.at(k);
-		  mark_x=tpt.x;
-		  mark_y=tpt.y;
+		radius=linepoints.channels.at(0).values.at(k);
+		maxcost=linepoints.channels.at(1).values.at(k);
+		startcost=linepoints.channels.at(2).values.at(k);
 
-		  //reducing computation load by filtering points that aren't further away than one map resolution
-		  if(res<sqrt(pow(oldx-mark_x,2)+pow(oldy-mark_y,2))){
-			  oldx=mark_x;
-			  oldy=mark_y;
-		  for(double j=mark_y-radius;j<=mark_y+radius;j)
-		  {
-			  for(double i=mark_x-radius;i<=mark_x+radius;i)
-			  {
-				  dist=sqrt(pow(mark_x-i,2)+pow(mark_y-j,2));
-				  if(dist<radius)
-				  {
-					  if(worldToMap(i, j, mx, my))
-					  {
+		//converting to pixel dimension
+		rad=(unsigned int)(radius/res);
+		worldToMap(tpt.x,tpt.y,xc,yc);
 
-						  //cost=255*exp((log(50/255)*(dist/radius)));
-						  cost=maxcost-dist*((maxcost-startcost)/radius);
-						  //cost=254;
-//						  ROS_INFO("%d",MyLayer::getCost(mx,my));
-
-						  if(MyLayer::getCost(mx, my)>=254||MyLayer::getCost(mx, my)<cost){
-							setCost(mx, my, (unsigned char) cost);
-						  }
+//		mark_x=tpt.x;
+//		mark_y=tpt.y;
 
 
+		mx=rad;
+		my=0;
+		error=rad;
+		//draw first line
+		drawCost(mx,my,xc,yc,rad,maxcost,startcost);
+		while(my<mx)
+		{
+			dy=my*2+1;
+			my++;
+			error-=dy;
+			if(error<0)
+			{
+				dx=1-mx*2;
+				mx--;
+				error-=dx;
+			}
+			//drawing the lines for 1 quadrant
+			drawCost(mx,my,xc,yc,rad,maxcost,startcost);
+			//drawCost(my,mx,xc,yc,rad,maxcost,startcost);
 
-					  }
-				  }
+			//updating bounds
+			*min_x = std::min(*min_x, (xc-mx)*res);
+			*min_y = std::min(*min_y, (yc-my)*res);
+			*max_x = std::max(*max_x, (xc+mx)*res);
+			*max_y = std::max(*max_y, (yc+my)*res);
+		}
 
-				  *min_x = std::min(*min_x, i);
-				  *min_y = std::min(*min_y, j);
-				  *max_x = std::max(*max_x, i);
-				  *max_y = std::max(*max_y, j);
-				  i+=res;
-			  }
-			  j+=res;
-		  }
 	  }
-  }
 	linepoints.points.clear();
   }
 

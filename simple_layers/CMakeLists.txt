@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   
 )
 
+
 add_service_files(
   FILES
   reset.srv
@@ -42,5 +43,7 @@ catkin_package(
 
 
 
+
 include_directories(${catkin_INCLUDE_DIRS} include)
 add_library(mylayer src/mylayer.cpp)
+add_dependencies(mylayer ${catkin_EXPORTED_TARGETS})
