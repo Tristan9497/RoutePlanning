@@ -163,6 +163,7 @@ void MyLayer::drawCost(int mx, int my,unsigned int xc,unsigned int yc, unsigned 
 					if(MyLayer::getCost(xc- my,yc-i)==NO_INFORMATION||MyLayer::getCost(xc- my,yc-i)<cost){
 						MyLayer::setCost(xc- my,yc-i, (unsigned char) cost);
 					}
+					//TODO check outside map
 				}
 			}
 
