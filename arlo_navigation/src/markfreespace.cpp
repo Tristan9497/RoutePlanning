@@ -172,7 +172,7 @@ class Listener
 			InflatePoints.header.frame_id=Left.header.frame_id;
 			InflatePoints.header.stamp=Left.header.stamp;
 
-			ROS_INFO("width %f+%f=%f",lwidth,rwidth,lwidth+rwidth);
+
 			if(inflatedist==0&&Left.points.size()>0)
 			{
 
@@ -309,7 +309,7 @@ class Listener
 		{
 			//inverting this bit switches the blockage of the left lane on and off.
 			//is meant to be controlled by the pose finder and can be used in escape manouvers
-			ROS_INFO("Blockage of Left Lane has been removed");
+
 			blockagetrigger=request.trigger;
 			response.result=blockagetrigger;
 			return true;

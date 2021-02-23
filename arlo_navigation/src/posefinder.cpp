@@ -35,6 +35,7 @@
 //Services
 #include "arlo_navigation/clearleftlane.h"
 #include "arlo_navigation/goalnotfound.h"
+#include "simple_layers/reset.h"
 
 using Eigen::MatrixXd;
 using Eigen::Vector2d;
@@ -97,7 +98,7 @@ double GoalAngle=M_PI/3;//The angle, we think we can trust the circle approximat
 double reductionradius=1.5;
 double MapCostThresh=50;//probability of occupancy in percent
 
-
+bool valid=true;
 
 double searchradius=5;
 double searchangle=60*M_PI/180;
@@ -177,17 +178,14 @@ void checkroadblockage(void)
 			}
 			if(obstacleleft&&!obstacleright)
 			{
-				ROS_INFO("LeftLane Blocked");
 				removeblockage=false;
 			}
 			else if(!obstacleleft&&obstacleright)
 			{
-				ROS_INFO("RightLane Blocked");
 				removeblockage=true;
 			}
 			else if(!obstacleleft&&!obstacleright)
 			{
-				ROS_INFO("Road Free");
 				removeblockage=false;
 			}
 		}
@@ -322,6 +320,7 @@ class Listener
 			{
 				MiddleLine=road->lineMiddle;
 			}
+
 			searchradius=road->laneWidthLeft+ 0.6*road->laneWidthRight;
 			//roadangle=aproxroadangle();
 		};
@@ -372,8 +371,9 @@ private:
 	bool goaltrigger=true;//might be neccessary to handle error scenarios
 	sensor_msgs::PointCloud cloud;
 	std::vector<geometry_msgs::PointStamped> goalpoints;
-
-
+	ros::NodeHandle n;
+	ros::ServiceClient client = n.serviceClient<simple_layers::reset>("/move_base/global_costmap/my/MyLayer/reset");
+	ros::Duration stampdif1,stampdif2;
 	MoveBaseClient ac;
 	//functions to approximate the future road based on least squared error calculations
 	struct LINE leastsquareline(road_detection::Line Line)
@@ -791,7 +791,6 @@ private:
 		goal.target_pose.pose.orientation.y=myQuaternion.getY();
 		goal.target_pose.pose.orientation.z=myQuaternion.getZ();
 		goal.target_pose.pose.orientation.w=myQuaternion.getW();
-		ROS_INFO("goal from map");
 
 	}
 
@@ -843,9 +842,9 @@ private:
 			c2y=c2.y+c2.r*sin(a2);
 
 			//find the point at three quaters so its in the middle of the right lane
-			x=(c1x+3*c2x)/4;
-			y=(c1y+3*c2y)/4;
-			m=(m1+3*m2)/4;
+			x=(c1x+c2x)/2;
+			y=(c1y+c2y)/2;
+			m=(m1+m2)/2;
 
 			goaltrigger=true;
 			goal.target_pose.header.frame_id="base_footprint";
@@ -885,9 +884,9 @@ private:
 			l2y=l2x*l2.m+l2.b;
 
 			//find goal at ratio between both points
-			x=(l1x+3*l2x)/4;
-			y=(l1y+3*l2y)/4;
-			m=(l1.m+3*l2.m)/4;
+			x=(l1x+l2x)/2;
+			y=(l1y+l2y)/2;
+			m=(l1.m+l2.m)/2;
 
 			goal.target_pose.header.frame_id="base_footprint";
 			goal.target_pose.header.stamp = l1.Stamp;
@@ -900,7 +899,6 @@ private:
 			goal.target_pose.pose.orientation.y=myQuaternion.getY();
 			goal.target_pose.pose.orientation.z=myQuaternion.getZ();
 			goal.target_pose.pose.orientation.w=myQuaternion.getW();
-			ROS_INFO("goal from lines");
 
 		}
 
@@ -925,15 +923,19 @@ public:
 	//goal manager used to determine which goal needs to be build
 	void constructgoal()
 			{
+				//we dont want to use old data twice
+				if(ros::Time::now()-LeftLine.header.stamp>ros::Duration(1)||ros::Time::now()-LeftLine.header.stamp>ros::Duration(1)) return;
+
 				leftcircle=leastsquarecircle(LeftLine);
 				rightcircle=leastsquarecircle(RightLine);
-				ConstructPointCloud(GoalDist);
+
+				//ConstructPointCloud(GoalDist);
 				switch (Finder)
 				{
 					case 0:
-						if(goalpoints.size()>=1)Finder=2;
+						//if(goalpoints.size()>=1)Finder=2;
 						//Circle approximation
-						else if(LeftLine.points.size()>0&&LeftLine.points.size()>0){
+						if(LeftLine.points.size()>0&&LeftLine.points.size()>0){
 							//switching to line approx since straight is coming up
 							if(leftcircle.r>CRadThresh||rightcircle.r>CRadThresh)
 							{
@@ -942,18 +944,20 @@ public:
 							}
 							else
 							{
-								ROS_INFO("goal from circles");
-								constructgoalbycircles(leftcircle, rightcircle, GoalDist, GoalAngle);
-								sendgoal();
-								draw.circles(leftcircle,rightcircle);
+
+
+									constructgoalbycircles(leftcircle, rightcircle, GoalDist, GoalAngle);
+									sendgoal();
+									draw.circles(leftcircle,rightcircle);
+
 							}
 						}
 						break;
 
 					case 1:
-						if(goalpoints.size()>=1)Finder=2;
+						//if(goalpoints.size()>=1)Finder=2;
 						//Line approximation
-						else if(LeftLine.points.size()>0&&LeftLine.points.size()>0){
+						if(LeftLine.points.size()>0&&LeftLine.points.size()>0){
 							leftline=leastsquareline(LeftLine);
 							rightline=leastsquareline(RightLine);
 							//switching to circle approx since a corner is comming up
@@ -964,10 +968,10 @@ public:
 							}
 							else
 							{
-								ROS_INFO("goal from lines");
-								constructgoalbylines(leftline, rightline, GoalDist);
-								sendgoal();
-								draw.lines(leftline,rightline);
+
+									constructgoalbylines(leftline, rightline, GoalDist);
+									sendgoal();
+									draw.lines(leftline,rightline);
 							}
 						}
 						break;
@@ -977,7 +981,7 @@ public:
 						{
 							constructgoalbymap();
 							sendgoal();
-							ROS_INFO("goal from map");}
+						}
 						else
 						{
 							Finder=0;
@@ -992,8 +996,12 @@ public:
 		geometry_msgs::TransformStamped transformStamped;
 		tf2_ros::Buffer tfBuffer;
 		tf2_ros::TransformListener tf2_listener(tfBuffer);
-		transformStamped=tfBuffer.lookupTransform("odom",goal.target_pose.header.frame_id, ros::Time(0), ros::Duration(10.0) );
-		tf2::doTransform(goal.target_pose,goal.target_pose, transformStamped);
+		transformStamped=tfBuffer.lookupTransform("base_footprint",goal.target_pose.header.frame_id, ros::Time(0), ros::Duration(10.0) );
+		try
+		{
+			tf2::doTransform(goal.target_pose,goal.target_pose, transformStamped);
+		}
+		catch(...){}
 		//sending goal to move_base via actionserver
 		//syntax for a potential feedback function
 		ac.sendGoal(goal,
@@ -1016,11 +1024,14 @@ public:
 	{
 		//this service call is meant to help the robot when it doesnt find a path to the goal
 		//everytime this service gets called the Distance shrinks to 90% and a new goal will be planned
-		ConstructPointCloud(GoalDist*0.5);
-		constructgoalbymap();
+		simple_layers::reset::Request req;
+		simple_layers::reset::Response res;
+		req.trigger=true;
+		client.call(req,res);
+		//ConstructPointCloud(GoalDist*0.5);
+		//constructgoalbymap();
 		sendgoal();
 		response.result=GoalDist*0.5;
-		ROS_INFO("Constructed a new Goal since Planning failed with the old goal");
 		return true;
 	}
 	};
@@ -1040,7 +1051,7 @@ int main(int argc, char* argv[])
 	//pub=n.advertise<geometry_msgs::PointStamped>("TestPoint", 1000);
 
 	//subscribers
-	ros::Subscriber map = n.subscribe("/map", 1000, &Listener::mapCallback, &listener);
+	//ros::Subscriber map = n.subscribe("/map", 1000, &Listener::mapCallback, &listener);
 	ros::Subscriber road = n.subscribe("/roadDetection/road", 1000, &Listener::roadCallback, &listener);
 	ros::Subscriber scan = n.subscribe("/scan_filtered", 1000, &Listener::scanCallback, &listener);
 	ros::Subscriber odom = n.subscribe("/odom", 1000, &Listener::odomCallback, &listener);
@@ -1050,7 +1061,9 @@ int main(int argc, char* argv[])
 	dynamic_reconfigure::Server<arlo_navigation::posefinderConfig>::CallbackType f;
 	f = boost::bind(&callback, _1, _2);
 	server.setCallback(f);
-
+	tf2_ros::Buffer tf_buffer;
+	tf2_ros::TransformListener tf2_listener(tf_buffer);
+	geometry_msgs::TransformStamped wheel_base;
 	//service
 	ros::ServiceClient client = n.serviceClient<arlo_navigation::clearleftlane>("clearblockage");
 	ros::ServiceServer goalserver = n.advertiseService("posefinder", &GoalFinder::goalnotfound, &finder);
@@ -1060,10 +1073,11 @@ int main(int argc, char* argv[])
 	//wait untill the actionserverclient in the goalfinder finds the movebase server
 
 
-	ros::Rate rate=0.75;
+	ros::Rate rate=2;
 	while(n.ok()){
+		wheel_base=tf_buffer.lookupTransform("base_footprint","camera_link", ros::Time(0), ros::Duration(1.0) );
 		//enabling or disabling the blockage of the left lane
-		checkroadblockage();
+		//checkroadblockage();
 		//switching left lane on and off
 		if(removeblockage)
 		{
@@ -1077,7 +1091,7 @@ int main(int argc, char* argv[])
 		}
 
 		//requesting the goalfinder to construct a new goal
-		finder.constructgoal();
+		if(valid) finder.constructgoal();
 
 		ros::spinOnce();
 		rate.sleep();
