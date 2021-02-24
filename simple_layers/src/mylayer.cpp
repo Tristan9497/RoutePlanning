@@ -132,11 +132,11 @@ void MyLayer::drawCost(int mx, int my,unsigned int xc,unsigned int yc, unsigned 
 					dx=i*res;
 					dy=my*res;
 					radius=rad*res;
-					dist=sqrt(dx*dx+dy*dy);
+					dist=dx*dx+dy*dy;
 
 
 					//linear decaying cost distribution
-					cost=maxcost-dist*((maxcost-startcost)/radius);
+					cost=maxcost-dist*((maxcost-startcost)/(radius*radius));
 
 					//projecting the cell into all other octants so we reduce computation be roughly 7/8
 					if(MyLayer::getCost(xc+i,yc+ my)==NO_INFORMATION||MyLayer::getCost(xc+i,yc+ my)<cost){
