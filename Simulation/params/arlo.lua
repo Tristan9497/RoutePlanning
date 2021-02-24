@@ -45,8 +45,20 @@ TRAJECTORY_BUILDER_2D.use_online_correlative_scan_matching = false
 TRAJECTORY_BUILDER_2D.real_time_correlative_scan_matcher.linear_search_window=0.00
 TRAJECTORY_BUILDER_2D.real_time_correlative_scan_matcher.angular_search_window = math.rad(0.00)
 TRAJECTORY_BUILDER_2D.submaps.num_range_data = 200
-POSE_GRAPH.optimization_problem.huber_scale = 1e2
-POSE_GRAPH.optimize_every_n_nodes = 5
+
+
+POSE_GRAPH.constraint_builder.loop_closure_translation_weight = 1.1e5
+POSE_GRAPH.constraint_builder.loop_closure_rotation_weight = 1e6
+POSE_GRAPH.constraint_builder.fast_correlative_scan_matcher.linear_search_window = 20
+POSE_GRAPH.constraint_builder.ceres_scan_matcher.translation_weight = 1
+POSE_GRAPH.optimization_problem.huber_scale = 0.1e1
+
+POSE_GRAPH.optimization_problem.local_slam_pose_translation_weight = 1e3
+POSE_GRAPH.optimization_problem.local_slam_pose_rotation_weight = 1e4
+POSE_GRAPH.optimization_problem.odometry_translation_weight = 1e8
+POSE_GRAPH.optimization_problem.odometry_rotation_weight = 1e8
+
+POSE_GRAPH.optimize_every_n_nodes = 50
 POSE_GRAPH.global_sampling_ratio = 1
 POSE_GRAPH.constraint_builder.min_score = 1
 
