@@ -101,15 +101,30 @@ geometry_msgs::Point32 MyLayer::TransformPoint(geometry_msgs::Point32 point,std:
 
 
 	}
-void MyLayer::drawCost(int mx, int my,unsigned int xc,unsigned int yc, unsigned int rad, double maxcost, double startcost)
+void MyLayer::setcheckcost(double wx, double wy,double cost)
 	{
-		//draw a line from mx to -mx at my with the correct cost
+
+		//checking for out of bounds
+//
+//		ROS_INFO("X:%f,Y:%f",origin_x_,origin_y_);
+		unsigned int mx,my;
+		if (!worldToMap(wx, wy, mx, my))
+			return;
+		//if cost != NO_INFORMATION we only want to override samller cost values
+		if(getCost(mx,my)==NO_INFORMATION||getCost(mx,my)<cost){
+			setCost(mx,my, (unsigned char) cost);
+		}
+	}
+
+void MyLayer::drawCost(int mx, int my,double xc,double yc, unsigned int rad, double maxcost, double startcost)
+	{
+
+	//fills the circle based on a point on its circumference
 		double cost,dist,dx,dy,res,radius;
 
 		int px,py;
-		res=MyLayer::resolution_;
-		//ROS_INFO("%f",maxcost);
-		//setCost(xc+mx,yc+my,250);
+		res=getResolution();
+
 
 		//iterating over every cell in the row at my that is part of the first octant
 		for (int i=my;i<mx;i++){
@@ -117,14 +132,15 @@ void MyLayer::drawCost(int mx, int my,unsigned int xc,unsigned int yc, unsigned 
 				// in this case cost calculation is pointless and we set all cells to 255 or NO_information
 				if(maxcost==0)
 				{
-					MyLayer::setCost(xc+i,yc+my,NO_INFORMATION);
-					MyLayer::setCost(xc-i,yc+my,NO_INFORMATION);
-					MyLayer::setCost(xc+i,yc-my,NO_INFORMATION);
-					MyLayer::setCost(xc-i,yc-my,NO_INFORMATION);
-					MyLayer::setCost(xc+my,yc+i,NO_INFORMATION);
-					MyLayer::setCost(xc-my,yc+i,NO_INFORMATION);
-					MyLayer::setCost(xc+my,yc-i,NO_INFORMATION);
-					MyLayer::setCost(xc-my,yc-i,NO_INFORMATION);
+					//setting the cost in all 8 octants and checking for out of bounds
+					setcheckcost((xc+i*res) ,(yc+ my*res) , NO_INFORMATION);
+					setcheckcost((xc-i*res) ,(yc+ my*res) , NO_INFORMATION);
+					setcheckcost((xc+i*res) ,(yc- my*res) , NO_INFORMATION);
+					setcheckcost((xc-i*res) ,(yc- my*res) , NO_INFORMATION);
+					setcheckcost((xc+my*res) ,(yc+ i*res) , NO_INFORMATION);
+					setcheckcost((xc+my*res) ,(yc- i*res) , NO_INFORMATION);
+					setcheckcost((xc-my*res) ,(yc+ i*res) , NO_INFORMATION);
+					setcheckcost((xc-my*res) ,(yc- i*res) , NO_INFORMATION);
 				}
 				//calculating the cost for the distance of the cell and set all 8 cell at the same time
 				else
@@ -134,35 +150,20 @@ void MyLayer::drawCost(int mx, int my,unsigned int xc,unsigned int yc, unsigned 
 					radius=rad*res;
 					dist=dx*dx+dy*dy;
 
-
-					//linear decaying cost distribution
+					//linear decaying cost distribution 2nd degree function
 					cost=maxcost-dist*((maxcost-startcost)/(radius*radius));
 
-					//projecting the cell into all other octants so we reduce computation be roughly 7/8
-					if(MyLayer::getCost(xc+i,yc+ my)==NO_INFORMATION||MyLayer::getCost(xc+i,yc+ my)<cost){
-						MyLayer::setCost(xc+i,yc+ my, (unsigned char) cost);
-					}
-					if(MyLayer::getCost(xc-i,yc+ my)==NO_INFORMATION||MyLayer::getCost(xc-i,yc+ my)<cost){
-						MyLayer::setCost(xc-i,yc+ my, (unsigned char) cost);
-					}
-					if(MyLayer::getCost(xc+i,yc- my)==NO_INFORMATION||MyLayer::getCost(xc+i,yc- my)<cost){
-						MyLayer::setCost(xc+i,yc- my, (unsigned char) cost);
-					}
-					if(MyLayer::getCost(xc-i,yc- my)==NO_INFORMATION||MyLayer::getCost(xc-i,yc- my)<cost){
-						MyLayer::setCost(xc-i,yc- my, (unsigned char) cost);
-					}
-					if(MyLayer::getCost(xc+ my,yc+i)==NO_INFORMATION||MyLayer::getCost(xc+ my,yc+i)<cost){
-						MyLayer::setCost(xc+ my,yc+i, (unsigned char) cost);
-					}
-					if(MyLayer::getCost(xc+ my,yc-i)==NO_INFORMATION||MyLayer::getCost(xc+ my,yc-i)<cost){
-						MyLayer::setCost(xc+ my,yc-i, (unsigned char) cost);
-					}
-					if(MyLayer::getCost(xc- my,yc+i)==NO_INFORMATION||MyLayer::getCost(xc- my,yc+i)<cost){
-						MyLayer::setCost(xc- my,yc+i, (unsigned char) cost);
-					}
-					if(MyLayer::getCost(xc- my,yc-i)==NO_INFORMATION||MyLayer::getCost(xc- my,yc-i)<cost){
-						MyLayer::setCost(xc- my,yc-i, (unsigned char) cost);
-					}
+					//setting the cost in all 8 octants and checking for out of bounds
+					setcheckcost((xc+i*res) ,(yc+ my*res) , cost);
+					setcheckcost((xc-i*res) ,(yc+ my*res) , cost);
+					setcheckcost((xc+i*res) ,(yc- my*res) , cost);
+					setcheckcost((xc-i*res) ,(yc- my*res) , cost);
+					setcheckcost((xc+my*res) ,(yc+ i*res) , cost);
+					setcheckcost((xc+my*res) ,(yc- i*res) , cost);
+					setcheckcost((xc-my*res) ,(yc+ i*res) , cost);
+					setcheckcost((xc-my*res) ,(yc- i*res) , cost);
+
+
 					//TODO check outside map
 				}
 			}
@@ -176,8 +177,6 @@ void MyLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, dou
                                            double* min_y, double* max_x, double* max_y)
 {
 	// robot pose has to be updated, otherwise we get huge offset in case rolling window costmap is selected
-
-  if (rolling_window_)
 	updateOrigin(robot_x - getSizeInMetersX() / 2, robot_y - getSizeInMetersY() / 2);
 
   //return if the layer is in reset mode or if it hasn't been enabled
@@ -220,17 +219,21 @@ void MyLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, dou
 
 		//converting to pixel dimension
 		rad=(unsigned int)(radius/res);
-		worldToMap(tpt.x,tpt.y,xc,yc);
-
-//		mark_x=tpt.x;
-//		mark_y=tpt.y;
 
 
 		mx=rad;
 		my=0;
 		error=rad;
+
+		//updating bounds
+
+		*min_x = std::min(*min_x, tpt.x-radius);
+		*min_y = std::min(*min_y, tpt.y-radius);
+		*max_x = std::max(*max_x, tpt.x+radius);
+		*max_y = std::max(*max_y, tpt.y+radius);
 		//draw first line
-		drawCost(mx,my,xc,yc,rad,maxcost,startcost);
+		drawCost(mx,my,tpt.x,tpt.y,rad,maxcost,startcost);
+
 		while(my<mx)
 		{
 			dy=my*2+1;
@@ -242,16 +245,10 @@ void MyLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, dou
 				mx--;
 				error-=dx;
 			}
-			//drawing the lines for 1 quadrant
-			drawCost(mx,my,xc,yc,rad,maxcost,startcost);
-			//drawCost(my,mx,xc,yc,rad,maxcost,startcost);
+			drawCost(mx,my,tpt.x,tpt.y,rad,maxcost,startcost);
 
-			//updating bounds
-			*min_x = std::min(*min_x, (xc-mx)*res);
-			*min_y = std::min(*min_y, (yc-my)*res);
-			*max_x = std::max(*max_x, (xc+mx)*res);
-			*max_y = std::max(*max_y, (yc+my)*res);
 		}
+
 
 	  }
 	linepoints.points.clear();
