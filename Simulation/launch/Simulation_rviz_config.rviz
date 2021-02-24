@@ -6,6 +6,8 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /Path1
+        - /Path2
       Splitter Ratio: 0.5
     Tree Height: 307
   - Class: rviz/Selection
@@ -104,6 +106,7 @@ Visualization Manager:
         Marker: true
         Odometry: false
         Path: false
+        PointCloud: true
         PointCloud2: false
         Polygon: false
         Pose: true
@@ -202,12 +205,12 @@ Visualization Manager:
       Class: rviz/Map
       Color Scheme: costmap
       Draw Behind: false
-      Enabled: false
+      Enabled: true
       Name: Map
       Topic: /move_base/global_costmap/costmap
       Unreliable: false
       Use Timestamp: false
-      Value: false
+      Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -229,7 +232,7 @@ Visualization Manager:
       Radius: 0.029999999329447746
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
-      Topic: /move_base/TebLocalPlannerROS/global_plan
+      Topic: /move_base/GlobalPlanner/plan
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -273,16 +276,6 @@ Visualization Manager:
       Unreliable: false
       Value: true
     - Class: rviz/Marker
-      Enabled: true
-      Marker Topic: /visualization_marker
-      Name: Marker
-      Namespaces:
-        road_lanes: true
-        road_lineMarkings: true
-        road_textMarkers: true
-      Queue Size: 100
-      Value: true
-    - Class: rviz/Marker
       Enabled: false
       Marker Topic: /Circle1
       Name: Marker
@@ -306,11 +299,41 @@ Visualization Manager:
         {}
       Queue Size: 100
       Value: false
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud
+      Color: 255; 255; 255
+      Color Transformer: Intensity
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: PointCloud
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.009999999776482582
+      Style: Flat Squares
+      Topic: /roadDetection/roadScenePointCloud
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: map
+    Fixed Frame: odom
     Frame Rate: 30
   Name: root
   Tools:
@@ -333,7 +356,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: -0.004999999888241291
+      Angle: -0.014999999664723873
       Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
@@ -343,10 +366,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 94.59467315673828
+      Scale: 69.12493896484375
       Target Frame: <Fixed Frame>
-      X: 0.1547175794839859
-      Y: 1.8917863368988037
+      X: 0.9903746247291565
+      Y: 2.8955509662628174
     Saved: ~
 Window Geometry:
   Camera:
