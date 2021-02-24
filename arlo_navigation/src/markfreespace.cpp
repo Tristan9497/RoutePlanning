@@ -64,15 +64,18 @@ sensor_msgs::PointCloud InflatePoints;
 sensor_msgs::ChannelFloat32 RadInfo;
 sensor_msgs::ChannelFloat32 MaxCost;
 sensor_msgs::ChannelFloat32 MinCost;
-double inflaterad;
-double maxcost=150;
-double mincost=20;
 
+double inflaterad;
+double maxcost;
+double mincost;
 double clearrad,obstaclerad,inflatedist,cleardist;
 
 
 void callback(arlo_navigation::markfreespaceConfig &config, uint32_t level) {
 	middletrigger=config.middleline;
+
+	maxcost=config.MaxCost;
+	mincost=config.MinCost;
 
 	inflaterad=config.LeftInflation;
 	clearrad=config.RightRemoval;
