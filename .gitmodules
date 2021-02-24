@@ -7,3 +7,5 @@
 [submodule "navigation_layers"]
 	url = https://github.com/DLu/navigation_layers.git
 
+[submodule "robot_localization"]
+	url = https://github.com/cra-ros-pkg/robot_localization.git
