@@ -375,6 +375,7 @@ private:
 	ros::ServiceClient client = n.serviceClient<simple_layers::reset>("/move_base/global_costmap/my/MyLayer/reset");
 	ros::Duration stampdif1,stampdif2;
 	MoveBaseClient ac;
+	ros::Time left,right;
 	//functions to approximate the future road based on least squared error calculations
 	struct LINE leastsquareline(road_detection::Line Line)
 		{
@@ -924,8 +925,9 @@ public:
 	void constructgoal()
 			{
 				//we dont want to use old data twice
-				if(ros::Time::now()-LeftLine.header.stamp>ros::Duration(1)||ros::Time::now()-LeftLine.header.stamp>ros::Duration(1)) return;
-
+				if(left>=LeftLine.header.stamp||right>=LeftLine.header.stamp) return;
+				left=LeftLine.header.stamp;
+				right=LeftLine.header.stamp;
 				leftcircle=leastsquarecircle(LeftLine);
 				rightcircle=leastsquarecircle(RightLine);
 
