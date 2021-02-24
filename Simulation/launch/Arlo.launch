@@ -25,7 +25,7 @@
 	<include file="$(find arlo_navigation)/launch/laser_filter.launch"/>
 	<include file="$(find arlo_navigation)/launch/robot_localization.launch"/>
     <!-- include file="$(find Simulation)/launch/arlo_gmapping.launch"/-->
-    <!--include file="$(find Simulation)/launch/cartographer.launch"/-->
+    <include file="$(find Simulation)/launch/cartographer.launch"/>
     
     <include file="$(find road_detection)/launch/detectionOnly.launch"/>
     <node name="markfreespace" pkg="arlo_navigation" type="markfreespace" output="screen" />
