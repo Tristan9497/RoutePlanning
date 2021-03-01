@@ -1,21 +1,81 @@
-\chapter{Experimental}
-\label{experimental}
+\chapter{Selection}
+\label{Selection}
 
-In this chapter the concept and  
+This chapter will cover the package selection and the setup of all nodes in the concept. It will also give attention to the configuration of the individual nodes.
 
 
-\section{Concept}
+The selection process will mainly focus on the defined requirements.
+
 \section{Simulation}
-\subsection{modeling}
-\subsection{world}
-\subsection{robot setup}
-\subsubsection{URDF and xacro}
-\subsubsection{plugin setup}
-\section{SLAM}
+There are many options, when it comes to robot simulation, which makes a selection mandatory. The chosen Simulator then needs to be configured and equipped with models, sensors and a drive system.
+
+\subsection{Selection}
+To begin of the selection process a group of reasonable simulators needs to be collected. The two selected options are Gazebo and V-REP since they are the two most used robotics 3D simulators \cite{SimComp}.\\
+
+Both simulators seem to full fill most of the defined requirements to a certain extend, while Gazebo seems to have a easier installation process and integration into ROS since it is included in the default packages of ROS noetic \cite{ROSPkg} since it developed by the Open Source Robotics Foundation as the default simulator for ROS.
+
+As well as Gazebo V-REP offers plugins and URDF conversion for custom models but an even bigger selection of mobile robot models. Which unfortunately can only be used as examples since the required models are very specific.\\
+In contrast to V-REP, Gazebo does not contain an integrated model editor.
+
+Based on computational load compared in the Paper of L. Pitonakova et al\cite{Pitonakova} and the setup differences between both simulators, gazebo will be chosen for this project. But both simulators would have been an excellent choice.
+
+\subsection{Model}
+Since Gazebo doesn't have an integrated model editor the freeware blender will be used for the model generation of the environment.
+
+As described in the requirements the robot models will be generated using URDF which will be covered later.
 
 \section{Navigation}
-\subsection{Planner}
+
+As described in the Concept part the ros navigation stack will be used in this project.
+The selection of all of its parts will be discussed in the following sections
+
+\subsection{Planners}
+Since the planners will consist of two parts (the global planner and the local planner) the nodes of these have to be selected individually.
+
+\subsubsection{global planner}
+For the global planner the following two options provided in the navigation stack will be considered 
+
+\begin{itemize}
+	\item base\_global\_planner
+	\item navfn
+\end{itemize}
+
+
+Here the choice is fairly easy, since base\_global\_planner is the successor of navfn. It still supports the the behavior of navfn, but it offers more options, such as A* planning algorithm instead of Dijkstra.
+
+\todo{A* and Dijkstra explenation in theoretical}
+
+
+\subsubsection{local planner}
+In contrast to the global planner there are way more options for the local planner node. Like the global planners the local planners will be selected using the options offered in the description of the nav\_core.
+
+\begin{itemize}
+	\item base\_local\_planner
+	\item dwa\_local\_planner
+	\item eband\_local\_planner
+	\item teb\_local\_planner
+	\item mpc\_local\_planner
+\end{itemize}\cite{navcore}
+
+To choose the local planner the requirements have to be defined first.
+Since the global planner is taking care of the obstacles and the roadlanes the local planner has the general task of following the global path and creating a command velocity that is feasible in regards to the kinematics of the robot.\\
+
+Smooth lane changes are highly wanted in this project. this will help the camera and therefore the road detection to keep seeing the road during swapping the lanes.\\
+
+A time constraint could be used to prevent oscillations around the global path while trying to follow it as close as possible.
+
+As described in its documentation teb\_local\_planner optimizes the trajectory with respect to trajectory execution time, separation from obstacles and compliance with kinodynamic constraints in the runtime.
+\todo{cite }
+
+
+
+
+
 \subsection{costmap}
+For the costmap the highly configurable costmap\_2d package will be used. This package is the default package of the navigation\_stack and has no competing packages.
+\subsubsection{global costmap}
+\subsubsection{local costmap}
+
 \subsubsection{dynamic\_cost\_layer}
 Enhancing to the plugins provided in the navigation stack this layer handles inflation of cells with a configurable cost decay and radius.\\
 
@@ -27,13 +87,16 @@ Since we can't assume that the incoming points will be in the frame of the costm
 
 To minimize the computation load a bresenham based algorithm for the circle rasterization will be used. Now the point symmetry around the cell can be used to further minimize the computational load and only $\frac{1}{8}$th of the circle has to be computed. The rasterization process can be described by the following image.\\
 
-Adding to the typical behavior of the bresenham rasterization the area of the circle will be filled with the cost specified for the point. For this a linear decaying trend will be used which requires the computation of the distance of the cell to the center of the circle.\\ Since this will still require the usage of a square root for each cell in the circle This will be optimized as well. For that use the squared distance in the formula and equally the squared inflation radius. While this will result in a function of \nth{2} degree it still represents the cost quite well as shown in the picture below.
+Adding to the typical behavior of the bresenham rasterization the area of the circle will be filled with the cost specified for the point. For this a linear decaying \nth{1} degree function will be used which requires the computation of the distance of the cell to the center of the circle.\\ Since this will still require the usage of a square root for each cell in the circle This will be optimized as well.\\
 
+The goal here is to use a function that contains only the squared distance, which still represents a decaying trend. This requirement rules out every function with an odd degree, as well as all functions with an x offset. This leaves all functions with an even degree from which we choose the \nth{2} degree function to reduce square operators. The comparison between the two functions can be seen in the picture below.
 
+\center\includegraphics[width=140mm]{Pictures/linear cost comparison}
 
 
 
 \section{Odometry}
+
 \subsection{Encoder}
 \subsection{IMU}
 \subsection{Improvement using SLAM}
@@ -80,7 +143,7 @@ With the calculated points on either both circles or on both lines the mean can 
 
 \subsection{goal from map}
 
-If the robot is running a SLAM algorithm during the first round the map should be finished once the robot passes its start point. Then the approximation is unnecessary since extracting goals directly from the slam map is more efficient and provides goals that will  always be on the road. Furthermore the distance, at which goals will be found can be increased, which results in higher speeds and/or lower planner frequencies.\\\\
+If the robot is running a SLAM algorithm during the first round the map should be finished once the robot passes its start point. Then the approximation is unnecessary since extracting goals directly from the slam map is more efficient and provides goals that will  always be on the road. Furthermore the distance, at which goals will be found can be increased, which results in higher speeds and/or lower planner frequencies.\\
 
 To find a goal in the SLAM map a circle rasterization algorithm will be used.\\
 
@@ -97,7 +160,7 @@ For SLAM and the obstacle layer of the costmap the node simply transforms the da
 
 The data of the dynamic cost layer has to contain more information. It is in the form of a sensor\_msgs::PointCloud and contains channel values for point individual inflation radius, min-cost and max-cost. By giving the Layer point individual inflation parameters the node provides information about the cells on the left road marking that need to have inflated cost values and information about the points on the right road marking that should have a clean zone around them. Furthermore the node provides points of obstacles that are on the road and clears the inflated cost around it. Which will allow the global planner to make a plan for passing the obstacle.
 
-
+\section{SLAM}
 
 
 

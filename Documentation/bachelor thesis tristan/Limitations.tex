@@ -1,0 +1,67 @@
+\chapter{Limitations and Requirements}
+\label{Limitations and Requirements}
+
+
+Before diving into the details and developing concepts the guidelines and requirements of the project has to be defined.
+
+This thesis aims for a navigation of a robot in an environment that is similar to the carolo cup but deviates at some parts.
+
+\section{Robot and Environment}
+While the robot has very strict regulations in the carolo cup theses will not apply here.\\
+
+At the time of this thesis there is no driving real robot available. That is the reason, to use a simulated environment.
+
+The robot that will be used is a differential drive robot from the company Parallax with a diameter of 450mm.\\
+
+Equally to the carolo cup regulations the lane width is defined by double robot width and will be set to 900mm. 
+
+The Robot will be equiped with the following sensors:
+
+\begin{itemize}
+	\item Lidar
+	\item Wheel encoder
+	\item IMU
+	\item Camera
+\end{itemize}
+
+Additional it will feature a motor driver for differential drive steering.
+
+\section{Software}
+Generally the software will be developed for ROS-Noetic.\\
+The programming language will be mostly C++ to allow uniformity in the software stack.\\
+Like in the carolo cup the software is not supposed to have any connection to systems outside of the robot.\\
+
+\section{Simulation}
+Since the environment will be simulated the Simulator has to have the following features.
+\begin{itemize}
+	\item Sensor plugins with configurable error and ROS interfaces
+	\item Differential drive plugin
+	\item custom models integration
+	\item URDF conversion
+	\item Not too computationally heavy
+\end{itemize}
+
+The simulation will mostly focus on sensor data. That is why sensor plugins with configurable error and a ROS interfaces are needed. Like this the data will be as similar as possible to the real world.\\
+
+In addition to the sensor plugins the simulator needs to provide a plugin for differential drive steering. This will be the replacement for the motor controller of the real robot.\\
+
+Custom models is a strict requirement since this thesis focuses on a very specific robot. Furthermore the integration of custom models is necessary to put the robot in different road scenarios.\\
+
+A URDF conversion plugin is very important like this differences between the simulated robot and the tf-tree in ROS can be avoided and the robot will be defined in one file only.\\
+
+To get the best correlation between simulation and real world the simulator should be able to run as close to real time as possible. This will make the simulated sensor data way more reliable and puts the nodes of the navigation\_stack under the right load.
+
+\section{Navigation}
+The navigation is supposed to cover free driving with out obstacles, as well as with static obstacles avoidance. It will not cover dynamic obstacles, road sign detection or driving situations like intersections and parking.\\
+
+Development of an entire stack exceeds the content of this thesis, so an open source navigation project will be used which needs to satisfy the following requirements.
+\begin{itemize}
+	\item Sensor input.
+	\item Goal pose input
+	\item 2D mobile platform support using the conventional drive systems like Ackermann and differential
+	\item Path planning in respect to the robots kinematic and shape, as well as the environment detected by the sensors.
+	\item Path planning and navigation in totally unknown environments
+	\item Velocity output as linear and angular velocities
+\end{itemize}
+
+
