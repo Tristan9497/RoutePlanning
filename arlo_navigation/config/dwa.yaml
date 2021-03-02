@@ -29,4 +29,5 @@ DWAPlannerROS:
    occdist_scale: 0.001
    path_distance_bias: 60
    publish_cost_grid: true
+   sim_time: 2.5
 
