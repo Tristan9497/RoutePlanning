@@ -136,7 +136,7 @@ class Listener
 				points.push_back(Buffer);
 			}
 
-			inflaterad=road->laneWidthRight*0.4;
+			//inflaterad=road->laneWidthRight*0.4;
 
 			for(int j=0;j<road->lineRight.points.size();j++)
 			{
@@ -202,45 +202,49 @@ class Listener
 					}
 				}
 			}
-			if(cleardist==0&&Right.points.size()>0)
-			{
-				Buffer.x=Right.points.back().x;
-				Buffer.y=Right.points.back().y;
-				InflatePoints.points.push_back(Buffer);
-				RadInfo.values.push_back(rwidth*clearrad);//adding points of right line so we allways have a free lane on the right even when street moves
-				MaxCost.values.push_back(0);
-				MinCost.values.push_back(0);
-			}
-			else{
-				for(int j=0;j<Right.points.size();j++)
+
+			if(clearrad>0){
+				if(cleardist==0&&Right.points.size()>0)
 				{
-					Buffer.x=Right.points[j].x;
-					Buffer.y=Right.points[j].y;
+					Buffer.x=Right.points.back().x;
+					Buffer.y=Right.points.back().y;
+					InflatePoints.points.push_back(Buffer);
+					RadInfo.values.push_back(rwidth*clearrad);//adding points of right line so we allways have a free lane on the right even when street moves
+					MaxCost.values.push_back(0);
+					MinCost.values.push_back(0);
+				}
+				else{
+					for(int j=0;j<Right.points.size();j++)
+					{
+						Buffer.x=Right.points[j].x;
+						Buffer.y=Right.points[j].y;
 
-					if(j==0||sqrt(pow(Old.x-Buffer.x,2)+pow(Old.y-Buffer.y,2))>cleardist){
+						if(j==0||sqrt(pow(Old.x-Buffer.x,2)+pow(Old.y-Buffer.y,2))>cleardist){
 
-						InflatePoints.points.push_back(Buffer);
-						RadInfo.values.push_back(rwidth*clearrad);//adding points of right line so we allways have a free lane on the right even when street moves
-						MaxCost.values.push_back(0);
-						MinCost.values.push_back(0);
-						Old=Buffer;
+							InflatePoints.points.push_back(Buffer);
+							RadInfo.values.push_back(rwidth*clearrad);//adding points of right line so we allways have a free lane on the right even when street moves
+							MaxCost.values.push_back(0);
+							MinCost.values.push_back(0);
+							Old=Buffer;
+						}
 					}
 				}
 			}
 
+			if(obstaclerad>0){
+				for(int j=0;j<obstacles.size();j++)
+				{
+					Buffer.x=obstacles[j].x;
+					Buffer.y=obstacles[j].y;
 
-			for(int j=0;j<obstacles.size();j++)
-			{
-				Buffer.x=obstacles[j].x;
-				Buffer.y=obstacles[j].y;
+					if(j==0||sqrt(pow(Old.x-Buffer.x,2)+pow(Old.y-Buffer.y,2))>obstaclerad*0.66){
 
-				if(j==0||sqrt(pow(Old.x-Buffer.x,2)+pow(Old.y-Buffer.y,2))>obstaclerad*0.66){
-
-					InflatePoints.points.push_back(Buffer);
-					RadInfo.values.push_back(obstaclerad);//adding points of right line so we allways have a free lane on the right even when street moves
-					MaxCost.values.push_back(0);
-					MinCost.values.push_back(0);
-					Old=Buffer;
+						InflatePoints.points.push_back(Buffer);
+						RadInfo.values.push_back(obstaclerad);//adding points of right line so we allways have a free lane on the right even when street moves
+						MaxCost.values.push_back(0);
+						MinCost.values.push_back(0);
+						Old=Buffer;
+					}
 				}
 			}
 		}
