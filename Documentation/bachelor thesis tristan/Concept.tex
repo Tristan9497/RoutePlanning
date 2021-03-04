@@ -9,15 +9,18 @@ The selection of navigation stacks is quite sparse. Especially considering the d
 
 In contrast to the navigation\_stack MoveIt is largely used for the path planning and navigation of industrial robot arms and therefore not suited for this application.
 
-The navigation\_stack provides a general setup proposal which seems to be a good starting point for robot navigation, but it has multiple parts that will be modified to adhere to the defined requirements, that will be discussed in the following part.\\\\
+The navigation\_stack provides a general setup proposal which seems to be a good starting point for robot navigation, but it has multiple parts that need be modified to adhere to the defined requirements.\\
 
-\begin{figure}
+\begin{figure}[h!]
 	\begin{center}
-		\includegraphics[width=140mm]{Pictures/navigation stack setup}
+		\includegraphics[width=\textwidth]{Pictures/navigation stack setup}
 		\caption[navigation stack setup]{navigation stack setup}
+		
 	\end{center}
 \end{figure}
 
+
+\todo{cite this}
 
 
 
@@ -42,14 +45,14 @@ Since these sensors will certainly have noise we firstly need to add additional 
 The odometry is all ways a result of sensor data. Therefore we can make a direct connection between the sensor filters and the odometry input. These Filters will also feature nodes that transform the incoming sensor data into a useable format.
 
 \subsection{Sensor transforms}
-To know the position of every sensor relative to the robot and his odometry the tf\_tree has to be build. While this can be realised using static transform publishers there is also a cleaner way using the ros package robot\_state\_publisher. It then requires a robot description in URDF format that specifies the relations between everything mounted on the robot.
+To know the position of every sensor relative to the robot and his odometry the tf\_tree has to be build. While this can be realized using static transform publishers there is also a cleaner way using the ros package robot\_state\_publisher. It then requires a robot description in URDF format that specifies the relations between everything mounted on the robot.
 The transformation between the base of the robot and the odom will be build by the filtered odometry.
 
 The remaining platform specific nodes are all available since the simulated robot will be used and provides a motor controller, as well as all of the sensors and data sources.
 
-\section{Optional nodes}
+\section{SLAM}
 
-The Map is a representation of the robots environment. If this is known from the start it is known, where the robot can go and where not.\\
+The map is a representation of the robots environment. If this is known from the start it is known, where the robot can go and where not.\\
  In this scenario the robot will always start blind, meaning it will not know anything about its surrounding other than that it can expect a road to be there, which makes the map\_server of the navigation\_stack and its functionality to convert prerecorded maps redundant.\\
 Adding to that amcl (the localization package of the navigation\_stack) will no longer work since it tries to find a position in a predefined map based on the current sensor signals.\\
 Knowing the environment and the position of the robot in it is an important part in robot navigation since it allows to send goals that are relative to the environment and not to the robot. That is why the usage of a SLAM algorithm becomes highly useful. This node supplies both the current map and the position of the robot in it.\\
@@ -59,15 +62,31 @@ This node will publish the transform between the map and the odom frame so the p
 
 The provided nodes do not have to be reordered but the recovery behaviors will be removed. These will be incorporated in the incoming goals instead.
 
+To define the tasks of the nodes of move\_base they will be sepparated into two sections a global and a local stage, each of the stages consists out of a planner and a costmap.\\
+\subsection{global stage}
+The general task of the global planner is like described in the theoretical knowledge to plan a rough path through the grid that will not collide with any obstacle.\\
+
+In this scenario the global planner will be required to guide the robot on the correct lane as well. This results in two additional requirements:
+
+\begin{itemize}
+	\item the global costmap needs to incorporate cost that set a preference for the right lane but allow the global path to go to the left in case of a blockage
+	\item the global planner has to respect not only lethal but every cost
+\end{itemize}
+
+\subsection{local stage}
+The local stage on the other hand has the task of finding a for the kinematic of the robot feasible path that does not collide with objects.\\
+This Path needs to be close to the global path and follow the lane changes dictated by the global stage but it needs to be able to separate itself from the global path if necessary.
+
 \section{PoseFinder}
 The job of this node is to extract the pose of a goal from the sensor data or the map (if available).\\
 
 The requirements of this node will be defined in the "Configuration and testing" section
+\section{sensor filter}
 
 \section{Resulting concept}
-The following simplified schematic is the concept of the navigation stack setup. Not all of the connections between the nodes will be highlighted, to make the schematic easier to understand.\\
+The following simplified schematic is the concept of the navigation stack setup. Not all of the connections between the nodes will be highlighted, to make keep schematic simple.\\
 
-\begin{figure}
+\begin{figure}[h!]
 	\begin{center}
 		\includegraphics[width=140mm]{Pictures/Updated navigation concept}
 		\caption[Updated navigation concept]{Updated navigation concept}
@@ -76,7 +95,7 @@ The following simplified schematic is the concept of the navigation stack setup.
 
 
 
-The PoseFinder will first find a goal based on the current state of the map and the sensor data and sends it to the navigation stack. This then uses the filtered sensor data to determine, where the robot is, where it is allowed to go and where not. The cascading planners then determine first a rough, collision free, path and then a path that is possible for the kinematics of the robot. This path will be send to the motor controller of the simulated robot.\\
+The PoseFinder will first find a goal based on the current state of the map and the sensor data and sends it to the navigation stack. This then uses the filtered sensor data to determine, where the robot is, where it is allowed to go and where not. The cascading planners then determine first a rough, collision free, path on the correct lane and then a path that is possible for the kinematics of the robot. This path then gets converted to velocity commands and sent to the differential drive controller.\\
 This procedure will be repeated at a configurable frequency so the robot will never reach its finish. This is necessary since it is unknown if the goal, in the space that has not been explored yet, is perfectly on the future road, or if it is in an obstacle.
 
 
