@@ -82,6 +82,16 @@ The job of this node is to extract the pose of a goal from the sensor data or th
 
 The requirements of this node will be defined in the "Configuration and testing" section
 \section{sensor filter}
+Here the entire data processing takes place, which converts the sensor data into a usable format. This block in the concept consists out of the following nodes:
+
+\begin{itemize}
+	\item \textbf{road\_detection} will extract approximated polynomials for the road markings and the lanes from the camera data.
+	\item \textbf{markfreespace} needs to publish points that need to be inflated to generate restricted areas in the costmap. Also produces combined data of the road\_detection and the lidar for SLAM.
+	\item \textbf{laser\_filter} removes error points at the edges of obstacles
+	\item \textbf{robot\_localization} improves the odometry by fusing wheel encoder data and imu data
+\end{itemize}
+
+The road\_detection and the markfreespace nodes are obligatory while the two remaining ones need to be implemented to improve the usability of the data of exactly this setup and might not be needed on a different robot
 
 \section{Resulting concept}
 The following simplified schematic is the concept of the navigation stack setup. Not all of the connections between the nodes will be highlighted, to make keep schematic simple.\\

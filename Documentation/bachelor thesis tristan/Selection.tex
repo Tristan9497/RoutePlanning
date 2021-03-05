@@ -169,7 +169,7 @@ For SLAM and the obstacle layer of the costmap the node simply transforms the da
 The data of the dynamic cost layer has to contain more information. It is in the form of a sensor\_msgs::PointCloud and contains channel values for point individual inflation radius, min-cost and max-cost. By giving the Layer point individual inflation parameters the node provides information about the cells on the left road marking that need to have inflated cost values and information about the points on the right road marking that should have a clean zone around them. Furthermore the node provides points of obstacles that are on the road and clears the inflated cost around it. Which will allow the global planner to make a plan for passing the obstacle.
 
 \section{SLAM}
-
+There are numerous SLAM packages available for ROS
 
 
 
