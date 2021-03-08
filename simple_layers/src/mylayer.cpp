@@ -137,10 +137,12 @@ void MyLayer::drawCost(int mx, int my,double xc,double yc, unsigned int rad, dou
 					setcheckcost((xc-i*res) ,(yc+ my*res) , NO_INFORMATION);
 					setcheckcost((xc+i*res) ,(yc- my*res) , NO_INFORMATION);
 					setcheckcost((xc-i*res) ,(yc- my*res) , NO_INFORMATION);
-					setcheckcost((xc+my*res) ,(yc+ i*res) , NO_INFORMATION);
-					setcheckcost((xc+my*res) ,(yc- i*res) , NO_INFORMATION);
-					setcheckcost((xc-my*res) ,(yc+ i*res) , NO_INFORMATION);
-					setcheckcost((xc-my*res) ,(yc- i*res) , NO_INFORMATION);
+					if(i!=my){
+						setcheckcost((xc+my*res) ,(yc+ i*res) , NO_INFORMATION);
+						setcheckcost((xc+my*res) ,(yc- i*res) , NO_INFORMATION);
+						setcheckcost((xc-my*res) ,(yc+ i*res) , NO_INFORMATION);
+						setcheckcost((xc-my*res) ,(yc- i*res) , NO_INFORMATION);
+					}
 				}
 				//calculating the cost for the distance of the cell and set all 8 cell at the same time
 				else
@@ -158,10 +160,12 @@ void MyLayer::drawCost(int mx, int my,double xc,double yc, unsigned int rad, dou
 					setcheckcost((xc-i*res) ,(yc+ my*res) , cost);
 					setcheckcost((xc+i*res) ,(yc- my*res) , cost);
 					setcheckcost((xc-i*res) ,(yc- my*res) , cost);
-					setcheckcost((xc+my*res) ,(yc+ i*res) , cost);
-					setcheckcost((xc+my*res) ,(yc- i*res) , cost);
-					setcheckcost((xc-my*res) ,(yc+ i*res) , cost);
-					setcheckcost((xc-my*res) ,(yc- i*res) , cost);
+					if(i!=my){
+						setcheckcost((xc+my*res) ,(yc+ i*res) , cost);
+						setcheckcost((xc+my*res) ,(yc- i*res) , cost);
+						setcheckcost((xc-my*res) ,(yc+ i*res) , cost);
+						setcheckcost((xc-my*res) ,(yc- i*res) , cost);
+					}
 
 
 					//TODO check outside map
