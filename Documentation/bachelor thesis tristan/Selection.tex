@@ -1,7 +1,7 @@
 \chapter{Selection}
 \label{Selection}
 
-This chapter will cover the package selection and the setup of all nodes in the concept. It will also give attention to the configuration of the individual nodes.
+This chapter will cover the package selection and the setup of all nodes in the concept that differ from the recommended setup.
 
 
 The selection process will mainly focus on the defined requirements.
@@ -24,30 +24,58 @@ Since Gazebo doesn't have an integrated model editor the freeware blender will b
 
 As described in the requirements the robot models will be generated using URDF which will be covered later.
 
-\section{Navigation}
+\section{move\_base}
 
-As described in the Concept part the ros navigation stack will be used in this project.
-The selection of all of its parts will be discussed in the following sections
+As described in the concept the navigation stack will be used in this thesis. Therefore the action move\_base will be used to get the robot to a given goal.\\
+ Move\_base incorporates nav\_core and costmap\_2d and their internal nodes which need to be selected according to the requirements of the navigation.\\ 
+The selection of these nodes will be separated into global and local since the individual nodes are highly interconnected and the wanted behavior affects both.
 
-\subsection{Planners}
-Since the planners will consist of two parts (the global planner and the local planner) the nodes of these have to be selected individually.
+\subsection{global stage}
 
-\subsubsection{global planner}
-For the global planner the following two options provided in the navigation stack will be considered 
+
+\subsubsection{planner}
+
+Since the planner needs to adhere to the nav\_core interface \cite{navcore} the following selection of the documentation can be used as a possible selection.
 
 \begin{itemize}
-	\item base\_global\_planner
+	\item global\_planner
 	\item navfn
+	\item carrot\_planner
 \end{itemize}
 
 
 Here the choice is fairly easy, since base\_global\_planner is the successor of navfn. It still supports the the behavior of navfn, but it offers more options, such as A* planning algorithm instead of Dijkstra.
 
-\todo{A* and Dijkstra explenation in theoretical}
+\todo{A* and Dijkstra explanation in theoretical}
 
+Carrot planner isn't suited for this use-case since it doesn't fullfil the requirement of being able to cover lane changes since it will not generate plans, that go around obstacles. Instead it will generate a straight path to the goal and shortens the path if the goal is behind or in an obstacle\cite{corrotplanner}.
 
-\subsubsection{local planner}
-In contrast to the global planner there are way more options for the local planner node. Like the global planners the local planners will be selected using the options offered in the description of the nav\_core.
+\subsubsection{costmap}
+Since costmap\_2d is embedded in move\_base the package doesn't need to be selected itself. Instead of the package the layers of the individual costmap need to be selected.\\
+
+Judging from the required behavior of the global planner the global costmap needs to have information about lethal obstacles, road markings as well as a defined preference for the right lane.\\
+
+For the road markings and the obstacles a combination of an obstacle layer and an inflation layer will be needed.\\
+This results in lethal cells in the costmap for each point of the road detection and the lidar. These points will still have gaps in between each other which will be filled using the inflation layer that inflates every point with a defined cost distribution.\\
+
+Unfortunately there is no costmap plugin that can be used to make certain areas more expensive than others without marking them as lethal. This leads to the following concept of a custom costmap layer.
+
+The only information about where the lane is comes from the road detection, which outputs polynomials that approximate the road markings. The aim is to make a gradually increasing cost from the middle of the right lane to the left road marking. Therefore the left road marking needs to be inflated using dynamically adjustable parameters for the cost distribution.\\
+To guarantee that the right lane still has space without cost the right road marking needs to be inflated too. To simplify lane changes in the case of obstacle avoidance these obstacle need to have a cost free zone around them.
+The plugin should also feature a reset option as a recovery behaviour
+
+All of this results in a layer with the following abilities
+
+\begin{itemize}
+	\item input for points
+	\item input of point individual inflation parameters
+	\item rasterization of the individual cost distribution
+	\item service to reset the cost in the layer
+\end{itemize}
+
+\subsection{local stage}
+\subsubsection{planner}
+In contrast to the global planner there are way more options for the local planner node. Like the global planners the local planners will be selected using the options offered in the following description of the nav\_core.
 
 \begin{itemize}
 	\item base\_local\_planner
@@ -57,43 +85,22 @@ In contrast to the global planner there are way more options for the local plann
 	\item mpc\_local\_planner
 \end{itemize}\cite{navcore}
 
-To choose the local planner the requirements have to be defined first.
+To choose the local planner the requirements have to be defined first.\\
+
 Since the global planner is taking care of the obstacles and the roadlanes the local planner has the general task of following the global path and creating a command velocity that is feasible in regards to the kinematics of the robot.\\
 
-Smooth lane changes are highly wanted in this project. this will help the camera and therefore the road detection to keep seeing the road during swapping the lanes.\\
+Smooth lane changes are highly wanted in this project. This will help the camera and therefore the road detection to keep seeing the road during a lane swap. To achieve this, the planner is supposed to drive close to the global plan, but if it is more efficient smooth out edges of it.\\
+Furthermore the local planner needs to have a good performance in tight corridor situations, since those will often be caused by obstacles blocking one lane.\\
 
-A time constraint could be used to prevent oscillations around the global path while trying to follow it as close as possible.
-
-As described in its documentation teb\_local\_planner optimizes the trajectory with respect to trajectory execution time, separation from obstacles and compliance with kinodynamic constraints in the runtime.
-\todo{cite }
+During all of this the local planner needs to use the information of lethal obstacles to prevent crashes in its optimized path.\\
 
 
+Base and DWA are two planners that are included in the navigation stack. Similar to the global planner selection we choose the successor and therefore DWA, which according to Kaiyu Zeng is the general recommendation for mobile robotics platforms. \todo{ros navigation tuning guide kaiyu zheng cite}\\
 
-
+In addition to DWA we choose one of the planners with an elastic band approach\todo{description elastic band}. The choice between these two is difficult since they both share the same base principle. The decision here is to use teb\_local\_planner for the further selection since it supports carlike robots and therefore satisfies the requirements for the navigation.\\
 
 \subsection{costmap}
-For the costmap the highly configurable costmap\_2d package will be used. This package is the default package of the navigation\_stack and has no competing packages.
-\subsubsection{global costmap}
-\subsubsection{local costmap}
-
-\subsubsection{dynamic\_cost\_layer}
-Enhancing to the plugins provided in the navigation stack this layer handles inflation of cells with a configurable cost decay and radius.\\
-
-This behaviour can be used to inflate the left road marking in the global costmap to force the global plan on the right side of the road. The plugin can also be used to inflate cells with zero cost, which is useful to guarantee a free right lane or to give some free space around obstacles located on the road.\\
-
-The layer receives a message of type sensor\_msgs::PointCloud on a configurable topic. This PointCloud is expected to feature Channel Values for the inflation radius, the maximal and the minimal cost for each individual point.\\
-
-Since we can't assume that the incoming points will be in the frame of the costmap the points in the costmap have to be transformed into the right frame using tf2.\\
-
-To minimize the computation load a bresenham based algorithm for the circle rasterization will be used. Now the point symmetry around the cell can be used to further minimize the computational load and only $\frac{1}{8}$th of the circle has to be computed. The rasterization process can be described by the following image.\\
-
-Adding to the typical behavior of the bresenham rasterization the area of the circle will be filled with the cost specified for the point. For this a linear decaying \nth{1} degree function will be used which requires the computation of the distance of the cell to the center of the circle.\\ Since this will still require the usage of a square root for each cell in the circle This will be optimized as well.\\
-
-The goal here is to use a function that contains only the squared distance, which still represents a decaying trend. This requirement rules out every function with an odd degree, as well as all functions with an x offset. This leaves all functions with an even degree from which we choose the \nth{2} degree function to reduce square operators. The comparison between the two functions can be seen in the picture below.
-
-\center\includegraphics[width=140mm]{Pictures/linear cost comparison}
-
-
+The local planner is only supposed to generate velocity commands that lead to no lethal collision. So the local costmap will have the same plugins as the global one without the dynamic inflation layer that is used to guide the robot to the right lane.
 
 \section{Odometry}
 
@@ -102,6 +109,7 @@ The goal here is to use a function that contains only the squared distance, whic
 \subsection{Improvement using SLAM}
 
 \section{Laser\_Filter}
+
 
 \section{PoseFinder}
 This Node is part of the arlo\_navigation package. Its job is, to find the pose of the next possible goal and send it to the move\_base action client.
@@ -161,6 +169,14 @@ For SLAM and the obstacle layer of the costmap the node simply transforms the da
 The data of the dynamic cost layer has to contain more information. It is in the form of a sensor\_msgs::PointCloud and contains channel values for point individual inflation radius, min-cost and max-cost. By giving the Layer point individual inflation parameters the node provides information about the cells on the left road marking that need to have inflated cost values and information about the points on the right road marking that should have a clean zone around them. Furthermore the node provides points of obstacles that are on the road and clears the inflated cost around it. Which will allow the global planner to make a plan for passing the obstacle.
 
 \section{SLAM}
+There are numerous Lidar based SLAM packages available for ROS, but with the defined restriction of being able to use both, the points extracted from the road detection, as well as the lidar data, most of the lidar based SLAM algorithms wont work since they only accept one input of  the type sensor\_msgs::LaserScan.\\
+This rules out the popular options for Lidar based SLAM like gmapping and HectorSLAM and the well documented package Google Cartographer will be used based on its flexibility in regards to robot configurations.\\
+This Package comes with an advantage of being based on loop closure which might be usefull when driving rounds in a circuit stile environment. The robot will drive the same route over and over again and thus the map could get more and more reliable over time even though the data is very self simillar and not great for SLAM.\\
+
+Cartographer accepts numerous different input types including both PointCloud2 and LaserScan sensor messages. Additionally Cartographer can use provided odometry, aswell as IMU data to improve the result.\\
+
+
+
 
 
 
