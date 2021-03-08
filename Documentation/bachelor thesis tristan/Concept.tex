@@ -53,10 +53,18 @@ The remaining platform specific nodes are all available since the simulated robo
 \section{SLAM}
 
 The map is a representation of the robots environment. If this is known from the start it is known, where the robot can go and where not.\\
- In this scenario the robot will always start blind, meaning it will not know anything about its surrounding other than that it can expect a road to be there, which makes the map\_server of the navigation\_stack and its functionality to convert prerecorded maps redundant.\\
+ In this scenario the robot will always start blind, meaning it will not know anything about its surrounding other than that it can expect a road to be somewhere, which makes the map\_server of the navigation\_stack and its functionality to convert prerecorded maps redundant.\\
 Adding to that amcl (the localization package of the navigation\_stack) will no longer work since it tries to find a position in a predefined map based on the current sensor signals.\\
 Knowing the environment and the position of the robot in it is an important part in robot navigation since it allows to send goals that are relative to the environment and not to the robot. That is why the usage of a SLAM algorithm becomes highly useful. This node supplies both the current map and the position of the robot in it.\\
+The big improvement this concept has from SLAM is, that goals could be extracted from the map, instead of being estimated after the first round on the track.
+
 This node will publish the transform between the map and the odom frame so the position of the robot and every sensor signal can be determined relative to the map frame.\\
+
+Unfortunately the data that can be fed to the SLAM node is very limited, since it is not guaranteed, that the lidar all ways sees static obstacles. An other data source for the SLAM algorithm could be the points extracted from the road detection. The problem with these is, that they don't have a lot of features in them other than the corridor like point distribution which.\\
+
+This significantly decreases the reliability of the map which therefore will highly depend on good odometry.
+
+To get the best map both of the data inputs have to be used, which results in the need of a SLAM algorithm with multiple inputs.\\
 
 \section{Provided nodes}
 
@@ -94,7 +102,7 @@ Here the entire data processing takes place, which converts the sensor data into
 The road\_detection and the markfreespace nodes are obligatory while the two remaining ones need to be implemented to improve the usability of the data of exactly this setup and might not be needed on a different robot
 
 \section{Resulting concept}
-The following simplified schematic is the concept of the navigation stack setup. Not all of the connections between the nodes will be highlighted, to make keep schematic simple.\\
+The following simplified schematic is the concept of the navigation stack setup. Not all of the connections between the nodes will be highlighted, to keep schematic simple.\\
 
 \begin{figure}[h!]
 	\begin{center}

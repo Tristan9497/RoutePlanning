@@ -7,7 +7,7 @@ Before diving into the details and developing concepts the guidelines and requir
 This thesis aims for a navigation of a robot in an environment that is similar to the carolo cup but deviates at some parts.
 
 \section{Robot and Environment}
-While the robot has very strict regulations in the carolo cup theses will not all apply here.\\
+While the robot itself has very strict regulations in the carolo cup theses will not all apply here.\\
 
 For testing purposes the entire robot with all sensors and the drive controller will be simulated.
 
@@ -41,7 +41,7 @@ Since the environment will be simulated the Simulator has to have the following 
 	\item Not too computationally heavy
 \end{itemize}
 
-The simulation will mostly focus on sensor data. That is why sensor plugins with configurable error and a ROS interfaces are needed. Like this the data will be as similar as possible to the real world.\\
+The simulation will mostly focus on sensor data. That is why sensor plugins with configurable error and a ROS interfaces are needed. Like this the data will be as representative as possible to the real world.\\
 
 In addition to the sensor plugins the simulator needs to provide a plugin for differential drive steering. This will be the replacement for the motor controller of the real robot.\\
 
