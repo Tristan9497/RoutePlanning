@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include "nav_msgs/Odometry.h"
 #include <Eigen/Dense>
-
+#include <std_msgs/Float64.h>
 //TF
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include <tf2_ros/transform_listener.h>
@@ -108,7 +108,7 @@ bool Rightside;
 bool removeblockage=false;
 double roadangle;
 double robot_diameter=0.4;
-
+double rlwidht;
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
 //should be reference???
@@ -210,6 +210,7 @@ class Drawer
 		ros::Publisher cloud_pub = n.advertise<sensor_msgs::PointCloud>("cloudpoints", 1);
 		ros::Publisher circle_pub1 = n.advertise<visualization_msgs::Marker>("Circle1", 1);
 		ros::Publisher circle_pub2 = n.advertise<visualization_msgs::Marker>("Circle2", 1);
+
 	////For debugging only
 	public:
 		void cloud(sensor_msgs::PointCloud cloud)
@@ -320,7 +321,7 @@ class Listener
 			{
 				MiddleLine=road->lineMiddle;
 			}
-
+			if(road->laneWidthRight>0)rlwidht=road->laneWidthRight;
 			searchradius=road->laneWidthLeft+ 0.6*road->laneWidthRight;
 			//roadangle=aproxroadangle();
 		};
@@ -373,6 +374,7 @@ private:
 	std::vector<geometry_msgs::PointStamped> goalpoints;
 	ros::NodeHandle n;
 	ros::ServiceClient client = n.serviceClient<simple_layers::reset>("/move_base/global_costmap/my/MyLayer/reset");
+
 	ros::Duration stampdif1,stampdif2;
 	MoveBaseClient ac;
 	ros::Time left,right;
@@ -1075,6 +1077,9 @@ int main(int argc, char* argv[])
 	//wait untill the actionserverclient in the goalfinder finds the movebase server
 
 
+
+	ros::Publisher tester=n.advertise<std_msgs::Float64>("/diff",1);
+	std_msgs::Float64 diff;
 	ros::Rate rate=2;
 	while(n.ok()){
 		wheel_base=tf_buffer.lookupTransform("base_footprint","camera_link", ros::Time(0), ros::Duration(1.0) );
@@ -1091,7 +1096,9 @@ int main(int argc, char* argv[])
 			req.trigger=true;
 			client.call(req,res);
 		}
+		diff.data=(polynomial(0,RightLane.polynomial.a)+rlwidht/2)*100/rlwidht;
 
+		tester.publish(diff);
 		//requesting the goalfinder to construct a new goal
 		if(valid) finder.constructgoal();
 
