@@ -83,18 +83,18 @@ The \nth{3} and \nth{4} test on the other hand display the limitations of the sl
 When obstacles are located on the right lane the allignment of the submaps fails and a lot of submaps cant be attached to the rest of the map. After passing the obstacle the map gets better again, which would imply that the map could be good enough for goal extraction, if no obstacle is near the robot.\\
 The \nth{4} test proves that cartographer is not usable in SLAM mode during long time navigation an a circuit. This is caused that too many submaps are close to each other that share features for a constraint.
 
-Based on these problems the map will not be used for the navigation for now.
+Based on these test results it is not feasible to use the SLAM map for navigation with obstacles on the road, since the map is just not reliable enough and it is not certain of there are obstacles on the road or not. 
 \section{PoseFinder}
 
 \section{Planners}
 \section{Costmaps}
-Based on the fact that both planners are responsible for different tasks the configuration of the individual costmaps need to fulfill different tasks too. Here we can compare the requirements of the two planners, from which we can determine how the costmaps will be defined.\\
+Based on the fact that both planners are responsible for different tasks the configuration of the individual costmaps need to fulfill different tasks too. The requirements of the two planners will be compared in order to determine the configuration of their individual costmap.\\
 
 As described in the theoretical knowledge of this thesis the costmap are structured in layers. This means that the data can be evaluated by different plugins before it will be combined into the real costmap.\\
 
 It makes sense to first take a look at the general behaviour, that both planners share. In this case it is obstacle avoidance. This means that the lethal obstacles need to be marked in both costmaps.\\
 
-To realize this the provided plugin obstacle\_layer can be used. It will take incoming sensor data (sensor\_msgs::PointCloud or sensor\_msgs::LaserScan) and mark the points in the costmap.\\
+To implement this the provided plugin obstacle\_layer can be used. It will take incoming sensor data (sensor\_msgs::PointCloud or sensor\_msgs::LaserScan) and mark the points in the costmap.\\
 
 Since the data here comes form the road detection and a lidar and both have a certain resolution it is unsure, if the result of a scanned obstacle in the costmap is actually a closed line or just points, since this highly relies on the resolution of the sensors and the costmap.\\
 
@@ -111,9 +111,19 @@ The layer receives a message of type sensor\_msgs::PointCloud on a configurable 
 
 Since we can't assume that the incoming points will be in the frame of the costmap the points in the costmap have to be transformed into the right frame using tf2.\\
 
-To minimize the computation load a bresenham based algorithm for the circle rasterization will be used. Now the point symmetry around the cell can be used to further minimize the computational load and only $\frac{1}{8}$th of the circle has to be computed. The rasterization process can be described by the following image.\\
+To minimize the computation load a bresenham based algorithm for the circle rasterization will be used.\cite{ComputerGraphics} Now the point symmetry around the cell can be used to further minimize the computational load and only $\frac{1}{8}$th of the circle has to be computed. The rasterization process can be described by the following image.\\
 
-Adding to the typical behavior of the bresenham rasterization the area of the circle will be filled with the cost specified for the point. For this the following linear decaying \nth{1} degree function will be used which requires the computation of the distance of the rasterized cell to the center of the circle.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.5\textwidth]{Pictures/rasterization}
+	\caption{modified bresenham rasterization with efficient surface filling}
+	\label{rasterization}
+\end{figure}
+
+
+Adding to the typical behavior of the bresenham rasterization the area of the circle will be filled using the point symmetry and by skipping overlapping points of the lines like in Figure \ref{rasterization}. 
+
+The cells within the circles perimeter are filled with the cost specified for that point. For this the following linear decaying \nth{1} degree function will be used which requires the computation of the distance of the rasterized cell to the center of the circle.
 
 \[cost(distance)=maxcost-distance*\frac{maxcost-mincost}{radius}\]\\
 with: \[distance=\sqrt{cell.x^2+cell.y^2}\]
@@ -123,11 +133,12 @@ with: \[distance=\sqrt{cell.x^2+cell.y^2}\]
 The goal here is to use a function that contains only the squared distance, which still represents a decaying trend. This requirement rules out every function with an odd degree, as well as all functions with an x offset. This leaves all functions with an even degree from which we choose the \nth{2} degree function to reduce square operators. The comparison between the two functions can be seen in the picture below.
 
 \[cost(distance)=maxcost-distance^2*\frac{maxcost-mincost}{radius^2}\]\\
-\begin{figure}[h!]
+
+\begin{figure}[H]
 	\begin{center}
 	\includegraphics[width=140mm]{Pictures/linear cost comparison}
 	\caption{cost distribution comparison with maxcost=250 mincost=100 radius=1}
-\end{center}
+	\end{center}
 \end{figure}
 
 
@@ -135,6 +146,49 @@ The goal here is to use a function that contains only the squared distance, whic
 \subsection{global\_costmap}
 
 \subsection{local\_costmap}
-\subsection{global\_planner}
+
+\section{Planners}
 \subsection{local\_planner}
+
+
+\subsection{global\_planner}
+There is not much room for configuration, when it comes to the global\_planner of the navigation\_stack. Probably the most important step for computation load is the choice of a planning algorithm.\\
+The two algorithms that are offered by the global\_planner node are Dijkstra and A*.\\
+
+Dijkstra does only consider the cost to the start node and determines the cost to get from the start node to every other node, until it finds the goal, from which it then can backtrack the shortest/cheapest path.\cite{AlgorithmenundDatenstrukturen}.\\
+
+A* is based on the dijkstra algorithm but has one main difference. It considers not only the cost from the start to the current cell in the grid, but aswell a heuristic parameter, which is a general guess for the cost from the cell to the finish. The heuristic parameter is mostly bound to the euclidean distance between the cell in the grid and the finish. Like this the parameter will never over estimate the actual cost of the path\cite{AlgorithmenundDatenstrukturen}.\\
+
+\begin{figure}[H]
+	\begin{subfigure}{.5\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/Dijkstra}
+		\caption{Dijkstra}
+	\end{subfigure}	
+	%\hskip2em
+	\begin{subfigure}{.5\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/AStar2}
+		\caption{A*}
+	\end{subfigure}
+
+	\caption{planning algorithm comparison (grey cells are not observed)\cite{globalplanner}}
+	\label{plannercomparison}
+
+\end{figure}
+
+
+It is obvious, that A* is much more efficient in this use case since the robot will mostly go straight or in a slight curve. Therefore A* will be chosen for the global planner.\\
+
+Another important setting is necessary since the global costmap is used as a rolling window costmap. The global\_planner will be default outline the global costmap with lethal cost to prevent the global planner to plan outside of a fixed costmap. This behaviour results in artifacts, after the map has moved together with the robot which hinder the planners from finding a path.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{Pictures/borders}
+	\label{boardererror}
+	\caption{global planner border error}
+\end{figure}
+
+To prevent this behavior the not documented parameter ``outline\_map'' has to be set to false. The default value of this parameter is therefore changed in the forked version of the navigation stack.
+
+To make planning easier the parameter ``cost\_factor'' can be reduced. This parameter multiplies the cost of every cell in the costmap before planning which would make the gradually decreasing cost of the dynamic\_cost\_layer redundant.
+
 
