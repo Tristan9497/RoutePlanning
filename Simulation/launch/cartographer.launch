@@ -3,7 +3,8 @@
   <node name="cartographer_node" pkg="cartographer_ros"
       type="cartographer_node" args="
           -configuration_directory $(find Simulation)/params
-          -configuration_basename arlo.lua"
+          -configuration_basename arlo.lua
+          -minloglevel 1"
       output="screen">
     <!-- remap from="scan" to="base_scan"/-->
     <remap from="points2" to="RoadPointCloud2" />

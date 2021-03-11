@@ -47,6 +47,7 @@
 	    <rosparam file="$(find arlo_navigation)/config/local_costmap_params.yaml" command="load" />
 	    <rosparam file="$(find arlo_navigation)/config/global_costmap_params.yaml" command="load" /> 
 	    <!--rosparam file="$(find arlo_navigation)/config/dwa.yaml" command="load"/-->
+	    <rosparam file="$(find arlo_navigation)/config/recovery_params.yaml" command="load"/>
 	    <rosparam file="$(find arlo_navigation)/config/base_global_planner.yaml" command="load"/>
 	    <rosparam file="$(find arlo_navigation)/config/base_local_planner_params.yaml" command="load"/>
 	</node>

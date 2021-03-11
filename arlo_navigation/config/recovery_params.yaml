@@ -3,5 +3,4 @@ recovery_behaviors:
     type: 'clear_costmap_recovery/ClearCostmapRecovery'
     
 costmap_reset_conservative:
-  reset_distance: 1.5
-  layer_names: ["my"]
+  reset_distance: 2.0

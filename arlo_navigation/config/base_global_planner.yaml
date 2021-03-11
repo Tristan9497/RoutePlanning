@@ -2,7 +2,7 @@ base_global_planner: global_planner/GlobalPlanner
 
 GlobalPlanner:
   allow_unknown: true
-  default_tolerance: 0.5
+  default_tolerance: 1.0
   visualize_potential: false
   use_dijkstra: false
   use_quadratic: true
@@ -10,3 +10,4 @@ GlobalPlanner:
   old_navfn_behavior: false
   neutral_cost: 50
   outline_map: false
+  cost_factor: 1
