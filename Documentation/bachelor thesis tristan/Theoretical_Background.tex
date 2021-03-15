@@ -3,19 +3,23 @@
 This chapter will cover the needed theoretical background about the Gazebo Simulation, the Sensor Plugins, ROS and all of the used ROS packages.
 
 \section{ROS}
-
-
-
+ROS (Robot Operating System) is an open Source project developed by the ``Open Source Robotics Foundation''. Like the name suggests it is an entire Operating System for Robots including Hardware abstraction, low-level device control, implementation of commonly used functionality, communication between processes and package management.\\
+Furthermore it provides tools and libraries to write, build and run code across multiple computers\cite{rosintro}.\\
+\subsection{Packages}
+This is the main structure for software in ROS. A package can contain many different Nodes, libraries, service etc.. Furthermore it is the smallest possible Structure that can be build by ROS\cite{rosconcepts}.
 \subsection{Nodes}
+Nodes are processes that perform computation. Since ROS is very fine granular, a system, that controls an entire robot can contain many nodes that are connected using topics. A package can be written with the use of one of the client libraries roscpp or rospy\cite{rosconcepts}.
 \subsection{Plugins}
-\subsection{Topics/Services/Actions}
-All three are possibilities for the data exchange between nodes.
+\subsection{Topics and service}
+All of the ROS Nodes are connected with a publisher/subscriber like structure. The topic is basically just a name for a certain message.\\
 
-According to :::::
-Services and actions can be used like the subscriber/publisher structure but are meant for the intercommunication between nodes. A service is more or less a function in a different node that has the option to receive data and respond to it.
+Not only one node but unlimited many nodes can publish and subscribe to one topic. This generally can be seen like a message bus with not limited connection permissions\cite{rosconcepts}.
+
+Unfortunately the Topic system is not well fitted for request and answers between two nodes, therefore the service structure has been implemented.\\ 
+A node might offers a service under a certain node and an other node can call that service. Services can have any in- and output that can be specified in a ``.srv'' file\cite{rosconcepts}.
+
 \subsection{RVIZ}
-
-
+rviz is a 3D visualization tool offered by default in ROS. It offers functionality to visualize sensor and further geometric data.\\
 \subsection{REP}
 REP's (short for ROS enhanced proposals) are guidelines made and maintained by the ros community. It is highly advisable to follow the guidelines as much as possible.
 
@@ -81,29 +85,75 @@ The robot hardware description consists of one or more URDF(Unified Robot Descri
 
 \subsection{Plugins}
 Gazebo offers a wide selection of pre made plugins that can be incorporated into a simulated robot by attaching the plugin to the right tf\_frame and configuring its parameters.
-\subsubsection{Camera}
-\subsubsection{Lidar}
-\subsubsection{Differential Controller}
-\subsubsection{IMU}
+
 \subsection{Models}
 
 
 \section{navigation stack}
-\subsection{mobe\_base}
+\subsection{move\_base}
 \subsection{global\_planner}
 \subsubsection{base\_global\_planner}
+This is the default global planner of move\_base .
 \subsection{local\_planner}
 \subsubsection{teb\_local\_planner}
-\subsubsection{base\_local\_planner}
-\subsubsection{dwa\_local\_planner}
-\subsection{costmap\_2d}
-\subsubsection{global map}
-\subsubsection{local map}
-\subsubsection{layer}
 
-\section{cartographer} 
+\subsubsection{dwa\_local\_planner}
+\subsection{costmap}
+A costmap is a grid stile map, whose purpose is to store information about obstacles in the surrounding of the robot.\\
+There are two different costmaps, the global costmap and the local costmap.
+The global costmap is by the global planner to find a collision free path. Whereas the local costmap is used by the local planner for local planning.\cite{navsetup}\\
+\begin{figure}[H]
+	\includegraphics[width=\textwidth]{Pictures/costmap_rviz}
+	\caption{costmap with obstacles and inflation \cite{costmap}}
+	\label{costmap}
+\end{figure}
+
+
+\subsubsection{Cost Values}
+The values in a costmap can be in the range [0-255], but the underlying structure categorizes them in the following 3 sections:
+\begin{itemize}
+	\item lethal obstacle
+	\item free space
+	\item no information
+\end{itemize}
+
+\subsection{marking and clearing}
+Obstacles in the costmap can not only be marked, but also cleared by the subscribed data source. For each data source a configuration regarding the clearing and marking permissions is necessary. For clearing the costmap uses a raytracing algorithm, which allows the costmap to handle moving obstacles\cite{costmap}.
+\subsubsection{Inflation}
+Inflation is a process where a occupied cell is inflated by over the distance decreasing cost values for a configurable radius, as pictured in Figure \ref{costmap}.\\
+This process is used by the default plugin inflation\_layer with the cost distribution pictured in Figure \ref{costdistribution}\cite{costmap}.
+
+\begin{figure}[H]
+	\includegraphics[width=\linewidth]{Pictures/costmapinflation}
+	\caption{cost distribution and classification \cite{costmap}}
+	\label{costdistribution}
+\end{figure}
+
+The usage of inflation has two reasons. First it is used to close gaps between two measured obstacles and therefore usefull, if the sensor resolution is relatively corse.\\
+The second reason is to prevent the planner from getting too close to obstacles. Therefore the inflation radius is typically set to slightly more than the radius of the robot\cite{costmap}.
+
+\subsubsection{layer}
+The costmap uses a layer structure of plugins that can handle different tasks. The costmap then combines the data from each layer, to produce the final costmap.\\
+
+By default the costmap\_2d package offers the following 3 layers:
+\begin{itemize}
+	\item \textbf{static map layer} is a layer that converts a prerecorded map into obstacles.
+	\item  \textbf{obstacle layer} is a plugin that handles input from sensor sources. The plugin marks and raytraces obstacles in 2D. It can handle LaserScans PointCloud and PointCloud2.
+	\item \textbf{inflation layer} handles the inflation of lethal obstacles in the costmap.
+\end{itemize}
+
+Furthermore the plugins Social ``Costmap Layer'' and ``Range Sensor Layer'' are offered.
+
+Using the pluginlib interface and the costmap libraries one can develop custom layers for the costmap to achieve special behaviour of the robot.
+
+
+
+\section{cartographer}
+Cartographer is a Lidar based SLAM developed by Google. In contrast to gmapping it is based on loop closure to ensure real time mapping even in relatively big environments.\\
+Submaps are considered for loop closure, if they are close to each other. A scan matcher tries to find constraints between the submaps and the current scan. When searching for loop closure constraints at a certain rate one can achieve basically instantaneous optimization of the map just by the fact that the current scan is similar to one of the underlying submaps\cite{cartographer}.\\
+
 \section{Carolo-Cup}
-The carolo cup is an event hosted by the University Braunschweig and is an event in which the teams of many different universities can compete against each other and present their work and progress in the field of autonomous driving.
+The carolo cup is an event hosted by University Braunschweig and is an event in which the teams of many different universities can compete against each other and present their work and progress in the field of autonomous driving.
 
 There are two different levels of difficulty the carolo basic cup and the carolo master cup.
 

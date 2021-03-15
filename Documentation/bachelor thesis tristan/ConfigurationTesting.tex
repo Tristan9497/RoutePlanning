@@ -20,7 +20,127 @@ The structure of this chapter is to address the outer nodes of the navigation co
 
 \subsection{robot\_localization}
 
+When looking at the odometry published by the differntial drive plugin in Figiure \ref{} we notice, that it has rotational error.\\
+
+\begin{figure}
+	\includegraphics[width=\textwidth]{Pictures/rot error}
+	\caption{Odometry from wheel encoder}
+	\label{wheel odom}
+
+\end{figure}
+
+
+The following nodes require odometry:
+\begin{itemize}
+	\item cartographer
+	\item move\_base
+	\item posefinder
+\end{itemize}
+
+To improve the odometry the ROS package robot\_localization can be used. It provides an extended kalman filter for the fusion of sensor data for odometry.\\
+
+To counter the rotational error the IMU and the encoder-odometry will be fused.\\
+
+The IMU provides the following data:
+\begin{itemize}
+	\item orientation
+	\item angular velocity
+	\item linear acceleration
+\end{itemize}
+
+Based on the knowledge about the usecase of the IMU it does not make a lot of sense to fuse all of the data of the IMU and the kalman filter needs to be configured accordingly.\\
+
+
+At first the measurements for three dimensional use can be removed, which are:
+\begin{itemize}
+	\item pitch angle and velocity
+	\item roll angle and velocity
+	\item linear acceleration in z
+\end{itemize}
+
+The IMU is used for localization purposes, therefore the linear acceleration data are not interesting, since they would need to be integrated twice to be used for the pose. This would amplify every little error in acceleration over time making the odometry unreliable over time.\\
+
+Accordingly the only things fused from the imu are the yaw orientation and velocity.\\
+
+Just like the IMU data the integration of the wheel-odometry data has to be discussed which consist only from linear and angular velocity.\\
+Here the most interesting part is the y velocity since the robot is relying on differential drive steering and therefore not able to have y accelerations other than drift.\\
+
+In contrast to the acceleration values of the IMU the y velocity will be included since according to Tom Moore \cite{robot\_localizationconfiguration} it will give certainty that the robot has not moved in the y direction. Obviously the x and yaw velocity has to be included aswell.
+The position component of the wheel-odometry on the other hand will not be used, based on the fact that the position is already derived from the velocitys this would include the same data twice.\\
+
+Unfortunately this does not solve the problem of the odometry correction yet. As visible in Figure \ref{pose comparison wheel odom + IMU} the odometry of the extended kalman filter has large jumps in it compared to the wheel-odometry. When observing it in real time the ekf odometry starts to drift and jumps back after a certain amount of time.\\
+Looking at the linear velocities of both the ekf and the wheel odometry in Figure \ref{} it is noticeable that the ekf filter does estimate a continuous acceleration, whereas the velocity of the wheel encoders actually decreases.\\
+
+
+
+\begin{figure}
+	\includegraphics[width=\textwidth]{Pictures/odom pose comp}
+	\caption{pose comparison wheel odom + IMU}
+	\label{pose comparison wheel odom + IMU}
+
+\end{figure}
+
+\begin{figure}
+	\includegraphics[width=\textwidth]{Pictures/comparison odom}
+	\caption{velocity comparison wheel odom + IMU}
+	\label{velocity comparison wheel odom + IMU}
+
+\end{figure}
+
+
+To fix this a logical approach is to include more data about the robots movement. Fortunately robot\_localization has an input for command velocities such as velocities produced by move base.\\
+It is very important to set the control timeout to a value that is larger than the cycle time of move\_base. Otherwise this will lead to translational offsets caused by too low estimate for the velocities like shown in Figure \ref{velwithcmd}.
+
+\begin{figure}
+	\includegraphics[width=\textwidth]{Pictures/velocity comp}
+	\caption{velocity offset caused by too low control timout}
+	\label{velocity offset}
+
+\end{figure}
+
+
+After the inclusion of the command velocity the acceleration limits can be set equal to the limits in the local planner.
+
+When observing both the pose and velocities again it is noticeable, that the odometry has drastically improved as pictured in Figure \ref{Odometry comparison wheel odomIMUcmdvel}, equally the velocities stay closer together as pictured in \ref{velocity comparison wheel odomIMUcmdvel}.
+
+\begin{figure}
+	\includegraphics[width=\textwidth]{Pictures/odom after one round}
+	\caption{Odometry comparison wheel odom + IMU + cmd\_vel}
+	\label{Odometry comparison wheel odomIMUcmdvel}
+
+\end{figure}
+\begin{figure}
+	\includegraphics[width=\textwidth]{Pictures/circle vel}
+	\caption{Velocity comparison with cmd\_vel}
+	\label{velwithcmd}
+\end{figure}
+
+
+
+\begin{figure}
+	\includegraphics[width=\textwidth]{Pictures/odom comp multiple rounds}
+	\caption{Odom comparison multiple rounds}
+	\label{Odom comparison multiple rounds}
+
+\end{figure}
+
+Even after four rounds the odometry has not gained a large error in both translational and rotational as pictured in Figure \ref{Odom comparison multiple rounds}, furthermore the difference between the original odometry of the wheel encoders to the odometry from robot localization is quite remarkable.
+
+Finally after the rotantional and translational errors are marginal the scale of the odometry needs to be checked.
+To isolate the different errors from the scaling error a circular track is build with a radius of 10 meter. Since the turning radius is constant this isolates the rotational error which can be seen at the graph of the wheel odometry in Figure \ref{circular track}.\\
+The radius has to be chosen that high to display the potential error better.\\
+
+Since the robot is driving on the lane and not on the middle road marking the expected radius is 10,45 meter. When evaluating the EKF odom in Figure \ref{circular track} we see that the scale is very precise.
+ 
+\begin{figure}
+	\includegraphics[width=\textwidth]{Pictures/circle odom}
+	\caption{Odom comparison circular track}
+	\label{circular track}
+
+\end{figure}
+ 
 \subsection{markfreespace}
+
 
 \section{Cartographer}
 The goal of this node is to produce a map that gets more reliable over time.\\
@@ -86,7 +206,7 @@ The \nth{4} test proves that cartographer is not usable in SLAM mode during long
 Based on these test results it is not feasible to use the SLAM map for navigation with obstacles on the road, since the map is just not reliable enough and it is not certain of there are obstacles on the road or not. 
 \section{PoseFinder}
 
-\section{Planners}
+
 \section{Costmaps}
 Based on the fact that both planners are responsible for different tasks the configuration of the individual costmaps need to fulfill different tasks too. The requirements of the two planners will be compared in order to determine the configuration of their individual costmap.\\
 
@@ -101,6 +221,32 @@ Since the data here comes form the road detection and a lidar and both have a ce
 To fill theses gaps in the costmap the provided plugin inflation\_layer can be used. It will inflate only the lethal obstacles in the costmap with a configurable cost distribution.\\
 
 This setup is already enough for the local costmap, where as the global planner needs to fulfill the quest of changing lanes if necessary but all-ways preferring the right lane. For this a custom plugin will be needed that makes the transition to the left lane more expensive but still possible.
+
+
+The final layer plugin setup of the costmaps results in the following:
+
+\textbf{global costmap}
+\begin{itemize}
+	\item obstacle layer
+	\item inflation layer
+	\item dynamic cost layer
+\end{itemize}
+
+\textbf{local costmap}
+\begin{itemize}
+	\item obstacle layer
+	\item inflation layer
+\end{itemize}
+
+The costmaps will both have the same size that should allways be larger than the distance, at which the goalfinder searches for goals.
+
+Since both costmaps are rolling window costmaps they will reference the continuos frame ``odom'' and move with the frame ``base\_footprint''.
+
+Counterintuitively the robot radius needs to be set smaller than the robot actually is. Otherwise the slightly moving obstacles collide with the footprint and the global planner can not produce a valid path that the local planner can follow.\\
+This footprint is only considered by the global planner, which is only required to provide a rough path. The local planner has its own setting for a footprint, therefore the obstacle avoidance will still work as expected.
+
+The last remaining settings are the resolutions and the frequencies of the costmaps, which are chosen based on the performance of the navigation and the computational load.
+
 
 \subsection{dynamic\_cost\_layer}
 Enhancing to the plugins provided in the navigation stack this layer handles inflation of cells with a configurable cost decay and radius. While this seems to be similar to the provided inflation layer, this offers way more flexibility since it will inflate specific points by their individual radius and cost distribution and not just every lethal one by one fixed distribution.\\
@@ -121,7 +267,7 @@ To minimize the computation load a bresenham based algorithm for the circle rast
 \end{figure}
 
 
-Adding to the typical behavior of the bresenham rasterization the area of the circle will be filled using the point symmetry and by skipping overlapping points of the lines like in Figure \ref{rasterization}. 
+Adding to the typical behavior of the bresenham rasterization the area of the circle will be filled using the point symmetry and by skipping overlapping points of the lines like in Figure \ref{rasterization}. Here it is visible, that every row with the same color is only calculated once and then projected in all eight octants. The Black cells on the perimeter are the rasterized cells of the bresenham algorithm.
 
 The cells within the circles perimeter are filled with the cost specified for that point. For this the following linear decaying \nth{1} degree function will be used which requires the computation of the distance of the rasterized cell to the center of the circle.
 
@@ -142,14 +288,7 @@ The goal here is to use a function that contains only the squared distance, whic
 \end{figure}
 
 
-
-\subsection{global\_costmap}
-
-\subsection{local\_costmap}
-
 \section{Planners}
-\subsection{local\_planner}
-
 
 \subsection{global\_planner}
 There is not much room for configuration, when it comes to the global\_planner of the navigation\_stack. Probably the most important step for computation load is the choice of a planning algorithm.\\
@@ -189,6 +328,39 @@ Another important setting is necessary since the global costmap is used as a rol
 
 To prevent this behavior the not documented parameter ``outline\_map'' has to be set to false. The default value of this parameter is therefore changed in the forked version of the navigation stack.
 
-To make planning easier the parameter ``cost\_factor'' can be reduced. This parameter multiplies the cost of every cell in the costmap before planning which would make the gradually decreasing cost of the dynamic\_cost\_layer redundant.
+To make planning easier the parameter ``cost\_factor'' can be reduced. This parameter multiplies the cost of every cell in the costmap before planning which
+ would make the gradually decreasing cost of the dynamic\_cost\_layer redundant.
+
+\subsection{teb\_local\_planner}
+
+Like the global planner the local planner has to be configured to comply to the tasks the local planner has.
+
+A good starting point for the configuration are the example configurations in the repository of the developer of the planner\cite{tebtutorials}. They offer base configurations for both differntial drive and car like, aswell as omnidirectional robots.\\
+
+Unfortunately teb\_local\_planner only considers lethal cost and without any configuration would follow the global path very loosely resulting in e.g. cutting corners.\\ 
+
+To give the planner a tendency to follow the global planner closer the option ``viapoint'' can be used. This allows to set points at a configurable distance to each other on the global path, that attract the local path and therefore pull the local path and the robot to the correct lane. The attraction of the local path through the via points is then tuned so the robot drives roughly in the middle of the right lane, when no obstacle is on the road, but still can separate itself from the global path, when avoiding obstacles.\\
+
+The parameter ``max\_global\_plan\_lookahead\_dist'' controls how much of the global plan is actually considered by the local planner. This parameter highly influences the computational load when setting the distance to larger values. Using shorted distances results in oscillations while driving straight, which is caused by the jumping global path.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
