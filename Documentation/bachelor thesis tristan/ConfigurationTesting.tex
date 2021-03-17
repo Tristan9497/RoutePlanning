@@ -8,7 +8,50 @@ The structure of this chapter is to address the outer nodes of the navigation co
 
 \section{URDF and Robot State Publisher}
 
+The URDF model is based on the URDF model of Christen Lofland, who created this for his own open source project\cite{chrisl8}.\\
+
+Unfortunately this model has been created to be used for a real model, so it does not have moveable joints for the wheels or any plugins for sensors and the differential steering. In addition to that it uses .stl files for both visual and collision volumes which results in unpredictable collision distances.\\
+
+To keep the model as simple as possible one common xacro file is used, that includes the individual files for the following parts:
+\begin{itemize}
+	\item Arlo body
+	\item camera
+	\item lidar
+	\item imu
+	\item gazebo plugins for all sensors and differential drive
+\end{itemize}
+
+All of the files are xacro files in contrast to pure urdf so parameters and macros can be used, which makes the robot model more flexible.\\
+
+The plugins for gazebo have not been included in the individual files so the urdf can be used for real robots with a similar sensor setup without big modification but just with the exclusion of the plugin file.
+
+The resulting Robot then looks like pictured in Figure \ref{arlourdf}.
+
+\begin{figure}
+	\includegraphics[width=\textwidth]{Pictures/arlourdf}
+	\caption{ArloBot URDF with sensors and gazebo plugins}
+	\label{arlourdf}
+\end{figure}
+
+
 \section{Gazebo}
+The setup of the simulation consist out of the modelling of the world, the conversion of the model into a sdf file and the general launch file.
+
+As described the modeling of the world will be performed using blender.\\
+
+The modeling itself is very straight forward since one segment of the road can be modeled and extruded along a closed path. Unfortunately the export of this model with the configured texture is not as intuitive and requires a work around.\\
+
+Blender seems to not apply the texture if the model is exported directly as a colada file, so the file has to be exported as a Wavefront OBJ file. While gazebo can theoretically handle both formats the model editor of gazebo overrides the texture of the obj file perminately.\\
+
+When importing the OBJ file back into blender and exporting it again as a colada file the texture remains attached to the mesh. The model editor in gazebo overrides this texture as well, but in this case the applied texture can be removed in the generated sdf file and the road texture remains.\\
+
+A important step is to set the road to static in the sdf file so it is not affected by the gravity of the simulation.
+
+Using gazebo a .world file can be created, that includes a sun, the modeled road and a black ground plane so the robot does not drop into infinity, if it leaves the road.\\
+
+Gazebo then can be started from a launch file by defining the generated world.\\
+
+
 
 \subsection{Plugins}
 
@@ -23,13 +66,22 @@ The Lidar sensor is simulated with realistic noise and errors. This also introdu
 
 When using a lidar to project obstacles in the costmap this error produces a lot of point. like lethal error obstacles that significately hinder navigation as visible in Figure \ref{unfiltered lidar}.
 
-\begin{figure}
+\begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/Needs filtering of Laser}
 	\caption{Unfiltered Lidar data in costmap}
 	\label{unfiltered lidar}
 \end{figure}
 
 To remove these error measurements the ROS package ``laser\_filters'' can be used. Among many different filters plugins that can be constructed into a filter chain it features the filter plugin ``ScanShadowFilter'' that is developed to remove the veiling effect around obstacles cause by the edge effect \cite{laserfilters}.
+
+Figure \ref{lasercomp} shows a comparison between the filtered and not filtered laser scan, while keeping the data for 10 seconds. This allows to see the quickly jumping outliers caused by the edge effect. The filter seems well configured since the filtered points have no single outlier but still featuring a very good representation of the measured obstacle.
+
+\begin{figure}[H]
+	\includegraphics[width=\textwidth]{Pictures/LASERFILTER COMP}	
+	\caption{comparison between filtered and not filtered laser scan (red - filtered, turquoise - raw)}
+	\label{lasercomp}
+\end{figure}
+
 
 \subsection{robot\_localization}
 
