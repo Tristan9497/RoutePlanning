@@ -78,11 +78,11 @@ Accordingly the only things fused from the imu are the yaw orientation and veloc
 Just like the IMU data the integration of the wheel-odometry data has to be discussed which consist only from linear and angular velocity.\\
 Here the most interesting part is the y velocity since the robot is relying on differential drive steering and therefore not able to have y accelerations other than drift.\\
 
-In contrast to the acceleration values of the IMU the y velocity will be included since according to Tom Moore \cite{robot\_localizationconfiguration} it will give certainty that the robot has not moved in the y direction. Obviously the x and yaw velocity has to be included aswell.
+In contrast to the acceleration values of the IMU the y velocity will be included since according to Tom Moore \cite{robotlocalizationconfiguration} it will give certainty that the robot has not moved in the y direction. Obviously the x and yaw velocity has to be included aswell.
 The position component of the wheel-odometry on the other hand will not be used, based on the fact that the position is already derived from the velocitys this would include the same data twice.\\
 
 Unfortunately this does not solve the problem of the odometry correction yet. As visible in Figure \ref{pose comparison wheel odom + IMU} the odometry of the extended kalman filter has large jumps in it compared to the wheel-odometry. When observing it in real time the ekf odometry starts to drift and jumps back after a certain amount of time.\\
-Looking at the linear velocities of both the ekf and the wheel odometry in Figure \ref{} it is noticeable that the ekf filter does estimate a continuous acceleration, whereas the velocity of the wheel encoders actually decreases.\\
+Looking at the linear velocities of both the ekf and the wheel odometry in Figure \ref{velocity comparison wheel odom + IMU} it is noticeable that the ekf filter does estimate a continuous acceleration, whereas the velocity of the wheel encoders actually decreases.\\
 
 
 
