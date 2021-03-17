@@ -18,9 +18,22 @@ The structure of this chapter is to address the outer nodes of the navigation co
 
 \subsection{laser\_filter}
 
+
+The Lidar sensor is simulated with realistic noise and errors. This also introduces the well known edge errors in Laser distance measurement. Here the beam is split by an edge and the averaged measurement results in a measurement way behind the obstacle like further described in the paper of Klapa about the ``Edge effect and its impact upon the accuracy of 2D and 3D modelling using laser scanning'' \cite{edgeeffect}.\\
+
+When using a lidar to project obstacles in the costmap this error produces a lot of point. like lethal error obstacles that significately hinder navigation as visible in Figure \ref{unfiltered lidar}.
+
+\begin{figure}
+	\includegraphics[width=\textwidth]{Pictures/Needs filtering of Laser}
+	\caption{Unfiltered Lidar data in costmap}
+	\label{unfiltered lidar}
+\end{figure}
+
+To remove these error measurements the ROS package ``laser\_filters'' can be used. Among many different filters plugins that can be constructed into a filter chain it features the filter plugin ``ScanShadowFilter'' that is developed to remove the veiling effect around obstacles cause by the edge effect \cite{laserfilters}.
+
 \subsection{robot\_localization}
 
-When looking at the odometry published by the differntial drive plugin in Figiure \ref{} we notice, that it has rotational error.\\
+When looking at the odometry published by the differential drive plugin in Figure \ref{wheel odom} we notice, that it has rotational error.\\
 
 \begin{figure}
 	\includegraphics[width=\textwidth]{Pictures/rot error}
@@ -65,11 +78,11 @@ Accordingly the only things fused from the imu are the yaw orientation and veloc
 Just like the IMU data the integration of the wheel-odometry data has to be discussed which consist only from linear and angular velocity.\\
 Here the most interesting part is the y velocity since the robot is relying on differential drive steering and therefore not able to have y accelerations other than drift.\\
 
-In contrast to the acceleration values of the IMU the y velocity will be included since according to Tom Moore \cite{robot\_localizationconfiguration} it will give certainty that the robot has not moved in the y direction. Obviously the x and yaw velocity has to be included aswell.
+In contrast to the acceleration values of the IMU the y velocity will be included since according to Tom Moore \cite{robotlocalizationconfiguration} it will give certainty that the robot has not moved in the y direction. Obviously the x and yaw velocity has to be included aswell.
 The position component of the wheel-odometry on the other hand will not be used, based on the fact that the position is already derived from the velocitys this would include the same data twice.\\
 
 Unfortunately this does not solve the problem of the odometry correction yet. As visible in Figure \ref{pose comparison wheel odom + IMU} the odometry of the extended kalman filter has large jumps in it compared to the wheel-odometry. When observing it in real time the ekf odometry starts to drift and jumps back after a certain amount of time.\\
-Looking at the linear velocities of both the ekf and the wheel odometry in Figure \ref{} it is noticeable that the ekf filter does estimate a continuous acceleration, whereas the velocity of the wheel encoders actually decreases.\\
+Looking at the linear velocities of both the ekf and the wheel odometry in Figure \ref{velocity comparison wheel odom + IMU} it is noticeable that the ekf filter does estimate a continuous acceleration, whereas the velocity of the wheel encoders actually decreases.\\
 
 
 
@@ -259,7 +272,7 @@ Since we can't assume that the incoming points will be in the frame of the costm
 
 To minimize the computation load a bresenham based algorithm for the circle rasterization will be used.\cite{ComputerGraphics} Now the point symmetry around the cell can be used to further minimize the computational load and only $\frac{1}{8}$th of the circle has to be computed. The rasterization process can be described by the following image.\\
 
-\begin{figure}[H]
+\begin{figure}
 	\centering
 	\includegraphics[width=.5\textwidth]{Pictures/rasterization}
 	\caption{modified bresenham rasterization with efficient surface filling}
