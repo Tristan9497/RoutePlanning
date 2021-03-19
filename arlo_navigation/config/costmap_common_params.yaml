@@ -39,7 +39,7 @@ obstacle_layer:
       data_type: PointCloud2
       topic: NavPointData
       marking: true
-      clearing: false
+      clearing: true
       max_obstacle_height: 2.0
       min_obstacle_height: -2.0
       sensor_frame: base_footprint
