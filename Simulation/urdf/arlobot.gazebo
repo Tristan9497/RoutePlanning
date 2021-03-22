@@ -26,7 +26,7 @@
 	          <type>gaussian</type>
 	          <!-- 3% deviation -->
 	          <mean>0.0</mean>
-	          <stddev>0.03</stddev>
+	          <!--stddev>0.03</stddev-->
         	</noise>
       	</ray>
 	    <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_laser.so">
@@ -102,6 +102,7 @@
       <updateRate>100</updateRate>
       <leftJoint>left_wheel_joint</leftJoint>
       <rightJoint>right_wheel_joint</rightJoint>
+      
       <wheelSeparation>0.38105</wheelSeparation>
       <wheelDiameter>0.1524</wheelDiameter>
       <torque>6.6037</torque><!--form paralx website motor kit arlo (85 Inch Lbs)-->
@@ -111,7 +112,7 @@
       <robotBaseFrame>base_footprint</robotBaseFrame>
       <odometrySource>encoder</odometrySource>
       
-      <publishWheelTF>false</publishWheelTF><!--we are not interested in that-->
+      <publishWheelTF>true</publishWheelTF><!--we are not interested in that-->
       <publishOdomTF>false</publishOdomTF><!--robot_localization will handle the tf transform since it is more precise-->
       
     </plugin>

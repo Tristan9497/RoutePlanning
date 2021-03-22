@@ -283,7 +283,7 @@ class Listener
 					//pub.publish(Test);
 					//check whether the point is in the lane by projecting it on to the 3 roadlines and comparing their y values
 					//exact calculation not necessary since road makes wide curves
-					if(polynomial(scanpoint.x, Left.polynomial.a)>scanpoint.y && polynomial(scanpoint.x, Right.polynomial.a)<scanpoint.y)
+					if(polynomial(scanpoint.x, Middle.polynomial.a)>scanpoint.y && polynomial(scanpoint.x, Right.polynomial.a)<scanpoint.y)
 					{
 						obstacles.push_back(scanpoint);
 					}

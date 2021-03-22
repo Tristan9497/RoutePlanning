@@ -111,8 +111,8 @@ void MyLayer::setcheckcost(double wx, double wy,double cost)
 		if (!worldToMap(wx, wy, mx, my))
 			return;
 		//if cost != NO_INFORMATION we only want to override samller cost values
-		if(getCost(mx,my)==NO_INFORMATION||getCost(mx,my)<cost){
-			setCost(mx,my, (unsigned char) cost);
+		if(MyLayer::getCost(mx,my)==NO_INFORMATION||MyLayer::getCost(mx,my)<cost){
+			MyLayer::setCost(mx,my, (unsigned char) cost);
 		}
 	}
 
