@@ -49,20 +49,79 @@ A important step is to set the road to static in the sdf file so it is not affec
 
 Using gazebo a .world file can be created, that includes a sun, the modeled road and a black ground plane so the robot does not drop into infinity, if it leaves the road.\\
 
+The finished world then looks like pictured in Figure \ref{AppendixAdditionalTopics}
+
+The course of this road has been constructed so it features the following features:
+
+\begin{itemize}
+	\item left and right curves
+	\item tight and wide curves
+	\item long straight section
+\end{itemize}
+
+It will be the environment for most of the following tests.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=.5\textwidth]{Pictures/test track}
+	\caption{finished simulation world used for various tests}
+	\label{simworld}
+\end{figure}
+
 Gazebo then can be started from a launch file by defining the generated world.\\
-
-
 
 \subsection{Plugins}
 
+
+
 \section{Filter}
 
+As described the filter incorporate nodes that process the data so it can be used by the navigation concept. The following sections will cover the configuration of the individual nodes and their testing.
+
 \subsection{road\_detection}
+The road\_detection provided by Prof. Dr. Stefan Hörmann consist out of the following six nodes of which some need configuration to work with the specific camera setup.
+
+\begin{itemize}
+	\item edgeDetector
+	\item edgeProjector
+	\item LineFinder
+	\item LineTracker
+	\item RoadDetector
+	\item RoadRecordEvaluation
+\end{itemize}
+
+The edgeDetector is the first node of the package and extracts the edges from the picture using canny filters. Here the expected line width in pixels has to be configured. The easiest way to determine the width is to run the node and take a look at the picture published on the topic ``/roadDetection/image\_edges''. Then rqt\_reconfigure can be used to raise the maxLineWidth parameter, until the entire line of the road is visible in the filtered picture. In the case of the simulation the adjustment of the canny thresholds is not required, since the environment has only black and white colors and no greyscale.\\
+
+The edgeProjector has the task to project the image on the 2D surface and therefore must know the position and orientation of the camera relative to the ground. While doing so it rectifies the image according to the provided camera information, which should contain the calibration parameters of the setup.
+
+To get a reliable result from the ``LineFinder'' the amount of tiles in x and y has been increased to get more precise lines from the internally used hough transformation.\\
+In this scenario the robot drives on a wider road than usual for the carolo cup, so the parameter maxSegmentDistance has been increased to 0.9 m so the line segments of the middle line will still be matched to the same line.\\
+When the robot drives around a tight corner the road often starts at an angle relative to the robots x axis. The parameter ``maxStartAngleDiff'' has been increased to 75° to get more coverage in this case.\\
+
+While configuring the road detection the first step is to configure the orientation and position of the camera in the node``edgeProjector'' according to the definition in the urdf file. In addition to that the camera picture has to be cropped so the robot is not visible anymore in the picture.\\
+
+In the ``LineTracker'' Node the distance, at which lines should be evaluated needs to be set, so the node does not see the edge of the picture, in which the distortion has the largest effect.\\
+
+
+The RoadDetector Node needs an estimate for the lane width as a min and max value and a maximum angle between two individual road markings. These values are obviously specific for the environment.\\
+
+To check if the roadDetection offers good enough results a long duration test will be performed, during which the output of the roadRecordEvaluation will be monitored. This displays the relation between the amount of recognized road and overall attempts to find a road.
+
+As pictured in Figure \ref{longdurroad} the rrecordEvaluation converges to ca. 98.8\%. At the beginning the graph is not as reliable since there have not yet been enough measurements.\\
+The duration of the test was roughly 1.5 hours of continuous navigation without obstacles on the track pictured in ref{simworld}.
+
+\begin{figure}[H]
+	\includegraphics[width=\textwidth]{Pictures/long duration road detection test}
+	\caption{roadRecordEvaluation during long duration test}
+	\label{longdurroad}
+\end{figure}
+
+
 
 \subsection{laser\_filter}
 
 
-The Lidar sensor is simulated with realistic noise and errors. This also introduces the well known edge errors in Laser distance measurement. Here the beam is split by an edge and the averaged measurement results in a measurement way behind the obstacle like further described in the paper of Klapa about the ``Edge effect and its impact upon the accuracy of 2D and 3D modelling using laser scanning'' \cite{edgeeffect}.\\
+The Lidar sensor is simulated with realistic noise and errors. This also introduces the well known edge errors in Laser distance measurement. Here the beam is split by an edge and the averaged measurement results in a measurement way behind the obstacle like further described in the paper of Klapa about the ``Edge effect and its impact upon the accuracy of 2D and 3D modeling using laser scanning'' \cite{edgeeffect}.\\
 
 When using a lidar to project obstacles in the costmap this error produces a lot of point. like lethal error obstacles that significately hinder navigation as visible in Figure \ref{unfiltered lidar}.
 
@@ -197,14 +256,33 @@ The radius has to be chosen that high to display the potential error better.\\
 
 Since the robot is driving on the lane and not on the middle road marking the expected radius is 10,45 meter. When evaluating the EKF odom in Figure \ref{circular track} we see that the scale is very precise.
  
-\begin{figure}
+\begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/circle odom}
 	\caption{Odom comparison circular track}
 	\label{circular track}
 
 \end{figure}
  
-\subsection{markfreespace}
+\subsection{MarkFreeSpace}
+
+As discribed in the selection this node has the task of supplying individual point clouds to the following three nodes:
+
+\begin{itemize}
+	\item dynamic\_cost\_layer costmap plugin
+	\item obstacle\_layer costmap plugin
+	\item cartographer
+\end{itemize}
+
+The cloudes for the obstacle\_layer and for cartographer are just different combinations of the points from the road detection and the lidar scanner this does not have any configuration options and is very basic and therefore will not be covered in detail.
+
+The dynamic\_cast\_layer of the global costmap will only inflate every point by the specified parameters of a cost distribution, so this node has to build a message as described in the selection section of this node.\\
+
+Since the data that needs to be sent to the costmap layer originates from two different sensors they have to be synced in time, meaning the newer signal needs to be transformed back in time to the last occurrence of the older signal and transformed in the base frame of the robot.\\
+
+After that the points can be merged into the point cloud. While doing so the cost parameters of the individual points gets set aswell. If a specific section needs to be removed out of the costmap layer these points will be appended to the end of the point vector of the pointcloud so they will not be overridden by other inflated points.\\
+
+To keep this node flexible in regards to the environment, the inflation radii for all points are derived from the current road width, which is supplied by the road\_detection and can be configured using rqt\_reconfigure. 
+In addition to that the distance between the inflated points of each road marking and the min and max values of the cost distribution can be configured.
 
 
 \section{Cartographer}
@@ -409,21 +487,53 @@ To give the planner a tendency to follow the global planner closer the option ``
 The parameter ``max\_global\_plan\_lookahead\_dist'' controls how much of the global plan is actually considered by the local planner. This parameter highly influences the computational load when setting the distance to larger values. Using shorted distances results in oscillations while driving straight, which is caused by the jumping global path.
 
 
+\section{complete system test}
 
+After the test of every node the entire concept has to be tested in order to check, if the concept works as anticipated.
 
+Autonomous navigation in the following test scenarios will be performed:
 
+\begin{itemize}
+	\item no obstacles
+	\item obstacles on left lane
+	\item few obstacles on right lane
+	\item many obstacles on right lane
+\end{itemize}
 
+During all test the following criteria will be monitored aswell as any unexpected problems during the test:
 
+\begin{itemize}
+	\item distance to the right lane when no obstacle is close
+	\item obstacle avoidance distance to object
+\end{itemize}
 
+For these tests the exact position of the obstacles and the robot will be used for evaluation. This allows to determine the exact distance between the robot and obstacles, aswell as if the robot is still on the road. The distance to the right lane will be determined by using the polynomial provided by the road detection. A so called ``avoidance'' starts when the robot is just slightly over the middle line, without any hysteresis.
 
+As defined in the rules of the carolo cup the merging onto the right lane during the obstacle avoidance is supposed to take place within the next two meters after an obstacle \ref{carolo-cup}.
 
+In all tests the robot will drive multiple rounds if possible to produce reliable results. The tests will be performed in the environment pictured in Figure \ref{simworld}.\\
 
+\textbf{No obstacles}\\
+The reasoning for this test is, to check how good the robot stays on the right lane. Therefore the robot drives 5 rounds in the described test environment, while thee difference between the right lane and the robot center is monitored.
 
+\begin{figure}[H]
+	\includegraphics[width=\textwidth]{Pictures/final analysis no obstacle}
+	\caption{absolute error of the robot trajectory and rectified signal of the avoidance duration}
+	\label{noobserr}
+\end{figure}
 
+As pictured in \ref{noobserr} the robot has left the road markings twice. According to the analytics of the test node the first time for 2.77s and the second time for 0.36s.\\
 
+\textbf{Obstacles on left lane}\\
+This test is supposed to test the behavior of the navigation when obstacles block the view of the camera but the robot has to drive on the right side. In this test the robot will not drive as many rounds, since the goal is to observe the behavior when passing goals 
 
+As visible in figure \ref{} the robot left the right lane way more often compared to \ref{noobserr}.\\
+While observing the robot during driving it was noticeable, that the robot mostly left the lane, directly after it passed an obstacle in or directly after a corner. In this case the predicted goal pulls the robot into the middle of the road, since the costmap does not yet have information about the road and therefore will not force the global plan to the right lane. \\
+%This behavior can be slightly improved by tuning the parameters of the posefinder or the frequency of the costmaps.
 
+\textbf{Few obstacles on right lane}\\
 
+To cover the possible scenarios of the carolo cup this test is supposed to be a realistic application with a few obstacle scattered over the entire environment. Like in the last test the obstacles will be located as well in corners, as on straight section.
 
 
 
