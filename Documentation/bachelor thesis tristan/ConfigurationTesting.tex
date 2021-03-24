@@ -320,24 +320,96 @@ The SLAM will be tested in the following cases:
 
 During all of these test the navigation will solely work with the predicted goals since it is yet unsure if the SLAM map is even usable. Furthermore the same tuning will be used for all tests.\\
 
-\textbf{Data purely from localization:}\\
+\textbf{Data purely from road detection:}\\
 The reason for this test is to check if the SLAM algorithm can handle Mapping with as least information as possible. This will make loop-closure difficult and cartographer has to work with the self simillar data only.\\
 The aim is, that the robot can drive multiple rounds, on the track and cartographer produces an optimized map with little unmatched submaps and well connected road markings.\\
-As long as the localization in the map works nicely the distortion in the map is less important and will not be tested.\\
 
-The following pictures contain the SLAM map after the \nth{1},\nth{3} and \nth{5} round.\\
+The following pictures contain the SLAM map after the \nth{1},\nth{2} and \nth{3} round.\\
 
+\begin{figure}[H]
+	\begin{subfigure}{.3\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/1slamtest1}
+		\caption{First}
+		\end{subfigure}	
+	%\hskip2em
+	\begin{subfigure}{.3\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/1slamtest2}
+		\caption{Second}
+	\end{subfigure}
+	%\hskip2em
+	\begin{subfigure}{.3\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/1slamtest3}
+		\caption{Third}
+	\end{subfigure}
+
+	\caption{Slam Map of first three rounds}
+	\label{1slamtest}
+
+\end{figure}
+
+In the first round the map is not yet optimized. Like pictured in  Figure \ref{1slamtest} the road is not connected at the bottom after the first round, but has slight translational error.\\
+In the second round the road is closed, but some submaps are slightly misaligned which can be seen by the blurry road markings.\\
+This is well corrected in the third round and will improve from here on with every round, until the computational effort is too high.
 \todo{include pictures of test}
 
 \textbf{Data purely from localization and lidar scan with obstacles on the side of the road:}\\
+
+
+As pictured in Figure \ref{2slamtest} cartographer manages to close the road already after the first round. After the second round the road borders are slightly blurry, therefore the submaps are not yet perfectly matched. This blurriness slightly improves after the third round, but the submaps are not yet perfectly matched with each other.
+
+\begin{figure}[H]
+	\begin{subfigure}{.3\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/2slamtest1}
+		\caption{First}
+		\end{subfigure}	
+	%\hskip2em
+	\begin{subfigure}{.3\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/2slamtest2}
+		\caption{Second}
+	\end{subfigure}
+	%\hskip2em
+	\begin{subfigure}{.3\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/2slamtest3}
+		\caption{Third}
+	\end{subfigure}
+
+	\caption{Slam Map of first three rounds}
+	\label{2slamtest}
+
+\end{figure}
 
 \textbf{Data purely from localization and lidar scan with obstacles on the road:}\\
 This test is meant to be the worst case for the SLAM algorithm during navigation. The purpose is to check how cartographer handles data loss during obstacle avoidance and lane swapping.
 The obstacles will be placed in two corners and therefore in the edge case where the camera has the worst chance of seeing the road because of the steering angle, aswell as on the straight section of the road to cover the case where the camera can not see the road during merging on an other lane. Furthermore the obstacles will be placed far enough apart so the lidar has only vision on one at the same time.\\
 
 \textbf{Long duration test with both road detection and lidar scan with obstacles on the side of the road:}\\
-Cartographer seems to not merge old submaps but process all of them allways, which will progressively increase computational load. Since the SLAM is supposed to be used during mapping this can become important with a lot of sensor inputs that offer constraint potential (lidar data) and long runtime.
-The same setup as in the \nth{2} test will be used but the focus is on the moment, at which cartographer cannot optimize in real time caused by too many submaps and constraints.\\
+Cartographer seems to not merge old submaps but process all of them allways, which will progressively increase computational load. Since the SLAM is supposed to be used during mapping this can become important with a lot of sensor inputs that offer constraint potential and long runtime.
+The same setup as in the \nth{2} test will be used but the focus is on the moment, at which cartographer cannot optimize in real time caused by too many submaps and constraints.\\\todo{20\% Auslastung}
+
+The map build by cartographer during this test (Figure \ref{4slamtest}) shows, that the map builds a very good representation of the real environment over the first four rounds.\\
+
+After the \nth{7} round it is noticeable, that the matching of submaps seems to take more and more time, which is visible by a trace of unmatched submaps, that are slightly shifted. This is caused by the computational burden caused by the amount of submaps. In this round the cartographer node already takes up 20\% of the cpu resources and increases continuously. At this point realtime scan and submap matching is not possible anymore, resulting in enormous processing delays.
+
+\begin{figure}[H]
+	\begin{subfigure}{.3\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/2slamtest}
+		\caption{Real Environment}
+		\end{subfigure}	
+	%\hskip2em
+	\begin{subfigure}{.3\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/2slamtest4}
+		\caption{Fourth}
+	\end{subfigure}
+	%\hskip2em
+	\begin{subfigure}{.3\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/2slamtest7}
+		\caption{Seventh}
+	\end{subfigure}
+
+	\caption{Slam Map rounds during long duration test}
+	\label{4slamtest}
+
+\end{figure}
 
 
 \textbf{Discussion of the test results}\\
@@ -347,7 +419,15 @@ When obstacles are located on the right lane the allignment of the submaps fails
 The \nth{4} test proves that cartographer is not usable in SLAM mode during long time navigation an a circuit. This is caused that too many submaps are close to each other that share features for a constraint.
 
 Based on these test results it is not feasible to use the SLAM map for navigation with obstacles on the road, since the map is just not reliable enough and it is not certain of there are obstacles on the road or not. 
+
 \section{PoseFinder}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.5\textwidth]{Pictures/posefinder diagram}
+	\caption{Posefinder internal structure}
+	\label{posefinder structure}
+\end{figure}
 
 
 \section{Costmaps}
@@ -496,8 +576,7 @@ Autonomous navigation in the following test scenarios will be performed:
 \begin{itemize}
 	\item no obstacles
 	\item obstacles on left lane
-	\item few obstacles on right lane
-	\item many obstacles on right lane
+	\item obstacles on right lane
 \end{itemize}
 
 During all test the following criteria will be monitored aswell as any unexpected problems during the test:
@@ -514,7 +593,7 @@ As defined in the rules of the carolo cup the merging onto the right lane during
 In all tests the robot will drive multiple rounds if possible to produce reliable results. The tests will be performed in the environment pictured in Figure \ref{simworld}.\\
 
 \textbf{No obstacles}\\
-The reasoning for this test is, to check how good the robot stays on the right lane. Therefore the robot drives 5 rounds in the described test environment, while thee difference between the right lane and the robot center is monitored.
+The reasoning for this test is, to check how good the robot stays on the right lane. Therefore the robot drives in the described test environment, while the difference between the right lane and the robot center is monitored.
 
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/final analysis no obstacle}
@@ -522,18 +601,56 @@ The reasoning for this test is, to check how good the robot stays on the right l
 	\label{noobserr}
 \end{figure}
 
-As pictured in \ref{noobserr} the robot has left the road markings twice. According to the analytics of the test node the first time for 2.77s and the second time for 0.36s.\\
+As pictured in \ref{noobserr} the robot has left the road markings once.\\
 
+\begin{figure}[H]
+	\begin{subfigure}{.5\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/obstacle left final 2}
+		\caption{left}
+	\end{subfigure}	
+	%\hskip2em
+	\begin{subfigure}{.5\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/right final obs}
+		\caption{right}
+	\end{subfigure}
+
+	\caption{Obstacle placement for both final tests}
+	\label{obstaclefinaltest}
+
+\end{figure}
 \textbf{Obstacles on left lane}\\
-This test is supposed to test the behavior of the navigation when obstacles block the view of the camera but the robot has to drive on the right side. In this test the robot will not drive as many rounds, since the goal is to observe the behavior when passing goals 
-
-As visible in figure \ref{} the robot left the right lane way more often compared to \ref{noobserr}.\\
+This test is supposed to test the behavior of the navigation when obstacles block the view of the camera but the robot has to drive on the right side. In this test the robot will not drive as many rounds, since the goal is to observe the behavior when passing goals. In contrast to Figure \ref{noobserr} the distance to the nearest obstacle will be included in the graph, thus it can be determined, if the robot left the lane because it is near an obstacle or not, for this the true positions from the simulation will be used. The obstacle distance will only be tracked, if it is below 3 meters.
+\begin{figure}[H]
+	\includegraphics[width=\textwidth]{Pictures/left obs final obs2}
+	\caption{graph of left lane obstacle test}
+	\label{leftobsfinal}
+\end{figure}
+As visible in figure \ref{leftobsfinal} the robot left the right lane way more often compared to \ref{noobserr}.\\
 While observing the robot during driving it was noticeable, that the robot mostly left the lane, directly after it passed an obstacle in or directly after a corner. In this case the predicted goal pulls the robot into the middle of the road, since the costmap does not yet have information about the road and therefore will not force the global plan to the right lane. \\
-%This behavior can be slightly improved by tuning the parameters of the posefinder or the frequency of the costmaps.
 
-\textbf{Few obstacles on right lane}\\
+\textbf{Obstacles on right lane}\\
 
-To cover the possible scenarios of the carolo cup this test is supposed to be a realistic application with a few obstacle scattered over the entire environment. Like in the last test the obstacles will be located as well in corners, as on straight section.
+To cover the possible scenarios of the carolo cup this test is supposed to be a realistic application with a few obstacle scattered over the entire environment on the right lane. Like in the last test the obstacles will be located as well in corners, as on straight sections of the road.
+
+\begin{figure}[H]
+	\includegraphics[width=\textwidth]{Pictures/right obs final obs}
+	\caption{graph of right lane obstacle test}
+	\label{rightobsfinal}
+\end{figure}
+
+
+As pictured in Figure \ref{obstaclefinaltest}, there are five obstacles on the right lane. These can be seen, when inspecting the graphe in Figure \ref{rightobsfinal}, which shows two rounds of the robot.
+
+Furthermore the graph shows, that the robot successfully avoided all obstacles in both rounds. Unfortunately the robot left the lane three times, when no obstacle in the proximity of it.\\
+
+In the middle of the graph the robot took particularly long for the avoidance.
+
+The graph also shows, that the avoidance is all ways finished before the robot is two meters away from the obstacle and therefore satisfies this condition.
+
+
+
+
+
 
 
 
