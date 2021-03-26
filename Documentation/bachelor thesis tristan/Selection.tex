@@ -99,7 +99,8 @@ Base and DWA are two planners that are included in the navigation stack. Similar
 
 
 In addition to DWA we choose one of the planners with an elastic band approach\todo{description elastic band and cite teb}. The choice between these two is difficult since they both share the same base principle. The decision here is to use teb\_local\_planner for the further selection since it supports carlike robots and therefore satisfies the requirements for the navigation.\\
-\todo{choose teb local planner}
+
+During testing it seemed like DWA local planner is not as suited for this task, since it struggles with navigating through narrow corridors, hence only teb\_local\_planner will be covered in the following parts.
 
 \subsection{costmap}
 The local planner is only supposed to generate velocity commands that lead to no lethal collision. So the local costmap will have the same plugins as the global one without the dynamic inflation layer that is used to guide the robot to the right lane.
