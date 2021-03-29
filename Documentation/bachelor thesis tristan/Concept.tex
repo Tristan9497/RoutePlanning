@@ -1,6 +1,6 @@
 \chapter{Concept}
 \label{Concept}
-The selection of navigation stacks is quite sparse. Especially considering the defined requirements. In general when it comes to navigation there are only two well documented stacks to choose from.
+The selection of navigation stacks is quite sparse. Especially considering the defined requirements. In general when it comes to navigation there are only two well documented stacks based on ROS to choose from.
 
 \begin{itemize}
 	\item navigation\_stack
@@ -11,17 +11,13 @@ In contrast to the navigation\_stack MoveIt is largely used for the path plannin
 
 The navigation\_stack provides a general setup proposal which seems to be a good starting point for robot navigation, but it has multiple parts that need be modified to adhere to the defined requirements.
 
-\begin{figure}[h!]
-	\begin{center}
-		\includegraphics[width=\textwidth]{Pictures/navigation stack setup}
-		\caption[navigation stack setup]{navigation stack setup}
-		
-	\end{center}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{Pictures/navigation stack setup}
+	\caption{navigation stack setup\cite{movebase}}
+	
+	\label{navigation stack setup}
 \end{figure}
-
-
-\todo{cite this}
-
 
 
 \section{platform specific nodes}

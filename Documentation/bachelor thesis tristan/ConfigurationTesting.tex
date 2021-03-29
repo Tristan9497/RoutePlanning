@@ -250,7 +250,7 @@ When observing both the pose and velocities again it is noticeable, that the odo
 
 Even after four rounds the odometry has not gained a large error in both translational and rotational as pictured in Figure \ref{Odom comparison multiple rounds}, furthermore the difference between the original odometry of the wheel encoders to the odometry from robot localization is quite remarkable.
 
-Finally after the rotantional and translational errors are marginal the scale of the odometry needs to be checked.
+After the rotantional and translational errors are marginal the scale of the odometry needs to be checked.
 To isolate the different errors from the scaling error a circular track is build with a radius of 10 meter. Since the turning radius is constant this isolates the rotational error which can be seen at the graph of the wheel odometry in Figure \ref{circular track}.\\
 The radius has to be chosen that high to display the potential error better.\\
 
@@ -262,10 +262,19 @@ Since the robot is driving on the lane and not on the middle road marking the ex
 	\label{circular track}
 
 \end{figure}
- 
+
+As a final test the odometry from the robot\_localization node is compared to the true position from the simulation.
+
+ \begin{figure}[H]
+	\includegraphics[width=\textwidth]{Pictures/odom with true}
+	\caption{Comparison with true position}
+	\label{trueodom}
+\end{figure}
+
+The comparison in Figure \ref{trueodom} shows, that the filtered odometry has a slight translational error, but is very similar to the true odometry extracted from the simulation, hence it is good enough tuned. 
 \subsection{MarkFreeSpace}
 
-As discribed in the selection this node has the task of supplying individual point clouds to the following three nodes:
+As discribed in the selection, this node has the task of supplying individual point clouds to the following three nodes:
 
 \begin{itemize}
 	\item dynamic\_cost\_layer costmap plugin
@@ -314,8 +323,8 @@ The SLAM will be tested in the following cases:
 \begin{itemize}
 	\item Data purely from the road detection.
 	\item Data from road detection and lidar scan with obstacles on the side of the road.
-	\item Data from road detection and lidar scan with obstacles on the road.
 	\item Long duration test with both road detection and lidar scan with obstacles on the side of the road.
+	\item Data from road detection and lidar scan with obstacles on the road.
 \end{itemize}
 
 During all of these test the navigation will solely work with the predicted goals since it is yet unsure if the SLAM map is even usable. Furthermore the same tuning will be used for all tests.\\
@@ -327,6 +336,7 @@ The aim is, that the robot can drive multiple rounds, on the track and cartograp
 The following pictures contain the SLAM map after the \nth{1},\nth{2} and \nth{3} round.\\
 
 \begin{figure}[H]
+	\centering
 	\begin{subfigure}{.3\linewidth}
 		\includegraphics[width=\textwidth]{Pictures/1slamtest1}
 		\caption{First}
@@ -349,28 +359,27 @@ The following pictures contain the SLAM map after the \nth{1},\nth{2} and \nth{3
 
 In the first round the map is not yet optimized. Like pictured in  Figure \ref{1slamtest} the road is not connected at the bottom after the first round, but has slight translational error.\\
 In the second round the road is closed, but some submaps are slightly misaligned which can be seen by the blurry road markings.\\
-This is well corrected in the third round and will improve from here on with every round, until the computational effort is too high.
-\todo{include pictures of test}
-
+This is well corrected in the third round and will improve from here on with every round, until the computational effort is too high.\\
 \textbf{Data purely from localization and lidar scan with obstacles on the side of the road:}\\
 
 
 As pictured in Figure \ref{2slamtest} cartographer manages to close the road already after the first round. After the second round the road borders are slightly blurry, therefore the submaps are not yet perfectly matched. This blurriness slightly improves after the third round, but the submaps are not yet perfectly matched with each other.
 
 \begin{figure}[H]
+	\centering
 	\begin{subfigure}{.3\linewidth}
 		\includegraphics[width=\textwidth]{Pictures/2slamtest1}
-		\caption{First}
+		\caption{\nth{1} round}
 		\end{subfigure}	
 	%\hskip2em
 	\begin{subfigure}{.3\linewidth}
 		\includegraphics[width=\textwidth]{Pictures/2slamtest2}
-		\caption{Second}
+		\caption{\nth{2} round}
 	\end{subfigure}
 	%\hskip2em
 	\begin{subfigure}{.3\linewidth}
 		\includegraphics[width=\textwidth]{Pictures/2slamtest3}
-		\caption{Third}
+		\caption{\nth{3} round}
 	\end{subfigure}
 
 	\caption{Slam Map of first three rounds}
@@ -378,19 +387,18 @@ As pictured in Figure \ref{2slamtest} cartographer manages to close the road alr
 
 \end{figure}
 
-\textbf{Data purely from localization and lidar scan with obstacles on the road:}\\
-This test is meant to be the worst case for the SLAM algorithm during navigation. The purpose is to check how cartographer handles data loss during obstacle avoidance and lane swapping.
-The obstacles will be placed in two corners and therefore in the edge case where the camera has the worst chance of seeing the road because of the steering angle, aswell as on the straight section of the road to cover the case where the camera can not see the road during merging on an other lane. Furthermore the obstacles will be placed far enough apart so the lidar has only vision on one at the same time.\\
+
 
 \textbf{Long duration test with both road detection and lidar scan with obstacles on the side of the road:}\\
 Cartographer seems to not merge old submaps but process all of them allways, which will progressively increase computational load. Since the SLAM is supposed to be used during mapping this can become important with a lot of sensor inputs that offer constraint potential and long runtime.
-The same setup as in the \nth{2} test will be used but the focus is on the moment, at which cartographer cannot optimize in real time caused by too many submaps and constraints.\\\todo{20\% Auslastung}
+The same setup as in the \nth{2} test will be used but the focus is on the moment, at which cartographer cannot optimize in real time caused by too many submaps and constraints.\\
 
-The map build by cartographer during this test (Figure \ref{4slamtest}) shows, that the map builds a very good representation of the real environment over the first four rounds.\\
+The map build by cartographer during this test (Figure \ref{3slamtest}) shows, that the map builds a very good representation of the real environment over the first four rounds.\\
 
 After the \nth{7} round it is noticeable, that the matching of submaps seems to take more and more time, which is visible by a trace of unmatched submaps, that are slightly shifted. This is caused by the computational burden caused by the amount of submaps. In this round the cartographer node already takes up 20\% of the cpu resources and increases continuously. At this point realtime scan and submap matching is not possible anymore, resulting in enormous processing delays.
 
 \begin{figure}[H]
+	\centering
 	\begin{subfigure}{.3\linewidth}
 		\includegraphics[width=\textwidth]{Pictures/2slamtest}
 		\caption{Real Environment}
@@ -398,12 +406,39 @@ After the \nth{7} round it is noticeable, that the matching of submaps seems to 
 	%\hskip2em
 	\begin{subfigure}{.3\linewidth}
 		\includegraphics[width=\textwidth]{Pictures/2slamtest4}
-		\caption{Fourth}
+		\caption{\nth{4} round}
 	\end{subfigure}
 	%\hskip2em
 	\begin{subfigure}{.3\linewidth}
 		\includegraphics[width=\textwidth]{Pictures/2slamtest7}
-		\caption{Seventh}
+		\caption{\nth{7} round}
+	\end{subfigure}
+
+	\caption{Slam Map rounds during long duration test}
+	\label{3slamtest}
+
+\end{figure}
+
+
+\textbf{Data purely from localization and lidar scan with obstacles on the road:}\\
+This test is meant to be the worst case for the SLAM algorithm during navigation. The purpose is to check how cartographer handles data loss during obstacle avoidance and lane swapping.
+The obstacles will be placed in two corners and therefore in the edge case where the camera has the worst chance of seeing the road because of the steering angle, aswell as on the straight section of the road to cover the case where the camera can not see the road during merging on an other lane. Furthermore the obstacles will be placed far enough apart so the lidar has only vision on one at the same time.\\
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{.3\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/3slamtest1}
+		\caption{\nth{1} round}
+		\end{subfigure}	
+	%\hskip2em
+	\begin{subfigure}{.3\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/3slamtest4}
+		\caption{\nth{4} round}
+	\end{subfigure}
+	%\hskip2em
+	\begin{subfigure}{.3\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/3slamtest10}
+		\caption{\nth{10} round}
 	\end{subfigure}
 
 	\caption{Slam Map rounds during long duration test}
@@ -411,12 +446,15 @@ After the \nth{7} round it is noticeable, that the matching of submaps seems to 
 
 \end{figure}
 
+As pictured in \ref{4slamtest} cartographer struggles with aligning the submaps during obstacle avoidance and suffers from rotational error.\\
+Fortunately these errors are mostly corrected over the period of the next few rounds.\\ In the \nth{10} round however cartographer suffers from the same issue highlighted by the long duration test. Here it is clearly visible, that the queue of unmatched submaps is more than one entire round.\\
 
 \textbf{Discussion of the test results}\\
 As proven by the first two tests, cartographer is well tuned and the map would be useable for goal extraction. The submaps are well alligned and the map has no huge translational or rotational offset.\\
+
 The \nth{3} and \nth{4} test on the other hand display the limitations of the slam algorithm.\\
 When obstacles are located on the right lane the allignment of the submaps fails and a lot of submaps cant be attached to the rest of the map. After passing the obstacle the map gets better again, which would imply that the map could be good enough for goal extraction, if no obstacle is near the robot.\\
-The \nth{4} test proves that cartographer is not usable in SLAM mode during long time navigation an a circuit. This is caused that too many submaps are close to each other that share features for a constraint.
+The \nth{3} test proves that cartographer is not usable in SLAM mode during long time navigation an a circuit. This is caused by the amount of submaps that are close to each other and the resulting amount of constraints between each of them.
 
 Based on these test results it is not feasible to use the SLAM map for navigation with obstacles on the road, since the map is just not reliable enough and it is not certain of there are obstacles on the road or not. 
 
@@ -516,10 +554,6 @@ The goal here is to use a function that contains only the squared distance, whic
 \subsection{global\_planner}
 There is not much room for configuration, when it comes to the global\_planner of the navigation\_stack. Probably the most important step for computation load is the choice of a planning algorithm.\\
 The two algorithms that are offered by the global\_planner node are Dijkstra and A*.\\
-
-Dijkstra does only consider the cost to the start node and determines the cost to get from the start node to every other node, until it finds the goal, from which it then can backtrack the shortest/cheapest path.\cite{AlgorithmenundDatenstrukturen}.\\
-
-A* is based on the dijkstra algorithm but has one main difference. It considers not only the cost from the start to the current cell in the grid, but aswell a heuristic parameter, which is a general guess for the cost from the cell to the finish. The heuristic parameter is mostly bound to the euclidean distance between the cell in the grid and the finish. Like this the parameter will never over estimate the actual cost of the path\cite{AlgorithmenundDatenstrukturen}.\\
 
 \begin{figure}[H]
 	\begin{subfigure}{.5\linewidth}
