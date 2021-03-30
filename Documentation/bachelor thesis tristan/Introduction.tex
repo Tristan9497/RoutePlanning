@@ -1,13 +1,89 @@
 \chapter{Introduction}
 \label{introduction}
 
-This thesis will cover the selection and 
+When looking at the recent trends in the car industry, autonomous driving is probably one of the most important topics. This trend can also be seen in the industry in general with autonomous robots, that simplify and accelerate production steps and can withstand dangerous environments while doing so.\\
+
+The event ``Carolo-Cup'' hosted by the Technical University of Braunschweig offers a place for teams to compete against each other with their autonomous 1:10 model cars and therefore supports the development of the field itself. This offers an incentive to participate to a lot of universities in Germany and beyond.\\
+
+Prof. Dr.-Ing. Stefan Hörmann is looking for a new concept for the navigation for the team of the University Aalen, the concept and initial development of which will be covered in this thesis.\\
+
+The navigation of a mobile system from ground up includes a wide range of topics and problems, such as sensor data filtering and combination to generate a stable and reliable odometry, or path finding in an environment including obstacles with respect to the dynamics of the robot.\\
+
+Extending the work of Prof. Dr-Ing. Stefan Hörmann on his ROS based road detection, this navigation will also be developed for ROS Noetic. This allows the usage of various packages supplied as open source projects for the ROS Framework.
+
+\section{Structure}
+
+This thesis will be structured into four main parts.
+
+Chapter \ref{Concept} covers the initial planning of the navigation in form of a Concept. It incorporates initial approaches and will give a broad introduction to the structure of the navigation.\\
+
+In chapter \ref{Selection} the selection of the nodes of the base structure of the stack will be discussed. Furthermore it will incorporate definitions and requirements for additionally needed tasks.\\
+
+The configuration and testing of the nodes in the stack will be covered in \ref{configurationandtesting}.
 
 
-When looking at the recent trends in the car industry autonomous driving is probably one of the most important topics. This trend can also be seen in the general industry with autonomous robots, which simplify and accelerate production steps and can withstand dangerous environments while doing so.\\
+Finally the Results of the tests will be discussed, which allows the formulation of an outlook on future work in chapter \ref{outlook}.
 
+\section{Limitations and Requirements}
 
+Before diving into the details and developing concepts the guidelines and requirements of the project have to be defined.
 
+This thesis aims for a navigation of a robot in an environment that is similar to the carolo cup but deviates at some parts.
 
-\section{Project Background}
+\subsection{Robot and Environment}
+While the robot itself has very strict regulations in the carolo cup these will not all apply here.\\
 
+For testing purposes the entire robot with all sensors and the drive controller will be simulated.
+
+The robot that will be used is a differential drive robot from the company Parallax with a diameter of 450mm.\\
+
+Equally to the carolo cup regulations the lane width is defined by double robot width and will be set to 900mm. 
+
+The Robot will be equiped with the following sensors:
+
+\begin{itemize}
+	\item Lidar
+	\item Wheel encoder
+	\item IMU
+	\item Camera
+\end{itemize}
+
+Additional it will feature a motor driver for differential drive steering.
+
+\section{Software}
+Generally the software will be developed for ROS-Noetic.\\
+The programming language will be mostly C++ to allow uniformity in the software stack.\\
+Like in the carolo cup the software is not supposed to have any connection to systems outside of the robot.\\
+
+\subsection{Simulation}
+Since the environment will be simulated the Simulator has to have the following features.
+\begin{itemize}
+	\item Sensor plugins with configurable error and ROS interfaces
+	\item Differential drive plugin
+	\item custom models integration
+	\item URDF conversion
+	\item Not too computationally heavy
+\end{itemize}
+
+The simulation will mostly focus on sensor data. That is why sensor plugins with configurable error and a ROS interfaces are needed. Like this the data will be as representative as possible to the real world.\\
+
+In addition to the sensor plugins the simulator needs to provide a plugin for differential drive steering. This will be the replacement for the motor controller of the real robot.\\
+
+Custom models is a strict requirement since this thesis focuses on a very specific robot. Furthermore the integration of custom models is necessary to put the robot in different road scenarios.\\
+
+A URDF conversion plugin is very important like this differences between the simulated robot and the tf-tree in ROS can be avoided and the robot will be defined in one file only.\\
+
+To get the best correlation between simulation and real world the simulator should be able to run as close to real time as possible. This will make the simulated sensor data way more reliable and puts the nodes of the navigation\_stack under the right load.
+
+\subsection{Navigation}
+The navigation is supposed to cover free driving with out obstacles, as well as with static obstacles avoidance. It will not cover dynamic obstacles, road sign detection or driving situations like intersections and parking.\\
+
+Development of an entire stack exceeds the content of this thesis, so an open source navigation project will be used which needs to satisfy the following requirements.
+\begin{itemize}
+	\item Sensor input.
+	\item Goal pose input
+	\item 2D mobile platform support using the conventional drive systems like ackermann and differential
+	\item Path planning in respect to the robots kinematic and shape, as well as the environment detected by the sensors.
+	\item Path planning and navigation in totally unknown environments
+	\item Velocity output as linear and angular velocities
+\end{itemize}

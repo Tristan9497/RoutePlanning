@@ -105,14 +105,6 @@ During testing it seemed like DWA local planner is not as suited for this task, 
 \subsection{costmap}
 The local planner is only supposed to generate velocity commands that lead to no lethal collision. So the local costmap will have the same plugins as the global one without the dynamic inflation layer that is used to guide the robot to the right lane.
 
-\section{Odometry}
-
-\subsection{Encoder}
-\subsection{IMU}
-\subsection{Improvement using SLAM}
-
-\section{Laser\_Filter}
-
 
 \section{PoseFinder}
 As described in the concept the purpose of this node is to determine the pose of the next goal and send it to the move\_base action client. Therefore it will need to process the data from the road\_detection and if available from the SLAM map and determine a feasible goal.\\
@@ -135,7 +127,7 @@ This is mostly caused by the camera not always seeing enough of the road which c
 \end{itemize}
 
 
-This suggest that a prediction for the possible upcoming road is needed. To a small extend this is provided by the polynomials of the road detection, but the have a restricted domain, after which the error will rapidly increase.
+This suggest that a prediction for the possible upcoming road is needed. To a small extend this is provided by the polynomials of the road detection, but they have a restricted domain, after which the error will rapidly increase.
 
 \subsection{Approximations}
 

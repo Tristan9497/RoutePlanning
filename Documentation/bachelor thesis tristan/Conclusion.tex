@@ -1,13 +1,17 @@
 \chapter{Conclusion}
 \label{Conclusion}
-The goal of this thesis was the configuration and development of a software stack that allow a mobile platform to drive autonomously in a road like environment, while avoiding obstacles and preferring the right lane.
+The goal of this thesis was the configuration and development of a software stack that allows a mobile platform to drive autonomously in a road like environment, while avoiding obstacles and preferring the right lane.
 This has been achieved by formulating a concept and implementing it using the navigation stack of ROS and various open source plugins and packages.
 For the remaining tasks packages containing nodes have been developed using C++ which are configurable for different environments and robots. These packages are provided in a git repository hosted at the following url.\\
 
 \url{https://github.com/Tristan9497/RoutePlanning}\\
 
 The resulting navigation has been tested in a simulated environment as a complete stack, aswell as the individual nodes them selves.\\
-Testing allowed to highlight the strengths and weaknesses of the concept, which can be used as the guideline for future work on the established structure.
+
+Testing allowed to highlight the strengths and weaknesses of the concept, which can be used as the guideline for future work on the established structure. The developed concept was found to be working good, especially on empty road sections.\\
+
+With an increasing amount of obstacles the amount of times where the camera sees the road markings decreases, which therefore causes the navigation to fail.
+
 
 \section{Personal conclusion}
 
