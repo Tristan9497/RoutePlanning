@@ -845,9 +845,9 @@ private:
 			c2y=c2.y+c2.r*sin(a2);
 
 			//find the point at three quaters so its in the middle of the right lane
-			x=(c1x+3*c2x)/4;
-			y=(c1y+3*c2y)/4;
-			m=(m1+3*m2)/4;
+			x=(c1x+c2x)/2;
+			y=(c1y+c2y)/2;
+			m=(m1+m2)/2;
 
 			goaltrigger=true;
 			goal.target_pose.header.frame_id="base_footprint";
@@ -887,9 +887,9 @@ private:
 			l2y=l2x*l2.m+l2.b;
 
 			//find goal at ratio between both points
-			x=(l1x+3*l2x)/4;
-			y=(l1y+3*l2y)/4;
-			m=(l1.m+3*l2.m)/4;
+			x=(l1x+l2x)/2;
+			y=(l1y+l2y)/2;
+			m=(l1.m+l2.m)/2;
 
 			goal.target_pose.header.frame_id="base_footprint";
 			goal.target_pose.header.stamp = l1.Stamp;

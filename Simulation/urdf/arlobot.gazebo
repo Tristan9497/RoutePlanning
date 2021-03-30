@@ -53,21 +53,33 @@
         </clip>
         
         <horizontal_fov>2.408549999994017643</horizontal_fov>
+        <!--horizontal_fov>1.664</horizontal_fov-->
         
         
         <!--commented out because its not working like its supposed to-->
-        <!--noise>
+        <noise>
           <type>gaussian</type>
           <mean>0.0</mean>
           <stddev>0.007</stddev>
-        </noise-->
-	    <!--distortion>
-	      <k1>-0.217708</k1>
-	      <k2>0.029583</k2>
-	      <k3>0</k3>
-	      <p1>0.002915</p1>
-	      <p2>-0.000567</p2>
-	    </distortion-->
+        </noise>
+        
+        <!--distortion>
+        	<k1>-0.217708</k1>
+        	<k2>0.029583</k2>
+        	<k3>0.0</k3>
+        	<p1>0.002915</p1>
+        	<p2>-0.000567</p2>
+        	<center>0.5 0.5</center>
+        </distortion-->
+        <!--lens>
+        	<type>stereographic</type>
+	        <intrinsics>
+	        	<fx>173.794464</fx>
+	        	<fy>175.584290</fy>
+	        	<cx>322.050058</cx>
+	        	<cy>234.578679</cy>
+	        </intrinsics>
+        </lens-->
 
 
       </camera>
@@ -79,16 +91,22 @@
         <imageTopicName>image_raw</imageTopicName>
         <cameraInfoTopicName>camera_info</cameraInfoTopicName>
         <frameName>camera_link</frameName>
-        <!-- setting hackBaseline to anything but 0.0 will cause a misalignment
-            between the gazebo sensor image and the frame it is supposed to
-            be attached to -->
         <hackBaseline>0.0</hackBaseline>
 		<!--commented out because its not working like its supposed to-->
-        <!--distortionK1>-0.217708</distortionK1>
+		
+		
+		<!--Cx>323.970876</Cx>
+		<Cy>228.209367</Cy>
+		<CxPrime>322.050058</CxPrime>
+		
+		<focal_length>323.970876</focal_length>
+		
+        <distortionK1>-0.217708</distortionK1>
         <distortionK2>0.029583</distortionK2>
         <distortionK3>0.0</distortionK3>
         <distortionT1>0.002915</distortionT1>
-        <distortionT2>-0.000567</distortionT2!-->
+        <distortionT2>-0.000567</distortionT2-->
+        
 
 
       </plugin>
@@ -129,7 +147,7 @@
         <topicName>imu</topicName>
         <bodyName>imu_link</bodyName>
         <updateRateHZ>100.0</updateRateHZ>
-        <gaussianNoise>0.005</gaussianNoise>
+        <gaussianNoise>0.01</gaussianNoise>
         <xyzOffset>0 0 0</xyzOffset>
         <rpyOffset>0 0 0</rpyOffset>
         <frameName>imu_link</frameName>

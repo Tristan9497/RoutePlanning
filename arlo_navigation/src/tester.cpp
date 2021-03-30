@@ -128,7 +128,20 @@ class Tester
 
 	public:
 
+	std_msgs::Float64 getobstacledist(double maxdist)
+	{
+		double dist;//minimal distance of robot to obstacles
 
+		std_msgs::Float64 mindist;
+		mindist.data=maxdist;
+		//rectifying the lane diff
+		for(int i =0;i<obstacles.size();i++)
+		{
+			double dist=sqrt(pow(truepose.position.x-obstacles[i].x,2)+pow(truepose.position.y-obstacles[i].y,2));
+			mindist.data=std::min(dist,mindist.data);
+		}
+		return mindist;
+	}
 
 	std_msgs::Float64 lanediff(void)
 	{
@@ -167,13 +180,7 @@ class Tester
 		std_msgs::Int64 checklanediff()
 
 		{
-			double mindist=10;//minimal distance of robot to obstacles
-			//rectifying the lane diff
-			for(int i =0;i<obstacles.size();i++)
-			{
-				double dist=sqrt(pow(truepose.position.x-obstacles[i].x,2)+pow(truepose.position.y-obstacles[i].y,2));
-				mindist=std::min(dist,mindist);
-			}
+			double mindist=getobstacledist(10).data;
 			double width;
 
 			if(road.laneWidthRight<0.5)width=0.925;
@@ -210,6 +217,7 @@ int main(int argc, char **argv)
 	ros::Publisher trueposepub =n.advertise<geometry_msgs::Pose>("/tester/truepose",1000);
 	ros::Publisher diffpub =n.advertise<std_msgs::Float64>("/tester/lanediff",1000);
 	ros::Publisher diffcounterpub =n.advertise<std_msgs::Int64>("/tester/offlanecounter",1000);
+	ros::Publisher obstacledistpub =n.advertise<std_msgs::Float64>("/tester/obstacledist",1000);
 	//TODO maybe 3 different point clouds for each line of the track
 	ros::Subscriber road = n.subscribe("/roadDetection/road", 1000, &Listener::roadCallback, &listener);
 	ros::Subscriber state = n.subscribe("/gazebo/model_states", 1000, &Listener::linkCallback, &listener);
@@ -226,6 +234,7 @@ int main(int argc, char **argv)
 		trueposepub.publish(truepose);
 		diffpub.publish(tester.lanediff());
 		diffcounterpub.publish(tester.checklanediff());
+		obstacledistpub.publish(tester.getobstacledist(3));
 
 		rate.sleep();
 	}
