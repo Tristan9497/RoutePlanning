@@ -1,7 +1,18 @@
 \chapter{Results and Discussion}
 \label{resultanddiscussion}
 
-The results of chapter \ref{configurationandtesting} will be discussed in the following part. The complete system test will be discussed first and afterwards the test of the subsystems
 
-The results show that the navigation
+The results of chapter \ref{configurationandtesting} will be discussed in the following part. The complete system test will be discussed first and afterwards the test of the subsystems\\
+
+The results show that the navigation works really good, when no obstacle is on the road. The robot drives almost constantly on the right line and only rarely enters the left lane. These rare scenarios are mostly caused by the bug in the global\_planner mentioned in section \ref{globalplannertest}.\\
+
+With obstacles on the left lane the navigation still works reasonably well, but sometimes the robot transitions directly after passing an obstacle, since the left lane has not been detected behind the obstacle and therefore has not been inflated. Therefore the global planner pushes the robot to the left.\\
+
+Finally when obstacles are on the right lane the robot manages to avoid most of them. But after reentering the right lane the navigation sometimes has a small oscillation along the middle road marking as visible in Figure \ref{rightobsfinal}. Also observable where cases, where the robot left the road during remerging on the right lane since the prediction of the PoseFinder was to inaccurate and the road was not detected again after starting the avoidance.\\
+
+This 
+
+
+
+
 

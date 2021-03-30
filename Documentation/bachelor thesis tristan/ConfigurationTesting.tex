@@ -566,6 +566,7 @@ The goal here is to use a function that contains only the squared distance, whic
 \section{Planners}
 
 \subsection{global\_planner}
+\label{globalplannertest}
 There is not much room for configuration, when it comes to the global\_planner of the navigation\_stack. Probably the most important step for computation load is the choice of a planning algorithm.\\
 The two algorithms that are offered by the global\_planner node are Dijkstra and A*.\\
 
@@ -603,7 +604,9 @@ To make planning easier the parameter ``cost\_factor'' can be reduced. This para
  would make the gradually decreasing cost of the dynamic\_cost\_layer redundant.
  
  
- While using the global\_planner plugin a bug during the potential field calculation has been observed as pictured in \ref{potentialfield}. This bug causes an error of the planner, since it is not able to resolve a path, even though the potential field exists. Which therefore stops the robot,  until the planner manages to construct a valid potential field again. This bug has been reported to the developer of the plugin.
+ While using the global\_planner plugin a bug during the potential field calculation has been observed as pictured in \ref{potentialfield}. This bug causes an error of the planner, since it is not able to resolve a path, even though the potential field exists. Which therefore leads to the robot continuing to drive with the same velocities,  until the planner manages to construct a valid potential field again. In this moment the robot often leaves the right lane even though there is no obstacle infront of it.
+ 
+ This bug has been reported to the developer of the plugin.
  
  \begin{figure}[H]
  	\centering
