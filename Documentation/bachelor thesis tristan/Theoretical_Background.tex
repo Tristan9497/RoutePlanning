@@ -175,6 +175,12 @@ Using the pluginlib interface and the costmap libraries one can develop custom l
 Cartographer is a Lidar based SLAM developed by Google. In contrast to gmapping it is based on loop closure to ensure real time mapping even in relatively big environments.\\
 Submaps are considered for loop closure, if they are close to each other. A scan matcher tries to find constraints between the submaps and the current scan. When searching for loop closure constraints at a certain rate one can achieve basically instantaneous optimization of the map just by the fact that the current scan is similar to one of the underlying submaps\cite{cartographer}.\\
 
+\section{edge effect}
+
+The Edge effect is an error source during laser based distance measurement.
+When the laser beam used for measurement is directly at an edge of an obstacle, this splits the beam or rather blocks a part of it. The resulting measurement lies in the range of all distances measured by the beam and is therefore located behind the real edge of the obstacle like further described in the paper of Klapa about the ``Edge effect and its impact upon the accuracy of 2D and 3D modeling using laser scanning'' \cite{edgeeffect}.\\
+
+
 \section{Carolo-Cup}
 The carolo cup is an event hosted by University Braunschweig and is an event in which the teams of many different universities can compete against each other and present their work and progress in the field of autonomous driving.
 

@@ -81,7 +81,7 @@ The configuration of the sensor and drive plugins are fairly straight forward, b
 
 
 
-While trying to simulate the original camera of the robot based on its datasheets and the calibration parameters, it is observable that not all parameters of the camera\_info message can be set in the sdf file.
+While trying to simulate the original camera of the robot based on its datasheets and the calibration parameters, it is observable that not all parameters of the camera\_info message can be set in the sdf description of the plugin.
 
 Overall it does not seem to be possible to mimic the original camera, hence the camera will be modeled without distortion with the assumption that a calibrated camera and image rectification packages like ``image\_proc'' would produce a comparable result.
 
@@ -120,173 +120,6 @@ In the ``LineTracker'' Node the distance, at which lines should be evaluated nee
 
 The RoadDetector Node needs an estimate for the lane width as a min and max value and a maximum angle between two individual road markings. These values are obviously specific for the environment.\\
 
-To check if the roadDetection offers good enough results a long duration test will be performed, during which the output of the roadRecordEvaluation will be monitored. This displays the relation between the amount of recognized road and overall attempts to find a road.
-
-As pictured in Figure \ref{longdurroad} the performance of the road detection converges to ca. 98.8\%. At the beginning the graph is not as reliable since there have not yet been enough measurements.\\
-The duration of the test was roughly 1.5 hours of continuous navigation without obstacles on the track pictured in \ref{simworld}.
-
-\begin{figure}[H]
-	\includegraphics[width=\textwidth]{Pictures/long duration road detection test}
-	\caption{roadRecordEvaluation during long duration test}
-	\label{longdurroad}
-\end{figure}
-
-
-
-\subsection{laser\_filter}
-
-
-The Lidar sensor is simulated with realistic noise and errors. This also introduces the well known edge errors in Laser distance measurement. Here the beam is split by an edge and the averaged measurement results in a measurement way behind the obstacle like further described in the paper of Klapa about the ``Edge effect and its impact upon the accuracy of 2D and 3D modeling using laser scanning'' \cite{edgeeffect}.\\
-
-When using a lidar to project obstacles in the costmap this error produces a lot of point. like lethal error obstacles that significately hinder navigation as visible in Figure \ref{unfiltered lidar}.
-
-\begin{figure}[H]
-	\includegraphics[width=\textwidth]{Pictures/Needs filtering of Laser}
-	\caption{Unfiltered Lidar data in costmap}
-	\label{unfiltered lidar}
-\end{figure}
-
-To remove these error measurements the ROS package ``laser\_filters'' can be used. Among many different filters plugins that can be constructed into a filter chain it features the filter plugin ``ScanShadowFilter'' that is developed to remove the veiling effect around obstacles cause by the edge effect \cite{laserfilters}.
-
-Figure \ref{lasercomp} shows a comparison between the filtered and not filtered laser scan, while keeping the data for 10 seconds. This allows to see the quickly jumping outliers caused by the edge effect. The filter seems well configured since the filtered points have no single outlier but still featuring a very good representation of the measured obstacle.
-
-\begin{figure}[H]
-	\includegraphics[width=\textwidth]{Pictures/LASERFILTER COMP}	
-	\caption{comparison between filtered and not filtered laser scan (red - filtered, turquoise - raw)}
-	\label{lasercomp}
-\end{figure}
-
-
-\subsection{robot\_localization}
-
-When looking at the odometry published by the differential drive plugin in Figure \ref{wheel odom} we notice, that it has rotational error.\\
-
-\begin{figure}
-	\includegraphics[width=\textwidth]{Pictures/rot error}
-	\caption{Odometry from wheel encoder}
-	\label{wheel odom}
-
-\end{figure}
-
-
-The following nodes require odometry:
-\begin{itemize}
-	\item cartographer
-	\item move\_base
-	\item posefinder
-\end{itemize}
-
-To improve the odometry the ROS package robot\_localization can be used. It provides an extended kalman filter for the fusion of sensor data for odometry.\\
-
-To counter the rotational error the IMU and the encoder-odometry will be fused.\\
-
-The IMU provides the following data:
-\begin{itemize}
-	\item orientation
-	\item angular velocity
-	\item linear acceleration
-\end{itemize}
-
-Based on the knowledge about the usecase of the IMU it does not make a lot of sense to fuse all of the data of the IMU and the kalman filter needs to be configured accordingly.\\
-
-
-At first the measurements for three dimensional use can be removed, which are:
-\begin{itemize}
-	\item pitch angle and velocity
-	\item roll angle and velocity
-	\item linear acceleration in z
-\end{itemize}
-
-The IMU is used for localization purposes, therefore the linear acceleration data are not interesting, since they would need to be integrated twice to be used for the pose. This would amplify every little error in acceleration over time making the odometry unreliable over time.\\
-
-Accordingly the only things fused from the imu are the yaw orientation and velocity.\\
-
-Just like the IMU data the integration of the wheel-odometry data has to be discussed which consist only from linear and angular velocity.\\
-Here the most interesting part is the y velocity since the robot is relying on differential drive steering and therefore not able to have y accelerations other than drift.\\
-
-In contrast to the acceleration values of the IMU the y velocity will be included since according to Tom Moore \cite{robotlocalizationconfiguration} it will give certainty that the robot has not moved in the y direction. Obviously the x and yaw velocity has to be included aswell.
-The position component of the wheel-odometry on the other hand will not be used, based on the fact that the position is already derived from the velocitys this would include the same data twice.\\
-
-Unfortunately this does not solve the problem of the odometry correction yet. As visible in Figure \ref{pose comparison wheel odom + IMU} the odometry of the extended kalman filter has large jumps in it compared to the wheel-odometry. When observing it in real time the ekf odometry starts to drift and jumps back after a certain amount of time.\\
-Looking at the linear velocities of both the ekf and the wheel odometry in Figure \ref{velocity comparison wheel odom + IMU} it is noticeable that the ekf filter does estimate a continuous acceleration, whereas the velocity of the wheel encoders actually decreases.\\
-
-
-
-\begin{figure}
-	\includegraphics[width=\textwidth]{Pictures/odom pose comp}
-	\caption{pose comparison wheel odom + IMU}
-	\label{pose comparison wheel odom + IMU}
-
-\end{figure}
-
-\begin{figure}
-	\includegraphics[width=\textwidth]{Pictures/comparison odom}
-	\caption{velocity comparison wheel odom + IMU}
-	\label{velocity comparison wheel odom + IMU}
-
-\end{figure}
-
-
-To fix this a logical approach is to include more data about the robots movement. Fortunately robot\_localization has an input for command velocities such as velocities produced by move base.\\
-It is very important to set the control timeout to a value that is larger than the cycle time of move\_base. Otherwise this will lead to translational offsets caused by too low estimate for the velocities like shown in Figure \ref{velwithcmd}.
-
-\begin{figure}
-	\includegraphics[width=\textwidth]{Pictures/velocity comp}
-	\caption{velocity offset caused by too low control timout}
-	\label{velocity offset}
-
-\end{figure}
-
-
-After the inclusion of the command velocity the acceleration limits can be set equal to the limits in the local planner.
-
-When observing both the pose and velocities again it is noticeable, that the odometry has drastically improved as pictured in Figure \ref{Odometry comparison wheel odomIMUcmdvel}, equally the velocities stay closer together as pictured in \ref{velocity comparison wheel odomIMUcmdvel}.
-
-\begin{figure}
-	\includegraphics[width=\textwidth]{Pictures/odom after one round}
-	\caption{Odometry comparison wheel odom + IMU + cmd\_vel}
-	\label{Odometry comparison wheel odomIMUcmdvel}
-
-\end{figure}
-\begin{figure}
-	\includegraphics[width=\textwidth]{Pictures/circle vel}
-	\caption{Velocity comparison with cmd\_vel}
-	\label{velwithcmd}
-\end{figure}
-
-
-
-\begin{figure}
-	\includegraphics[width=\textwidth]{Pictures/odom comp multiple rounds}
-	\caption{Odom comparison multiple rounds}
-	\label{Odom comparison multiple rounds}
-
-\end{figure}
-
-Even after four rounds the odometry has not gained a large error in both translational and rotational as pictured in Figure \ref{Odom comparison multiple rounds}, furthermore the difference between the original odometry of the wheel encoders to the odometry from robot localization is quite remarkable.
-
-After the rotantional and translational errors are marginal the scale of the odometry needs to be checked.
-To isolate the different errors from the scaling error a circular track is build with a radius of 10 meter. Since the turning radius is constant this isolates the rotational error which can be seen at the graph of the wheel odometry in Figure \ref{circular track}.\\
-The radius has to be chosen that high to display the potential error better.\\
-
-Since the robot is driving on the lane and not on the middle road marking the expected radius is 10,45 meter. When evaluating the EKF odom in Figure \ref{circular track} we see that the scale is very precise.
- 
-\begin{figure}[H]
-	\includegraphics[width=\textwidth]{Pictures/circle odom}
-	\caption{Odom comparison circular track}
-	\label{circular track}
-
-\end{figure}
-
-As a final test the odometry from the robot\_localization node is compared to the true position from the simulation.
-
- \begin{figure}[H]
-	\includegraphics[width=\textwidth]{Pictures/odom with true}
-	\caption{Comparison with true position}
-	\label{trueodom}
-\end{figure}
-
-The comparison in Figure \ref{trueodom} shows, that the filtered odometry has a slight translational error, but is very similar to the true odometry extracted from the simulation, hence it is good enough tuned. 
 \subsection{MarkFreeSpace}
 
 As discribed in the selection, this node has the task of supplying individual point clouds to the following three nodes:
@@ -325,7 +158,7 @@ Furthermore cartographer will be set to 2d map building.
 \subsection{Tuning}
 With the basic configuration cartographer is not able to provide a reliable map and a tuning procedure has to be performed. Here the general recommendation of the tuning guide should be followed, which states to tune local SLAM first and disabling global slam while doing so \cite{cartographertuning}.
 To tune the local SLAM the parameter of the tracjectory builder have to be adjusted.\\
-The trajectory builder contains a scan-matcher, which will compare incoming sensor data a tries to align it with each other as good as possible. This behavior can be tuned by configuring the size of the linear and angular search windows and the weight for the rotation and translation of the incoming scans.\\
+The trajectory builder contains a scan-matcher, which will compare incoming sensor data and tries to align it with each other as good as possible. This behavior can be tuned by configuring the size of the linear and angular search windows and the weight for the rotation and translation of the incoming scans.\\
 One more important setting is the size of the sub maps. These can be adjusted by the amount of scans they contain. Since the submaps will consist out of the scan matched obstacles it is important to set the size of the submaps not to high, if the incoming data will be very self simillar. Otherwise the scanmatcher will combine too many scans while shifting them over each other since they look so simillar. This results in both rotational and translational error.\\
 As soon as the local SLAM produces a reliable result after multiple rounds of the robot the global SLAM can be activated and tuned.\\
 
@@ -587,6 +420,40 @@ During testing teb\_local\_planner produced mostly good and feasible paths, but 
 
 To suppress this behavior the weighting of the time component has been increased so the internal forces that contract the elastic band increase. This reduced the occurrence of this scenario significantly, but the local path takes longer, until it is on the right lane again, since the distance to the global path is now weighted less relative to the weight of the time component.
 
+\section{Odometry test}
+The odometry is a key component in the navigation concept, since it will be used by multiple nodes and is the representation of the robot's position in its environment.\\
+
+Especially differential robots tend to have rotational error, when using the wheel-encoders to generate the odometry, since the wheels are forced to slip when the robot is turning.\\
+
+To test the quality of the odometry the robot will be placed in the world pictured in Figure \ref{simworld}. Now the robot is supposed to drive one round, during which the odometry of the robot will be tracked.\\
+
+In theory the trace of the odometry should be closed perfectly, after the robot performed its first round.\\
+
+\section{Lidar test}
+The lidar is the only sensor, which detects static obstacles in the surrounding of the robot. Hence the quality of the data has to be checked.
+
+To test the performance of the simulated lidar the robot will simply navigate in the world pictured in Figure \ref{simworld} and detect obstacles along the road.\\
+
+The quality of the data will be observed by looking at the raw data, aswell as the costmap, that receives the measurements of the lidar.\\
+
+The evaluation of the costmap is necesarry, since it will mark measurements of the lidar as lethal. With increasing noise the marked obstacles will be less precise, therefore the lidar has direct influence on the performance of the navigation even when obstacles are not on the road.
+
+The main focus of this test is sensor noise, since the gazebo sensor plugin is configured based on the data sheet of the real lidar.
+\todo{appendix lidar and camera data sheets}
+
+\section{road\_detection test}
+As the road\_detection is the only data source providing informations about the road it is crucial for successful navigation.
+
+To check if the roadDetection offers good enough results a long duration test will be performed, during which the output of the roadRecordEvaluation node will be monitored, which outputs the relation between the amount of recognized road and overall attempts to find a road.\\
+
+The robot will navigate on the course pictured in Figure \ref{simworld} until the output of the roadRecordEvaluation settles to a reliable result.
+
+\section{SLAM test}
+The SLAM algorithm chosen for the the concept is used in a very uncommon way, since it is not only receiving input from a real range finding sensor, but as well from road detection.
+
+The data from the road detection is very self similar, meaning that for example a straight section of road will always look very similar independent of its position. The lack of details in the data from the road detection might complicate cartographers scan matching.
+
+
 
 \section{complete system test}
 
@@ -609,7 +476,7 @@ During all test the following criteria will be monitored aswell as any unexpecte
 
 For these tests the exact position of the obstacles and the robot will be used for evaluation. This allows to determine the exact distance between the robot and obstacles, aswell as if the robot is still on the road. The distance to the right lane will be determined by using the polynomial provided by the road detection. A so called ``avoidance'' starts when the robot is just slightly over the middle line, without any hysteresis.
 
-As defined in the rules of the carolo cup the merging onto the right lane during the obstacle avoidance is supposed to take place within the next two meters after an obstacle \ref{carolo-cup}.
+As defined in the rules of the carolo cup the merging onto the right lane during the obstacle avoidance is supposed to take place within the next two meters after an obstacle \cite{carolo-cup}.
 
 In all tests the robot will drive multiple rounds if possible to produce reliable results. The tests will be performed in the environment pictured in Figure \ref{simworld}.\\
 
