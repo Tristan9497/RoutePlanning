@@ -130,27 +130,23 @@ This suggest that a prediction for the possible upcoming road is needed. To a sm
 \subsection{Approximations}
 
 Since the road mostly consists of circles of varying radii and origins, it is self evident, that using the polynomials in their restricted domain to represent a section of a circle will give a better estimate.\\
-This circle can be calculated using the following linear least-square approach:\todo{least square}\\
+This circle can be calculated using the least square approach presented in Randy Bullocks paper on least square circle fitting \cite{leastsquarecircle}\\
 
 In theory this approximation should work for almost straight sections as well, but the radius and the origin will trend to infinity and caused by the camera noise and the inaccuracy of the road detection the representation of the road will get worse and worse.\\
 
-This leads to the following linear least square approach for straight lines:\\
-
-\todo{line least square}
+Similar to the least square approach for the circles an approach for the lines can be formulated.
 
 Switching between the result of the two approximations will result in the best result for both scenarios. This switching will be triggered by the radii of the approximated circles exceeding a configurable threshold.\\
 
-The next step is a goal extraction from the chosen approximation. This goal will be calculated at a given distance from the robot origin on the approximated route. In contrast to the approximated lines, the circles have a defined angle of trustworthiness. Otherwise small circles would cause the goal to be way of the prediction. The orientation of the goal will then be determined using the differentiation of the function.\\
+The next step is a goal extraction from the chosen approximation. This goal will be calculated at a given distance from the robot origin on the approximated route. In contrast to the approximated lines, the circles have a defined angle of trustworthiness. Otherwise small circles would cause the goal to be way of the prediction. The orientation of the goal will then be determined using the derivation of the function.\\
 
-With the calculated points on either both circles or on both lines the mean can be calculated and represents the new goal for the robot.
-
-
+With the calculated points on both circles or on both lines the mean can be calculated and represents the new goal for the robot.
 
 \subsection{goal from map}
 
 If the robot is running a SLAM algorithm during the first round the map should be finished once the robot passes its start point. Then the approximation is unnecessary since extracting goals directly from the slam map is more efficient and provides goals that will  always be on the road. Furthermore the distance, at which goals will be found can be increased, which results in higher speeds and/or lower planner frequencies.\\
 
-To find a goal in the SLAM map a circle rasterization algorithm will be used.\\\todo{bresenham}
+To find a goal in the SLAM map a circle rasterization algorithm will be used.\\\todo{bresenham in theoretical knowledge}
 
 This algorithm finds every cell on a circular path around the robot and its associated value in the map. The values outside of a given FOV (field of view) can be eliminated. Then the remaining values with a larger likelihood than a configurable threshold will be reduced to one point by taking the mean value of all of them.\\
 

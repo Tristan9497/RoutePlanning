@@ -4,6 +4,8 @@
 \todo{parameter config}
 This chapter will contain the configuration of all nodes of the concept. In addition the newly developed nodes have to be tested as well as the entire navigation concept.
 
+The nodes of the system are highly interconnected, therefore it is hard to test nodes while eliminating the error of others.
+
 \section{URDF and Robot State Publisher}
 
 The URDF model is based on the model of Christen Lofland, who created this for his own open source project\cite{chrisl8}.\\
@@ -31,12 +33,18 @@ The resulting Robot then looks like pictured in Figure \ref{arlourdf}.
 	\label{arlourdf}
 \end{figure}
 
+\todo{add and ref tf tree of running system}
+
+Using rqt\_tf\_tree the tf tree can be checked for conformity to ``REP 105'' and the concept.\\ 
+The tf tree of the running concept is pictured in Figure \ref{}. As visible the fixed frame of the setup is ``map'' the following transform to the ``odom'' frame is published by cartographer. The transformation between the ``odom'' frame and ``base\_footprint'' then gets published by robot\_localization here named ``ekf\_se''.\\
+The following transformations and frames are published by ``robot\_state\_publisher'' according to the URDF of the robot.
 
 \section{Gazebo}
-The setup of the simulation consist out of the modelling of the world, the conversion of the model into a sdf file and the general launch file.
+The setup of the simulation consist out of the modeling of the world, the conversion of the model into a sdf file and the general launch file.
 
-As described the modeling of the world will be performed using blender.\\
+As described in the concept the world will be modeled using the software blender.\\
 
+\todo{rewrite blender problems}
 The modeling itself is very straight forward since one segment of the road can be modeled and extruded along a closed path. Unfortunately the export of this model with the configured texture is not as intuitive and requires a work around.\\
 
 Blender seems to not apply the texture if the model is exported directly as a colada file, so the file has to be exported as a Wavefront OBJ file. While gazebo can theoretically handle both formats the model editor of gazebo overrides the texture of the obj file perminately.\\
@@ -69,7 +77,7 @@ It will be the environment for most of the following tests.
 Gazebo then can be started from a launch file by defining the generated world.\\
 
 \subsection{Plugins}
-The configuration of the sensor and drive plugins are fairly straight forward, based on the Tutorial page in the gazebo\cite{gazebotutorial}.\\
+The configuration of the sensor and drive plugins are fairly straight forward, based on the Tutorial page in the gazebo wiki\cite{gazebotutorial}.\\
 
 
 
@@ -81,7 +89,9 @@ Overall it does not seem to be possible to mimic the original camera, hence the 
 
 \section{Filter}
 
-As described the filter incorporate nodes that process the data so it can be used by the navigation concept. The following sections will cover the configuration of the individual nodes and their testing.
+As described the filter incorporate nodes that process the data so it can be used by the navigation concept. The following sections will cover the configuration of the individual nodes and their test setups.
+
+Since the navigation highly relies on the data published by the nodes categorized as filters, these will be tested first.
 
 \subsection{road\_detection}
 The road\_detection provided by Prof. Dr. Stefan Hörmann consist out of the following six nodes of which some need configuration to work with the specific camera setup.
@@ -112,7 +122,7 @@ The RoadDetector Node needs an estimate for the lane width as a min and max valu
 
 To check if the roadDetection offers good enough results a long duration test will be performed, during which the output of the roadRecordEvaluation will be monitored. This displays the relation between the amount of recognized road and overall attempts to find a road.
 
-As pictured in Figure \ref{longdurroad} the rrecordEvaluation converges to ca. 98.8\%. At the beginning the graph is not as reliable since there have not yet been enough measurements.\\
+As pictured in Figure \ref{longdurroad} the performance of the road detection converges to ca. 98.8\%. At the beginning the graph is not as reliable since there have not yet been enough measurements.\\
 The duration of the test was roughly 1.5 hours of continuous navigation without obstacles on the track pictured in \ref{simworld}.
 
 \begin{figure}[H]
