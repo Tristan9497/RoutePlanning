@@ -1,4 +1,14 @@
 \chapter{Outlook}
 \label{outlook}
 
-\todo{Custom elastic band approach, that weights the polynomials from the road detection differently. Would allow more stable simulation since the costmap solely consist of lethal obstacles.}
+This thesis highlighted existing problems in the established navigation concept, which should be resolved to score high results in the carolo cup.\\
+
+Using the structure of move\_base a custom local and global planner plugin can be developed and exchanged with the current plugins.\\
+
+It could be very interesting to explore different path finding algorithms than the ones offered in the global\_planner plugin. At this point the development of a custom global planner might be able to perform better given the known usecase.\\
+
+Seeing the performance of the elastic band in the local planner used in this thesis a potential approach could be to move the task of lane following to the local planner, by deforming the elastic band directly with the polynomials of the road detection and weighting them individually.\\
+
+To decrease the amount of times, where the navigation has to wait until it receives data from the road\_detection, the approximated shape of the road could be drawn into the costmap and overridden by new incoming data of the road. This could be implemented into the dynamic\_cost\_layer that has been developed during this work.
+
+The exploration of V-Rep or its successor coppelia sim might be interesting with focus on the sensor plugins, especially with focus on distortion of the camera image.

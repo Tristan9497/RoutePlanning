@@ -69,12 +69,16 @@
 
 %HYPERLINKS
 \usepackage{url} %Erleichtert Darstellung von URL (viele Sonderzeichen)
+\usepackage{pdfpages}
+
+\usepackage{todonotes} %TODO notes 
+
 \usepackage[pdftex]{hyperref} %Erstellt Hyperlinks im PDF
 % Nach "hyperref" sollten keine weiteren Pakete eingebunden werden,
 % da "hyperref" gewisse Befehle umdefiniert.
 
 
-\usepackage{todonotes} %TODO notes 
+
 \usepackage{subcaption}
 
 
@@ -132,13 +136,13 @@
 
 
 
-\include{Theoretical_Background}
+
 
 
 \include{Introduction}
 
-%\include{Limitations}
-%\include{HardwareSoftware}
+\include{Theoretical_Background}
+
 \include{Concept}
 
 \include{Selection}
