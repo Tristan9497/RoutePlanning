@@ -8,9 +8,12 @@ Diese Bachelor-Thesis handelt von der Erstellung eines Konzepts, dem Aufbau und 
 
 Das Ziel dieses ``Software-Stacks'' ist, der Spur einer Straße zu folgen und dabei potentiellen Hindernissen auf der Straße auszuweichen. Diese Thesis führt die Arbeit von Prof. Hörmann der die von ihm Entwickelte Spurerkennung zur Verfügung stellte und soll in der Zukunft vom Carolo-Cup Team der Hochschule Aalen verwendet werden können. Obwohl der in dieser Arbeit verwendete Roboter nicht konform zum Regelwerk des Carolo-Cups ist, soll der Stack auch für andere Roboter konfigurierbar sein.\\
 
-Der Roboter verfügt über einen Lidar, eine Kamera, Rad-Encoder und einen IMU (inertia measurement unit). Die Daten dieser Sensoren werden gefiltert und dann mit bestehenden ros packages und selbst entwickelten aufbereitet. Die resultierenden Daten werden dann an den Navigation Stack  übergeben, der dann die beste Rute ermittelt.\\
+Der Roboter verfügt über einen Lidar, eine Kamera, Rad-Encoder und einen IMU (inertia measurement unit). Die Daten dieser Sensoren werden gefiltert und dann mit bestehenden ros packages und selbst entwickelten aufbereitet. Die resultierenden Daten werden dann an den Navigation Stack  übergeben, der dann die beste Route mittels planer plugins, die für die Aufgaben und die Dynamik des Roboters konfiguriert sind, ermittelt.\\
 
-Da zu Beginn dieser Arbeit kein vollständig funktionierender Roboter verfügbar war wurde das Teilthema der Simulation des Roboters mitsamt aller seiner Sensoren und Aktoren in das Thema der Thesis aufgenommen.
-\todo{rewrite accordin to english}
+Um das Testen der Navigation zu vereinfachen und Hardware-Iteration zu beschleunigen, wird der Roboter, zusammen mit der geramten Umgebung simuliert.
+
+Die resultierende Navigation steuert den Roboter auf einem Rundkurs und bleibt währenddessen meist auf der Rechten Spur. Der Roboter vermeidet Hindernisse relativ zuverlässig und steuert den Roboter danach wieder auf die richtige Spur. Selten führt die Präzision der geschätzten zukünftigen Straße jedoch dazu, dass der Roboter die Straße beim vermeiden von Hindernissen verlässt.
+
+Da die Navigation auf move\_base und dessen Nutzung von plugins basiert sind zukünftige Verbeserungen leicht möglich.
 
 \end{otherlanguage}

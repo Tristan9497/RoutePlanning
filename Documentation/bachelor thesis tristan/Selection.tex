@@ -96,7 +96,7 @@ During all of this the local planner needs to use the information of lethal obst
 Base and DWA are two planners that are included in the navigation stack. Similar to the global planner selection we choose the successor and therefore DWA, which according to Kaiyu Zeng is the general recommendation for mobile robotics platforms\cite{navtuningguide}.\\
 
 
-In addition to DWA we choose one of the planners with an elastic band approach\todo{description elastic band and cite teb}. The choice between these two is difficult since they both share the same base principle. The decision here is to use teb\_local\_planner for the further selection since it supports carlike robots and therefore satisfies the requirements for the navigation.\\
+In addition to DWA we choose one of the planners with an elastic band approach. The choice between these two is difficult since they both share the same base principle. The decision here is to use teb\_local\_planner for the further selection since it supports carlike robots and therefore satisfies the requirements for the navigation.\\
 
 During testing it seemed like DWA local planner is not as suited for this task, since it struggles with navigating through narrow corridors, hence only teb\_local\_planner will be covered in the following parts.
 

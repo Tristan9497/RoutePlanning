@@ -1,7 +1,7 @@
 \chapter{Configuration and Testing}
 \label{configurationandtesting}
 
-\todo{parameter config}
+
 This chapter will contain the configuration of all nodes of the concept. In addition the newly developed nodes have to be tested as well as the entire navigation concept.
 
 The nodes of the system are highly interconnected, therefore it is hard to test nodes while eliminating the error of others.
@@ -47,7 +47,7 @@ As described in the concept the world will be modeled using the software blender
 \todo{rewrite blender problems}
 The modeling itself is very straight forward since one segment of the road can be modeled and extruded along a closed path. Unfortunately the export of this model with the configured texture is not as intuitive and requires a work around.\\
 
-Blender seems to not apply the texture if the model is exported directly as a colada file, so the file has to be exported as a Wavefront OBJ file. While gazebo can theoretically handle both formats the model editor of gazebo overrides the texture of the obj file perminately.\\
+Blender seems to not apply the texture if the model is exported directly as a colada file, so the file has to be exported as a Wavefront OBJ file. While gazebo can theoretically handle both formats the model editor of gazebo overrides the texture of the obj file permanentely.\\
 
 When importing the OBJ file back into blender and exporting it again as a colada file the texture remains attached to the mesh. The model editor in gazebo overrides this texture as well, but in this case the applied texture can be removed in the generated sdf file and the road texture remains.\\
 
@@ -81,7 +81,7 @@ The configuration of the sensor and drive plugins are fairly straight forward, b
 
 
 
-While trying to simulate the original camera of the robot based on its datasheets and the calibration parameters, it is observable that not all parameters of the camera\_info message can be set in the sdf description of the plugin.
+While trying to simulate the original camera of the robot based on its datasheets (Appendix \ref{AppendixDataSheets}) and the calibration parameters, it is observable that not all parameters of the camera\_info message can be set in the sdf description of the plugin.
 
 Overall it does not seem to be possible to mimic the original camera, hence the camera will be modeled without distortion with the assumption that a calibrated camera and image rectification packages like ``image\_proc'' would produce a comparable result.
 
