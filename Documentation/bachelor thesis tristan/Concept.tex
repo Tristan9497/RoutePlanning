@@ -1,7 +1,7 @@
 \chapter{Concept}
 \label{Concept}
 
-This chapter covers the development of a concept, usable for the navigation for a mobile platform. 
+This chapter covers the development of a concept, usable for the navigation of a mobile platform. 
 
 The selection of navigation stacks is quite sparse. Especially considering the defined requirements. In general when it comes to navigation there are only two well documented stacks based on ROS to choose from.
 
@@ -10,7 +10,7 @@ The selection of navigation stacks is quite sparse. Especially considering the d
 	\item MoveIt
 \end{itemize}
 
-In contrast to the navigation\_stack MoveIt is largely used for the path planning and navigation of industrial robot arms and therefore not suited for this application.
+In contrast to the navigation\_stack, MoveIt is largely used for the path planning and navigation of industrial robot arms and therefore not suited for this application.
 
 The navigation\_stack provides a general setup proposal which seems to be a good starting point for robot navigation, but it has multiple parts that need be modified to adhere to the defined requirements.
 
@@ -32,12 +32,8 @@ The following sensors will be predefined for this concept:
 \begin{itemize}
 	\item lidar
 	\item wheel encoder
-	\item imu
 	\item camera
 \end{itemize}
-
-Since these sensors will certainly have noise we firstly need to add additional filters for the sensor signals. 
-
 
 
 \subsection{Odometry source}
@@ -49,7 +45,7 @@ The transformation between the base of the robot and the odom will be build by t
 
 The remaining platform specific nodes are all available since the simulated robot will be used and provides a motor controller, as well as all of the sensors and data sources.
 
-\section{SLAM}
+\section{Map}
 
 The map is a representation of the robots environment. If this is known from the start it is known, where the robot can go and where not.\\
  In this scenario the robot will always start blind, meaning it will not know anything about its surrounding other than that it can expect a road to be somewhere, which makes the map\_server of the navigation\_stack and its functionality to convert prerecorded maps redundant.\\
@@ -59,7 +55,7 @@ The big improvement this concept has from SLAM is, that goals could be extracted
 
 This node will publish the transform between the map and the odom frame so the position of the robot and every sensor signal can be determined relative to the map frame.\\
 
-Unfortunately the data that can be fed to the SLAM node is very limited, since it is not guaranteed, that the lidar all ways sees static obstacles. An other data source for the SLAM algorithm could be the points extracted from the road detection. The problem with these is, that they don't have a lot of features in them other than the corridor like point distribution which.\\
+Unfortunately the data that can be fed to the SLAM node is very limited, since it is not guaranteed, that the lidar all ways sees static obstacles. An other data source for the SLAM algorithm could be the points extracted from the road detection. The problem with these is, that they don't have a lot of features in them other than the corridor like point distribution.\\
 
 This significantly decreases the reliability of the map which therefore will highly depend on good odometry.
 
@@ -76,13 +72,13 @@ The general task of the global planner is like described in the theoretical know
 In this scenario the global planner will be required to guide the robot on the correct lane as well. This results in two additional requirements:
 
 \begin{itemize}
-	\item the global costmap needs to incorporate cost that set a preference for the right lane but allow the global path to go to the left in case of a blockage
+	\item the global costmap needs to incorporate cost that generates a preference for the right lane but allows the global path to go to the left in case of a blockage.
 	\item the global planner has to respect not only lethal but every cost
 \end{itemize}
 
 \subsection{local stage}
 The local stage on the other hand has the task of finding a for the kinematic of the robot feasible path that does not collide with objects.\\
-This Path needs to be close to the global path and follow the lane changes dictated by the global stage but it needs to be able to separate itself from the global path if necessary.
+This Path needs to be close to the global path and follows the lane changes dictated by the global stage but it needs to be able to separate itself from the global path if necessary.
 
 \section{PoseFinder}
 The job of this node is to extract the pose of a goal from the sensor data or the map (if available).\\
@@ -96,12 +92,11 @@ Here the entire data processing takes place, which converts the sensor data into
 	\item \textbf{markfreespace} needs to publish points that need to be inflated to generate restricted areas in the costmap. Also produces combined data of the road\_detection and the lidar for SLAM.
 \end{itemize}
 
-The road\_detection and the markfreespace nodes are obligatory while the two remaining ones need to be implemented to improve the usability of the data of exactly this setup and might not be needed on a different robot
 
 \section{Resulting concept}
-The following simplified schematic is the concept of the navigation stack setup. Not all of the connections between the nodes will be highlighted, to keep schematic simple.\\
+The following simplified schematic is the concept of the navigation stack setup. Not all of the connections between the nodes will be highlighted, to keep the schematic simple.\\
 
-\begin{figure}[h!]
+\begin{figure}[H]
 	\begin{center}
 		\includegraphics[width=140mm]{Pictures/Updated navigation concept}
 		\caption[Updated navigation concept]{Updated navigation concept}

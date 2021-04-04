@@ -6,6 +6,8 @@ This chapter will contain the configuration of all nodes of the concept. In addi
 
 The nodes of the system are highly interconnected, therefore it is hard to test nodes while eliminating the error of others.
 
+The final config of the discussed nodes can be found in Appendix \ref{config}.
+
 \section{URDF and Robot State Publisher}
 
 The URDF model is based on the model of Christen Lofland, who created this for his own open source project\cite{chrisl8}.\\
@@ -27,7 +29,7 @@ The plugins for gazebo have not been included in the individual files so the urd
 
 The resulting Robot then looks like pictured in Figure \ref{arlourdf}.
 
-\begin{figure}
+\begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/arlourdf}
 	\caption{ArloBot URDF with sensors and gazebo plugins}
 	\label{arlourdf}
@@ -36,7 +38,8 @@ The resulting Robot then looks like pictured in Figure \ref{arlourdf}.
 \todo{add and ref tf tree of running system}
 
 Using rqt\_tf\_tree the tf tree can be checked for conformity to ``REP 105'' and the concept.\\ 
-The tf tree of the running concept is pictured in Figure \ref{}. As visible the fixed frame of the setup is ``map'' the following transform to the ``odom'' frame is published by cartographer. The transformation between the ``odom'' frame and ``base\_footprint'' then gets published by robot\_localization here named ``ekf\_se''.\\
+The tf tree of the running concept is pictured in Figure \ref{}.\\
+As visible the fixed frame of the setup is ``map'' the following transform to the ``odom'' frame is published by cartographer. The transformation between the ``odom'' frame and ``base\_footprint'' then gets published by robot\_localization here named ``ekf\_se''.\\
 The following transformations and frames are published by ``robot\_state\_publisher'' according to the URDF of the robot.
 
 \section{Gazebo}
@@ -89,13 +92,8 @@ Overall it does not seem to be possible to mimic the original camera, hence the 
 
 
 
-\section{Filter}
 
-As described the filter incorporate nodes that process the data so it can be used by the navigation concept. The following sections will cover the configuration of the individual nodes and their test setups.
-
-Since the navigation highly relies on the data published by the nodes categorized as filters, these will be tested first.
-
-\subsection{road\_detection}
+\section{road\_detection}
 The road\_detection provided by Prof. Dr. Stefan Hörmann consist out of the following six nodes of which some need configuration to work with the specific camera setup.
 
 \begin{itemize}
@@ -122,26 +120,15 @@ In the ``LineTracker'' Node the distance, at which lines should be evaluated nee
 
 The RoadDetector Node needs an estimate for the lane width as a min and max value and a maximum angle between two individual road markings. These values are obviously specific for the environment.\\
 
-\subsection{MarkFreeSpace}
+\section{MarkFreeSpace}
 
-As discribed in the selection, this node has the task of supplying individual point clouds to the following three nodes:
+The parameters in Table \ref{markfreespaceparams} have to be configured so the robot will have a tendency to the right lane but still is able to drive on the left lane, if necessary. This means, that the maxcost has to be significantly smaller than the lethal (254). The Minimum cost has to be smaller than the neutral cost of the global planner, which defaults to 50. To complicate the transition to the left lane the Left Inflation radius is set to 50\% of the right lane and the radius of the right cost removal  is set to 40\% to guarantee a free space on the right lane.\\
 
-\begin{itemize}
-	\item dynamic\_cost\_layer costmap plugin
-	\item obstacle\_layer costmap plugin
-	\item cartographer
-\end{itemize}
+Around obstacles the cost removal is set to 1.5 meter so the obstacle avoidance will finish within the 2 meter guideline defined in the carolo cup rules\cite{carolocup}.\\
 
-The cloudes for the obstacle\_layer and for cartographer are just different combinations of the points from the road detection and the lidar scanner this does not have any configuration options and is very basic and therefore will not be covered in detail.
+The distances between the inflated points and the cleared points has to be fairly large to limit the computational load. For the Inflation only the last point of the polynomial will be inflated, since a uniform cost distribution along the road marking is not too important. The distance between the cleared cells is set to 0.5 meters, to guarantee a clear section on the right lane.
 
-The dynamic\_cast\_layer of the global costmap will only inflate every point by the specified parameters of a cost distribution, so this node has to build a message as described in the selection section of this node.\\
-
-Since the data that needs to be sent to the costmap layer originates from two different sensors they have to be synced in time, meaning the newer signal needs to be transformed back in time to the last occurrence of the older signal and transformed in the base frame of the robot.\\
-
-After that the points can be merged into the point cloud. While doing so the cost parameters of the individual points gets set aswell. If a specific section needs to be removed out of the costmap layer these points will be appended to the end of the point vector of the pointcloud so they will not be overridden by other inflated points.\\
-
-To keep this node flexible in regards to the environment, the inflation radii for all points are derived from the current road width, which is supplied by the road\_detection and can be configured using rqt\_reconfigure. 
-In addition to that the distance between the inflated points of each road marking and the min and max values of the cost distribution can be configured.
+The final configuration is pictured in Appendix \ref{config}.
 
 
 \section{Cartographer}
@@ -182,6 +169,15 @@ During all of these test the navigation will solely work with the predicted goal
 
 
 \section{PoseFinder}
+
+Starting with the goal extraction from the map, the Parameter ``MapCostThresh'' will be set to 50, meaning the probability of being an obstacle has to be at least 50\%. The reduction radius has to be configured slightly larger than the road width so the points extracted on both road markings can be combined, even if the road is slightly angled. With a road width of 1.8 meter, 2 meter will be chosen for this parameter.\\
+
+The Parameter ``GoalDist'' has to be configured smaller, that half of the costmap width so it can be guaranteed, that the goal is all ways located inside the bounds of the costmap to prevent errors. With a costmap width and hight of 9 meter the parameter is set to 4 meter.\\
+
+To switch between the circle and line approximation the parameter ``CRadThresh'' is set to 6m. Setting this Parameter higher will improve the performance in wide turns while the performance on straight sections will get worse and vice versa.\\
+
+Finally the GoalAngle for the circle approximation has to be configured. This is set to $0.3\pi$, meaning the window of trustworthiness of the circles is 60°.
+
 
 
 
@@ -257,8 +253,9 @@ Another important setting is necessary since the global costmap is used as a rol
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\textwidth]{Pictures/borders}
-	\label{boardererror}
+	
 	\caption{global planner border error}
+	\label{boardererror}
 \end{figure}
 
 To prevent this behavior the not documented parameter ``outline\_map'' has to be set to false. The default value of this parameter is therefore changed in the forked version of the navigation stack.
@@ -274,14 +271,15 @@ To make planning easier the parameter ``cost\_factor'' can be reduced. This para
  \begin{figure}[H]
  	\centering
  	\includegraphics[width=.7\textwidth]{Pictures/out of bounds}	
- 	\label{potentialfield}
+ 	
  	\caption{Potential field generated by global\_planner plugin}
+ 	\label{potentialfield}
  \end{figure}
 
 
 \subsection{teb\_local\_planner}
 
-Like the global planner the local planner has to be configured to comply to the tasks the local planner has.
+Like the global planner the local planner has to be configured to comply its tasks.
 
 A good starting point for the configuration are the example configurations in the repository of the developer of the planner\cite{tebtutorials}. They offer base configurations for both differntial drive and car like, aswell as omnidirectional robots.\\
 
@@ -313,8 +311,7 @@ The quality of the data will be observed by looking at the raw data, aswell as t
 
 The evaluation of the costmap is necesarry, since it will mark measurements of the lidar as lethal. With increasing noise the marked obstacles will be less precise, therefore the lidar has direct influence on the performance of the navigation even when obstacles are not on the road.
 
-The main focus of this test is sensor noise, since the gazebo sensor plugin is configured based on the data sheet of the real lidar.
-\todo{appendix lidar and camera data sheets}
+The main focus of this test is sensor noise, since the gazebo sensor plugin is configured based on the data sheet of the real lidar (\ref{AppendixDataSheets}).
 
 \section{road\_detection test}
 As the road\_detection is the only data source providing informations about the road it is crucial for successful navigation.

@@ -1,7 +1,7 @@
 \chapter{Outlook}
 \label{outlook}
 
-This thesis highlighted existing problems in the established navigation concept, which should be resolved to score high results in the carolo cup.\\
+This thesis highlighted existing problems in the established navigation concept, which should be resolved to score high results in the carolo cup. This section will give proposals and ideas for future work on the current state of the navigation.\\
 
 Using the structure of move\_base a custom local and global planner plugin can be developed and exchanged with the current plugins.\\
 
@@ -11,4 +11,8 @@ Seeing the performance of the elastic band in the local planner used in this the
 
 To decrease the amount of times, where the navigation has to wait until it receives data from the road\_detection, the approximated shape of the road could be drawn into the costmap and overridden by new incoming data of the road. This could be implemented into the dynamic\_cost\_layer that has been developed during this work.
 
-The exploration of V-Rep or its successor coppelia sim might be interesting with focus on the sensor plugins, especially with focus on distortion of the camera image.
+The exploration of V-Rep or its successor coppelia sim might be interesting with focus on the sensor plugins, especially with focus on distortion of the camera image.\\
+
+During the research required in this work Nav2 for ROS2, which is currently in development seemed to offer many features, that are not included in the current navigation stack of ROS Noetic. As this thesis is focused on the development based on ROS Noetic this has not been explored yet. Nav2 features a new implementation of a costmap, that features filters usable to define keep-out or slow areas, that might be usable for a cleaner way to guide the robot on the right lane. Therefore further exploration of this might be beneficial.\\
+
+As SLAM lidar based SLAM seemed to perform not ideal visual SLAM might offer more precision since the road markings might offer more informations for scan matching than the extracted polynomials. Furthermore functionality to detect, if a map is closed and of a reasonable quality might be usable to end the SLAM procedure, export the current map and using localization only to avoid the problem of the steadily increasing computational burden.

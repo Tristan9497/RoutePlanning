@@ -82,7 +82,7 @@ In most cases robots that are controlled by ros have a so called tf\_tree. This 
  The structure in most trees of mobile platforms is quite similar which is caused by the REP105 (ROS Enhanced Proposals) this contains a definition of recommended names for the robot frames and their order in the tree. But it should be noted that not every frame that is defined in the norm has to be in every tree. The basic structure mostly starts at a so called fixed frame. This Frame will be the not changing frame in the environment. At moving robots this is often earth, map or odom, while in stationary robots this can even be base\_link.\\
  
 
-The tree is normally build up like in the following image. 
+The tree is normally build up like in the following image. \todo{add tf tree}
 
 TF2 is the successor of TF and is a very powerful tool in the ROS environment. With it it is possible to transform sensor\_msgs and geometry\_msgs from one frame in another. Furthermore it offers the possibility to transform old data into the present or at any other point in the past.
 

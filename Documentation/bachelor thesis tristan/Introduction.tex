@@ -35,7 +35,14 @@ While the robot itself has very strict regulations in the carolo cup these will 
 
 For testing purposes the entire robot with all sensors and the drive controller will be simulated.
 
-The robot that will be used is a differential drive robot from the company Parallax with a diameter of 450mm.\\
+The robot that will be used is a differential drive robot from the company Parallax with a diameter of 450mm as pictured in Figure \ref{arloreal}.\\
+
+\begin{figure}
+	\centering
+	\includegraphics[width=.7\textwidth]{arlo real}
+	\label{arloreal}
+	\caption{Mobile robot Parallax Arlo}
+\end{figure}
 
 Equally to the carolo cup regulations the lane width is defined by double robot width and will be set to 900mm. 
 
@@ -73,7 +80,7 @@ Custom models is a strict requirement since this thesis focuses on a very specif
 
 A URDF conversion plugin is very important like this differences between the simulated robot and the tf-tree in ROS can be avoided and the robot will be defined in one file only.\\
 
-To get the best correlation between simulation and real world the simulator should be able to run as close to real time as possible. This will make the simulated sensor data way more reliable and puts the nodes of the navigation\_stack under the right load.
+To get the best correlation between simulation and real world the simulator should be able to run as close to real time as possible. This will make the simulated sensor data way more reliable and puts the nodes of the navigation\_stack under a realistic load.
 
 \subsection{Navigation}
 The navigation is supposed to cover free driving with out obstacles, as well as with static obstacles avoidance. It will not cover dynamic obstacles, road sign detection or driving situations like intersections and parking.\\
