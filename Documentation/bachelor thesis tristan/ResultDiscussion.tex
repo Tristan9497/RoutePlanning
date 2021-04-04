@@ -17,7 +17,7 @@ When looking at the odometry published by the differential drive plugin during t
 The quality of the odometry obviously is not sufficient and has to be improved.
 
 \subsection{Optimization}
-Since the odometry is found to not being sufficient for the navigation the following optimization approach will be tried and further testing will be performed. The test scenario will be remain the same.
+Since the odometry is found to not being sufficient for the navigation the following optimization approach will be tried and further testing will be performed. The test scenario will remain the same.
 
 To improve the odometry the ROS package robot\_localization can be used. It provides an extended kalman filter for the fusion of sensor data for odometry.\\
 
@@ -40,7 +40,7 @@ Just like the IMU data the integration of the wheel-odometry data has to be disc
 
 Here the most interesting part is the y velocity since the robot is relying on differential drive steering and therefore not able to have instantaneous y acceleration other than drift.\\
 
-In contrast to the acceleration values of the IMU the y velocity will be included since according to Tom Moore (the developer of robot\_localization) it will give certainty that the robot has not moved in the y direction\cite{robotlocalizationconfiguration}. Obviously the x and yaw velocity has to be included aswell.
+In contrast to the acceleration values of the IMU the y velocity will be included since according to Tom Moore (the developer of robot\_localization) it will give certainty that the robot has not moved in the y direction\cite{robotlocalizationconfiguration}. Obviously the x and yaw velocity have to be included aswell.
 
 The position component of the wheel-odometry on the other hand will not be used, based on the fact that the position is already derived from the velocitys this would include the same data twice.\\
 
@@ -65,7 +65,7 @@ Looking at the linear velocities of both the ekf and the wheel odometry in Figur
 
 
 To fix this a logical approach is to include more data about the robots movement. Fortunately robot\_localization has an input for command velocities such as velocities produced by move base. While the command velocity does not provide any measurement in the real world the ekf filter can profit from knowing what the velocity actually should be.\\
-It is very important to set the control timeout to a value that is larger than the cycle time of move\_base. Otherwise this will lead to translational offsets caused by too low estimate for the velocities like shown in Figure \ref{velwithcmd}.
+It is very important to set the control timeout to a value that is larger than the cycle time of move\_base. Otherwise this will lead to translational offsets caused by too low estimate for the velocities like shown in Figure \ref{velocity offset}.
 
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/velocity comp}
@@ -75,7 +75,7 @@ It is very important to set the control timeout to a value that is larger than t
 \end{figure}
 
 
-After the inclusion of the command velocity the acceleration limits in the configuration file of robot\_localization can be set equal to the limits in the local planner.
+After the inclusion of the command velocity the acceleration limits in the configuration file of robot\_localization can be set equal to the limits in the local planner configuration.
 
 When observing both the pose and velocities again it is noticeable, that the odometry has drastically improved as pictured in Figure \ref{Odometry comparison wheel odomIMUcmdvel}, equally the velocities stay closer together as pictured in \ref{velwithcmd}.
 
@@ -129,7 +129,7 @@ The comparison in Figure \ref{trueodom} shows, that the filtered odometry has a 
 \section{Lidar test}
 
 
-The Lidar sensor is simulated with realistic noise and errors. This also introduces the well known edge error in Laser distance measurement. 
+The Lidar sensor is simulated with realistic noise and errors. This also introduces the well known edge error in Laser distance measurement \cite{edgeeffect}. 
 
 When using a ``realistic'' lidar to project obstacles into the costmap this error produces a lot of lethal point like obstacles that significately hinder navigation as visible in Figure \ref{unfiltered lidar}.
 
@@ -284,15 +284,15 @@ As proven by the first two tests, cartographer is well tuned and the map would b
 
 The \nth{3} and \nth{4} test on the other hand display the limitations of the slam algorithm in this use case.\\
 When obstacles are located on the right lane the allignment of the submaps fails and a lot of submaps cant be attached to the rest of the map. After passing the same obstacle in multiple rounds the map improves to a point where it would be usable for goal extraction.\\
-The \nth{3} test proves that cartographer is not usable in SLAM mode during long time navigation an a circuit. This is caused by the amount of submaps that are close to each other and the resulting amount of constraints between each of them.
+The \nth{3} test proves that cartographer is not usable in SLAM mode during long time navigation an a circuit. This is caused by the amount of submaps that are close to each other and the resulting amount of constraints between each of them.\\
 
-Based on these test results it is not feasible to use the SLAM map for navigation with obstacles on the road, since the map is just not reliable enough and it is not certain of there are obstacles on the road or not. 
+Based on these test results it is not feasible to use the SLAM map for navigation with obstacles on the road, since the map is just not reliable enough.
 
 
 
 
 \section{complete system test}
-The following subsections cover the discussion of the complete system tests.
+The following subsections cover the discussion of the complete system tests.\\
 \textbf{No obstacles}\\
 The reasoning for this test is, to check how good the robot stays on the right lane. Therefore the robot drives in the described test environment, while the difference between the right lane and the robot center is monitored.
 

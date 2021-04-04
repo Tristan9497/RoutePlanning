@@ -146,7 +146,7 @@ With the calculated points on both circles or on both lines the mean can be calc
 
 If the robot is running a SLAM algorithm during the first round the map should be finished once the robot passes its start point. Then the approximation is unnecessary since extracting goals directly from the slam map is more efficient and provides goals that will  always be on the road. Furthermore the distance, at which goals will be found can be increased, which results in higher speeds and/or lower planner frequencies.\\
 
-To find a goal in the SLAM map a circle rasterization algorithm will be used that is based on bresenham rasterization\cite{ComputerGraphics}.\\
+To find a goal in the SLAM map a circle rasterization algorithm will be used that is based on bresenham rasterization \cite{ComputerGraphics}.\\
 
 This algorithm finds every cell on a circular path around the robot and its associated value in the map. The values outside of a given FOV (field of view) can be eliminated. Then the remaining values with a larger likelihood than a configurable threshold will be reduced to one point by taking the mean value of all of them.\\
 

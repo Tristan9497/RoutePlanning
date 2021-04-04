@@ -311,7 +311,7 @@ The quality of the data will be observed by looking at the raw data, aswell as t
 
 The evaluation of the costmap is necesarry, since it will mark measurements of the lidar as lethal. With increasing noise the marked obstacles will be less precise, therefore the lidar has direct influence on the performance of the navigation even when obstacles are not on the road.
 
-The main focus of this test is sensor noise, since the gazebo sensor plugin is configured based on the data sheet of the real lidar (\ref{AppendixDataSheets}).
+The main focus of this test is sensor noise, since the gazebo sensor plugin is configured based on the data sheet of the real lidar (Appendix \ref{AppendixDataSheets}).
 
 \section{road\_detection test}
 As the road\_detection is the only data source providing informations about the road it is crucial for successful navigation.
@@ -358,7 +358,8 @@ During all test the following criteria will be monitored aswell as any unexpecte
 	\item obstacle avoidance distance to object
 \end{itemize}
 
-For these tests the exact position of the obstacles and the robot will be used for evaluation. This allows to determine the exact distance between the robot and obstacles, aswell as if the robot is still on the road. The distance to the right lane will be determined by using the polynomial provided by the road detection. A so called ``avoidance'' starts when the robot is just slightly over the middle line, without any hysteresis.
+For these tests the exact position of the obstacles and the robot will be used for evaluation. This allows to determine the exact distance between the robot and obstacles, aswell as if the robot is still on the road.\\
+The distance to the right lane will be determined by using the polynomial provided by the road detection. A so called ``avoidance'' starts when the robot is just slightly over the middle line, without any hysteresis.
 
 As defined in the rules of the carolo cup the merging onto the right lane during the obstacle avoidance is supposed to take place within the next two meters after an obstacle \cite{carolocup}.
 
