@@ -2,28 +2,28 @@
 \label{theoretical_background}
 This chapter will cover the needed theoretical background about the topics discussed in this thesis.
 \section{ROS}
-ROS (Robot Operating System) is an open Source project developed by the ``Open Source Robotics Foundation''. Like the name suggests it is an entire Operating System for Robots including Hardware abstraction, low-level device control, implementation of commonly used functionality, communication between processes and package management.\\
+ROS (Robot Operating System) is an open source project developed by the ``Open Source Robotics Foundation''. Like the name suggests it is an entire operating system for robots including hardware abstraction, low-level device control, implementation of commonly used functionality, communication between processes and package management.\\
 Furthermore it provides tools and libraries to write, build and run code across multiple computers\cite{rosintro}.\\
-\subsection{Packages}
-This is the main structure for software in ROS. A package can contain many different Nodes, libraries, service etc.. Furthermore it is the smallest possible Structure that can be build by ROS\cite{rosconcepts}.
-\subsection{Nodes}
+\subsection{packages}
+This is the main structure for software in ROS. A package can contain many different nodes, libraries, service etc.. Furthermore it is the smallest possible structure that can be build by ROS\cite{rosconcepts}.
+\subsection{nodes}
 Nodes are processes that perform computation. Since ROS is very fine granular, a system, that controls an entire robot can contain many nodes that are connected using topics. A package can be written with the use of one of the client libraries roscpp or rospy\cite{rosconcepts}.
-\subsection{Plugins}
+\subsection{plugins}
 
 Plugins are a software type introduced by the pluginlib package that is a component of ``ros\_core''. Plugins are classes, that comply with a certain plugin interface. This allows to change the behavior of a node by loading different plugins for a certain task. Like this the original source code of the node does not need to be modified\cite{pluginlib}.
 
-\subsection{Topics and services}
-All of the ROS Nodes are connected with a publisher/subscriber like structure. The topic is basically just a name for a certain message.\\
+\subsection{topics and services}
+All of the ROS nodes are connected with a publisher/subscriber like structure. The topic is basically just a name for a certain message.\\
 
 Not only one node but unlimited many nodes can publish and subscribe to one topic. This generally can be seen like a message bus with not limited connection permissions\cite{rosconcepts}.
 
-Unfortunately the Topic system is not well fitted for request and answers between two nodes, therefore the service structure has been implemented.\\ 
+Unfortunately the topic system is not well fitted for request and answers between two nodes, therefore the service structure has been implemented.\\ 
 A node might offers a service under a certain node and an other node can call that service. Services can have any in- and output that can be specified in a ``.srv'' file\cite{rosconcepts}.
 
-\subsection{RVIZ}
+\subsection{rviz}
 rviz is a 3D visualization tool offered by default in ROS. It offers functionality to visualize sensor and further geometric data.\\
 \subsection{rqt}
-rqt is a qt based tool for the development of GUI's for the ROS Framework\cite{rqt}.
+rqt is a qt based tool for the development of GUI's for the ROS framework\cite{rqt}.
 \subsubsection{rqt\_reconfigure}
 	rqt\_reconfigure is a plugin, for rqt, that provides functionality to edit parameters of the running nodes during runtime using an intuitive GUI\cite{rqtrecon}.
 	
@@ -50,7 +50,7 @@ The most important REP's in this project are REP 103 and REP 105.
 	\end{itemize}
 	
 	\textbf{Units}\\
-	Units will always be represented in SI Units and their derived units.\\
+	Units will always be represented in SI units and their derived units.\\
 	
 	\textbf{The order of preference for rotations}
 	\begin{enumerate}
@@ -77,14 +77,14 @@ The most important REP's in this project are REP 103 and REP 105.
 	
 	
 	
-\subsection{TF}
+\subsection{tf}
 In most cases robots that are controlled by ros have a so called tf\_tree. This tree is the coordinate frame structure of the robot. In it every sensor and actor has its own coordinate frame.\\
- The structure in most trees of mobile platforms is quite similar which is caused by the REP105 (ROS Enhanced Proposals) this contains a definition of recommended names for the robot frames and their order in the tree. But it should be noted that not every frame that is defined in the norm has to be in every tree. The basic structure mostly starts at a so called fixed frame. This Frame will be the not changing frame in the environment. At moving robots this is often earth, map or odom, while in stationary robots this can even be base\_link.\\
+ The structure in most trees of mobile platforms is quite similar which is caused by the REP105 (ROS Enhanced Proposals) this contains a definition of recommended names for the robot frames and their order in the tree. But it should be noted that not every frame that is defined in the norm has to be in every tree. The basic structure mostly starts at a so called fixed frame. This frame will be the not changing frame in the environment. At moving robots this is often earth, map or odom, while in stationary robots this can even be base\_link.\\
  
 
 The tree is normally build up like in the following image. \todo{add tf tree}
 
-TF2 is the successor of TF and is a very powerful tool in the ROS environment. With it it is possible to transform sensor\_msgs and geometry\_msgs from one frame in another. Furthermore it offers the possibility to transform old data into the present or at any other point in the past.
+TF2 is the successor of TF and is a very powerful tool in the ROS environment. With this it is possible to transform sensor\_msgs and geometry\_msgs from one frame in another. Furthermore it offers the possibility to transform old data into the present or at any other point in the past.
 
 \subsubsection{URDF and xacro}
 The robot hardware description consists of one or more URDF(Unified Robot Description Format) based xml file. Its purpose is to define the shape and geometric of every part of the robot. 
@@ -152,7 +152,7 @@ This process is used by the default plugin inflation\_layer with the cost distri
 \end{figure}
 
 The usage of inflation has two reasons. First it is used to close gaps between two measured obstacles and therefore usefull, if the sensor resolution is relatively corse.\\
-The second reason is to prevent the global planner from getting too close to obstacles, since it does not feature any colision checking. Therefore the inflation radius is typically set to slightly more than the radius of the robot\cite{costmap}.
+The second reason is to prevent the global planner from getting too close to obstacles, since it does not feature any collision checking. Therefore the inflation radius is typically set to slightly more than the radius of the robot\cite{costmap}.
 
 \subsubsection{Layer}
 The costmap uses a layer structure of plugins that can handle different tasks. The costmap then combines the data from each layer, to produce the final costmap.\\
@@ -166,17 +166,17 @@ By default the costmap\_2d package offers the following 3 layers:
 
 Furthermore the plugins Social ``Costmap Layer'' and ``Range Sensor Layer'' are offered.
 
-Using the pluginlib interface and the costmap libraries one can develop custom layers for the costmap to achieve special behaviour of the robot.
+Using the pluginlib interface and the costmap libraries custom layers for the costmap can be developed to achieve special behavior of the robot.
 
 
 
 \section{cartographer}
-Cartographer is a Lidar based SLAM developed by Google. In contrast to gmapping it is based on loop closure to ensure real time mapping even in relatively big environments.\\
+Cartographer is a lidar based SLAM developed by Google. In contrast to gmapping it is based on loop closure to ensure real time mapping even in relatively big environments.\\
 Submaps are considered for loop closure, if they are close to each other. A scan matcher tries to find constraints between the submaps and the current scan. When searching for loop closure constraints at a certain rate one can achieve basically instantaneous optimization of the map just by the fact that the current scan is similar to one of the underlying submaps\cite{cartographer}.\\
 
 \section{edge effect}
 
-The Edge effect is an error source during laser based distance measurement.
+The edge effect is an error source during laser based distance measurement.
 When the laser beam used for measurement is directly at an edge of an obstacle, this splits the beam or rather blocks a part of it. The resulting measurement lies in the range of all distances measured by the beam and is therefore located behind the real edge of the obstacle like further described in the paper of Klapa about the ``Edge effect and its impact upon the accuracy of 2D and 3D modeling using laser scanning'' \cite{edgeeffect}.\\
 
 

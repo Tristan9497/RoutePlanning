@@ -102,7 +102,7 @@ When observing both the pose and velocities again it is noticeable, that the odo
 
 Even after four rounds the odometry has not gained a large error in both translational and rotational as pictured in Figure \ref{Odom comparison multiple rounds}, furthermore the difference between the original odometry of the wheel encoders to the odometry from robot localization is quite remarkable.
 
-After the rotantional and translational errors are marginal the scale of the odometry needs to be checked.
+After the rotational and translational errors are marginal the scale of the odometry needs to be checked.
 To isolate the different errors from the scaling error a circular track is build with a radius of 10 meter. Since the turning radius is constant this isolates the rotational error which can be seen at the graph of the wheel odometry in Figure \ref{circular track}.\\
 The radius was chosen that high so potential errors are amplified and easier detectable.\\
 
@@ -129,7 +129,7 @@ The comparison in Figure \ref{trueodom} shows, that the filtered odometry has a 
 \section{Lidar test}
 
 
-The Lidar sensor is simulated with realistic noise and errors. This also introduces the well known edge error in Laser distance measurement \cite{edgeeffect}. 
+The lidar sensor is simulated with realistic noise and errors. This also introduces the well known edge error in laser distance measurement \cite{edgeeffect}. 
 
 When using a ``realistic'' lidar to project obstacles into the costmap this error produces a lot of lethal point like obstacles that significately hinder navigation as visible in Figure \ref{unfiltered lidar}.
 
@@ -153,7 +153,7 @@ Figure \ref{lasercomp} shows a comparison between the filtered and not filtered 
 
 \section{road\_detection test}
 
-As pictured in Figure \ref{longdurroad} the performance of the road detection converges to ca. 98.8\%. At the beginning the graph is not as reliable since there have not yet been enough measurements.\\
+As pictured in figure \ref{longdurroad} the performance of the road detection converges to ca. 98.8\%. At the beginning the graph is not as reliable since there have not yet been enough measurements.\\
 
 The duration of the test was roughly 1.5 hours of continuous navigation without obstacles in the simulation.
 
@@ -190,14 +190,14 @@ The following pictures contain the SLAM map after the \nth{1},\nth{2} and \nth{3
 
 \end{figure}
 
-In the first round the map is not yet optimized. Like pictured in  Figure \ref{1slamtest} the road is not connected at the bottom after the first round, but has slight translational error.\\
+In the first round the map is not yet optimized. Like pictured in  figure \ref{1slamtest} the road is not connected at the bottom after the first round, but has slight translational error.\\
 In the second round the road is closed, but some submaps are slightly misaligned which can be seen by the blurry road markings.\\
 This is well corrected in the third round and will improve from here on with every round, until the computational effort is too high.\\
 
 \textbf{Data purely from localization and lidar scan with obstacles on the side of the road:}\\
 
 
-As pictured in Figure \ref{2slamtest} cartographer manages to close the road already after the first round. After the second round the road borders are slightly blurry, therefore the submaps are not yet perfectly matched. This blurriness slightly improves after the third round, but the submaps are not yet perfectly matched with each other.
+As pictured in figure \ref{2slamtest} cartographer manages to close the road already after the first round. After the second round the road borders are slightly blurry, therefore the submaps are not yet perfectly matched. This blurriness slightly improves after the third round, but the submaps are not yet perfectly matched with each other.
 
 \begin{figure}[H]
 	\centering
@@ -276,14 +276,14 @@ After the \nth{7} round it is noticeable, that the matching of submaps seems to 
 
 \end{figure}
 
-As pictured in \ref{4slamtest} cartographer struggles with aligning the submaps during obstacle avoidance and suffers from rotational error.\\
+As pictured in figure \ref{4slamtest} cartographer struggles with aligning the submaps during obstacle avoidance and suffers from rotational error.\\
 Fortunately these errors are mostly corrected over the period of the next few rounds.\\ In the \nth{10} round however cartographer suffers from the same issue highlighted by the long duration test. Here it is clearly visible, that the queue of unmatched submaps is more than one entire round.\\
 
 \textbf{Discussion of the test results}\\
 As proven by the first two tests, cartographer is well tuned and the map would be useable for goal extraction. The submaps are well alligned and the map has no huge translational or rotational offset.\\
 
 The \nth{3} and \nth{4} test on the other hand display the limitations of the slam algorithm in this use case.\\
-When obstacles are located on the right lane the allignment of the submaps fails and a lot of submaps cant be attached to the rest of the map. After passing the same obstacle in multiple rounds the map improves to a point where it would be usable for goal extraction.\\
+When obstacles are located on the right lane the allignment of the submaps fails and a lot of submaps can't be attached to the rest of the map. After passing the same obstacle in multiple rounds the map improves to a point where it would be usable for goal extraction.\\
 The \nth{3} test proves that cartographer is not usable in SLAM mode during long time navigation an a circuit. This is caused by the amount of submaps that are close to each other and the resulting amount of constraints between each of them.\\
 
 Based on these test results it is not feasible to use the SLAM map for navigation with obstacles on the road, since the map is just not reliable enough.
@@ -302,7 +302,7 @@ The reasoning for this test is, to check how good the robot stays on the right l
 	\label{noobserr}
 \end{figure}
 
-As pictured in \ref{noobserr} the robot has left the road markings once.\\
+As pictured in figure \ref{noobserr} the robot has left the road markings once.\\
 
 \begin{figure}[H]
 	\begin{subfigure}{.5\linewidth}
@@ -320,13 +320,13 @@ As pictured in \ref{noobserr} the robot has left the road markings once.\\
 
 \end{figure}
 \textbf{Obstacles on left lane}\\
-This test is supposed to test the behavior of the navigation when obstacles block the view of the camera but the robot has to drive on the right side. In this test the robot will not drive as many rounds, since the goal is to observe the behavior when passing goals. In contrast to Figure \ref{noobserr} the distance to the nearest obstacle will be included in the graph, thus it can be determined, if the robot left the lane because it is near an obstacle or not, for this the true positions from the simulation will be used. The obstacle distance will only be tracked, if it is below 3 meters.
+This test is supposed to test the behavior of the navigation when obstacles block the view of the camera but the robot has to drive on the right side. In this test the robot will not drive as many rounds, since the goal is to observe the behavior when passing goals. In contrast to figure \ref{noobserr} the distance to the nearest obstacle will be included in the graph, thus it can be determined, if the robot left the lane because it is near an obstacle or not, for this the true positions from the simulation will be used. The obstacle distance will only be tracked, if it is below 3 meters.
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/left obs final obs2}
 	\caption{graph of left lane obstacle test}
 	\label{leftobsfinal}
 \end{figure}
-As visible in figure \ref{leftobsfinal} the robot left the right lane way more often compared to \ref{noobserr}.\\
+As visible in figure \ref{leftobsfinal} the robot left the right lane way more often compared to figure \ref{noobserr}.\\
 
 \textbf{Obstacles on right lane}\\
 
@@ -345,16 +345,16 @@ Furthermore the graph shows, that the robot successfully avoided all obstacles i
 
 In the middle of the graph the robot took particularly long for the avoidance.
 
-The graph also shows, that the avoidance is all ways finished before the robot is two meters away from the obstacle and therefore satisfies this condition.
+The graph also shows, that the avoidance is allways finished before the robot is two meters away from the obstacle and therefore satisfies this condition.
 
 \subsection{Discussion}
 
 The results of the complete system tests show, that the navigation performs really well during simple lane following, since the road detection recognizes the road almost allways as shown in the road\_detection test.
 
 While observing the robot during driving past obstacles on the left lane it was noticeable, that the robot mostly left the lane, directly after it passed an obstacle in or directly after a corner.\\ 
-In this case the predicted goal pulls the robot into the middle of the road, since the costmap does not yet have information about the road and therefore will not force the global plan to the right lane. The approximated goal is still constructed with the circle approximation since the upcoming straight section has net yet been seen.\\
+In this case the predicted goal pulls the robot into the middle of the road, since the costmap does not yet have information about the road and therefore will not force the global plan to the right lane. The approximated goal is still constructed with the circle approximation since the upcoming straight section has not yet been seen.\\
 
-Obstacle avoidance suffers from a similar problem. As shown in the \nth{3} test. Here it is visible, that the robot passes the obstacle nicely, but after passing drives along the center of the road, which causes the spikes of the rectified signal visible in \ref{rightobsfinal} after the ovoidance. As soon as the robot has passed an obstacle fully it drives straight to the predicted goal while waiting on new data from the road\_detection, which often causes unnecessary long avoidance periods.
+Obstacle avoidance suffers from a similar problem. As shown in the \nth{3} test. Here it is visible, that the robot passes the obstacle nicely, but after passing drives along the center of the road, which causes the spikes of the rectified signal visible in \ref{rightobsfinal} after the ovoidance. As soon as the robot has passed an obstacle fully it drives straight to the predicted goal while waiting on new data from the roadDetection, which often causes unnecessary long avoidance periods.
 
 
 

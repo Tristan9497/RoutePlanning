@@ -6,7 +6,7 @@ This chapter will cover the package selection and the setup of all nodes in the 
 
 
 \section{Simulation}
-There are many options, when it comes to robot simulation, which makes a selection mandatory. The chosen Simulator then needs to be configured and equipped with models, sensors and a drive system.
+There are many options, when it comes to robot simulation, which makes a selection mandatory. The chosen simulator then needs to be configured and equipped with models, sensors and a drive system.
 
 \subsection{Selection}
 To begin of the selection process a group of reasonable simulators needs to be collected. The two selected options are Gazebo and V-REP since they are the two most used robotics 3D simulators \cite{SimComp}.\\
@@ -16,7 +16,7 @@ Both simulators seem to fullfil most of the defined requirements to a certain ex
 V-REP, aswell as Gazebo, offers plugins and URDF conversion for custom models but an even bigger selection of mobile robot models. Which unfortunately can only be used as examples since the required models are very specific.\\
 In contrast to V-REP, Gazebo does not contain an integrated model editor.
 
-Based on computational load compared in the Paper of L. Pitonakova et al and the setup differences between both simulators, Gazebo will be chosen for this project. But both simulators would have been an excellent choice\cite{Pitonakova}.
+Based on computational load compared in the Paper of L. Pitonakova et al. and the setup differences between both simulators, Gazebo will be chosen for this project. But both simulators would have been an excellent choice\cite{Pitonakova}.
 
 \subsection{Model}
 Since Gazebo doesn't have an integrated model editor the freeware ``blender'' will be used for the model generation of the environment.
@@ -106,7 +106,7 @@ The local planner is only supposed to generate velocity commands that lead to no
 
 \section{PoseFinder}
 As described in the concept the purpose of this node is to determine the pose of the next goal and send it to the move\_base action client. Therefore it will need to process the data from the road\_detection and if available from the SLAM map and determine a feasible goal.\\
-Since the Robot should never reach a goal the PoseFinder needs to determine new goals at a configurable frequency. Furthermore it needs to predict the path of the road so the robot has a goal to drive to even if the road detection does not detect any part of the road.
+Since the robot should never reach a goal the PoseFinder needs to determine new goals at a configurable frequency. Furthermore it needs to predict the path of the road so the robot has a goal to drive to even if the road detection does not detect any part of the road.
 
 
 
@@ -154,11 +154,11 @@ The orientation of the goal is then determined by using the approximation algori
 
 \subsection{Concept}
 
-Based on the previously proposed ways to determine goals the concept pictured in Figure \ref{posefinder structure} can be deduced.\\
+Based on the previously proposed ways to determine goals the concept pictured in figure \ref{posefinder structure} can be deduced.\\
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=.5\textwidth]{Pictures/posefinder diagram}
+	\includegraphics[width=.9\textwidth]{Pictures/posefinder diagram}
 	\caption{Posefinder internal structure}
 	\label{posefinder structure}
 \end{figure}
@@ -199,7 +199,7 @@ The node is configurable using rqt\_reconfigure and the following parameters.
 
 Like described in the concept, the purpose of this node is to provide data to the SLAM algorithm as well as to the costmaps. This data consists from the points on the polynomials of the road detection in combination with the filtered points of the laser scan.\\
 
-Based on the possibility of the obstacle\_layer of the costmap to raytrace marked obstacles, it needs to receive a PointCloud2 that contains points from the polynomials of the road\_detection. If this pointcloud would contain the points of the lidar aswell, the obstacle layer would remove the points of the road marking, if an obstacle is behind it.\\
+Based on the possibility of the obstacle\_layer of the costmap to raytrace marked obstacles, it needs to receive a PointCloud2 that contains points from the polynomials of the roadDetection. If this pointcloud would contain the points of the lidar aswell, the obstacle layer would remove the points of the road marking, if an obstacle is behind it.\\
 
 For the slam algorithm both data sources need to be fused into one PointCloud2. Therefore the points need to be transformed into the same frame and into the same time, before being published.\\
 
@@ -232,7 +232,7 @@ Enhancing to the plugins provided in the navigation stack this layer handles inf
 
 This behavior can be used to inflate the left road marking in the global costmap to force the global plan on the right side of the road, which is the behaviour defined in the concept. The plugin can also be used to inflate cells with zero cost, which is useful to guarantee a cost free right lane or to give some free space around obstacles located on the road.\\
 
-The layer receives a message of type sensor\_msgs::PointCloud on a configurable topic. This PointCloud is expected to feature Channel Values for the inflation radius, the maximal and the minimal cost for each individual point.\\
+The layer receives a message of type sensor\_msgs::PointCloud on a configurable topic. This point cloud is expected to feature channel values for the inflation radius, the maximal and the minimal cost for each individual point.\\
 
 Since it can not be assumed, that the incoming points will be in the frame of the costmap the points in the costmap have to be transformed into the right frame using tf2.\\
 
@@ -246,7 +246,7 @@ To minimize the computation load a bresenham based algorithm for the circle rast
 \end{figure}
 
 
-Adding to the typical behavior of the bresenham rasterization the area of the circle will be filled using the point symmetry and by skipping overlapping points of the lines like in Figure \ref{rasterization}. Here it is visible, that every row with the same color is only calculated once and then projected in all eight octants. The Black cells on the perimeter are the rasterized cells of the bresenham algorithm.
+Adding to the typical behavior of the bresenham rasterization the area of the circle will be filled using the point symmetry and by skipping overlapping points of the lines like in Figure \ref{rasterization}. Here it is visible, that every row with the same color is only calculated once and then projected in all eight octants. The black cells on the perimeter are the rasterized cells of the bresenham algorithm.
 
 The cells within the circles perimeter are filled with the cost specified for that point. For this the following linear decaying \nth{1} degree function will be used which requires the computation of the distance of the rasterized cell to the center of the circle.
 
@@ -286,9 +286,9 @@ The plugin can be configured individually for the costmap using rqt\_reconfigure
 
 
 \section{SLAM}
-There are numerous Lidar based SLAM packages available for ROS, but with the defined restriction of being able to use both, the points extracted from the road detection, as well as the lidar data, most of the lidar based SLAM algorithms wont work since they only accept one input of  the type sensor\_msgs::LaserScan.\\
+There are numerous lidar based SLAM packages available for ROS, but with the defined restriction of being able to use both, the points extracted from the road detection, as well as the lidar data, most of the lidar based SLAM algorithms wont work since they only accept one input of  the type sensor\_msgs::LaserScan.\\
 This rules out the popular options for Lidar based SLAM like gmapping and HectorSLAM and the well documented package Google Cartographer will be used based on its flexibility in regards to robot configurations.\\
-This Package comes with an advantage of being based on loop closure which might be useful when driving rounds in a circuit stile environment. The robot will drive the same route over and over again and thus the map could get more and more reliable over time even though the data is very self similar and not great for SLAM.\\
+This package comes with an advantage of being based on loop closure which might be useful when driving rounds in a circuit stile environment. The robot will drive the same route over and over again and thus the map could get more and more reliable over time even though the data is very self similar and not great for SLAM.\\
 
 Cartographer accepts numerous different input types including both PointCloud2 and LaserScan sensor messages. Additionally Cartographer can use provided odometry, aswell as IMU data to improve the result.\\
 

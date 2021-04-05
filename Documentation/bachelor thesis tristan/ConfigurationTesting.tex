@@ -27,7 +27,7 @@ All of the files are xacro files in contrast to pure urdf so parameters and macr
 
 The plugins for gazebo have not been included in the individual files so the urdf can be used for real robots with a similar sensor setup without big modification but just with the exclusion of the plugin file.
 
-The resulting Robot then looks like pictured in Figure \ref{arlourdf}.
+The resulting robot then looks like pictured in Figure \ref{arlourdf}.
 
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/arlourdf}
@@ -80,7 +80,7 @@ It will be the environment for most of the following tests.
 Gazebo then can be started from a launch file by defining the generated world.\\
 
 \subsection{Plugins}
-The configuration of the sensor and drive plugins are fairly straight forward, based on the Tutorial page in the gazebo wiki\cite{gazebotutorial}.\\
+The configuration of the sensor and drive plugins are fairly straight forward, based on the tutorial page in the gazebo wiki\cite{gazebotutorial}.\\
 
 
 
@@ -115,7 +115,7 @@ When the robot drives around a tight corner the road often starts at an angle re
 
 While configuring the road detection the first step is to configure the orientation and position of the camera in the node``edgeProjector'' according to the definition in the urdf file. In addition to that the camera picture has to be cropped so the robot is not visible anymore in the picture.\\
 
-In the ``LineTracker'' Node the distance, at which lines should be evaluated needs to be set, so the node does not see the edge of the picture, in which the distortion has the largest effect.\\
+In the ``LineTracker'' node the distance, at which lines should be evaluated needs to be set, so the node does not see the edge of the picture, in which the distortion has the largest effect.\\
 
 
 The RoadDetector Node needs an estimate for the lane width as a min and max value and a maximum angle between two individual road markings. These values are obviously specific for the environment.\\
@@ -134,7 +134,7 @@ The final configuration is pictured in Appendix \ref{config}.
 \section{Cartographer}
 The goal of this node is to produce a map that gets more reliable over time.\\
 
-Unfortunately the data available for Cartographer is very self simillar, meaning a straight road will allways look the same and therefore does not have sufficient features for proper loop closure. In contrast to the points from the road detection the lidar can actually supply such features and will therefore be a good improvement for the resulting map.\\
+Unfortunately the data available for cartographer is very self similar, meaning a straight road will allways look the same and therefore does not have sufficient features for proper loop closure. In contrast to the points from the road detection the lidar can actually supply such features and will therefore be a good improvement for the resulting map.\\
 
 But it is not guaranteed that the lidar will even sees anything the SLAM algorithm has to work with the points of the road detection only aswell.
 
@@ -145,14 +145,14 @@ Furthermore cartographer will be set to 2d map building.
 
 
 \subsection{Tuning}
-With the basic configuration cartographer is not able to provide a reliable map and a tuning procedure has to be performed. Here the general recommendation of the tuning guide should be followed, which states to tune local SLAM first and disabling global slam while doing so \cite{cartographertuning}.
+With the basic configuration of cartographer is not able to provide a reliable map and a tuning procedure has to be performed. Here the general recommendation of the tuning guide should be followed, which states to tune local SLAM first and disabling global slam while doing so \cite{cartographertuning}.
 To tune the local SLAM the parameter of the tracjectory builder have to be adjusted.\\
 The trajectory builder contains a scan-matcher, which will compare incoming sensor data and tries to align it with each other as good as possible. This behavior can be tuned by configuring the size of the linear and angular search windows and the weight for the rotation and translation of the incoming scans.\\
 One more important setting is the size of the sub maps. These can be adjusted by the amount of scans they contain. Since the submaps will consist out of the scan matched obstacles it is important to set the size of the submaps not to high, if the incoming data will be very self simillar. Otherwise the scanmatcher will combine too many scans while shifting them over each other since they look so simillar. This results in both rotational and translational error.\\
 As soon as the local SLAM produces a reliable result after multiple rounds of the robot the global SLAM can be activated and tuned.\\
 
-The global SLAM has two options of combining the submaps the loop-closure, which will check, if the robot was at this spot already, and a scanmatcher, which will try to match the submaps to the current scan. For both of these the weights can be adjusted individually and like in the local SLAM the size of the window for translation and rotation can be adjusted. Reducing the window size to a minimum is aswell important when dealing with self simillar data, so the submaps will not be shifted on top of each other. The size should be chosen so the global SLAM can still correct errors of the individual submaps 
-With these values and the submaps the global planner calculates constraints between the maps which will be valued between 0 and 1. These constraints can be blocked with a threshold value that will block constraints with a smaller value. like this the computation time can be drastically reduced and only the important constraints will be processed. Furthermore the weighting of the Pose of the odometry and the local SLAM can be adjusted, which can be usefull with bad odometry.
+The global SLAM has two options of combining the submaps the loop-closure, which will check, if the robot was at this spot already, and a scanmatcher, which will try to match the submaps to the current scan. For both of these the weights can be adjusted individually and like in the local SLAM the size of the window for translation and rotation can be adjusted. Reducing the window size to a minimum is important when dealing with self simillar data, so the submaps will not be shifted on top of each other. The size should be chosen so the global SLAM can still correct errors of the individual submaps.\\
+With these values and the submaps the global planner calculates constraints between the maps which will be valued between 0 and 1. These constraints can be blocked with a threshold value that will block constraints with a smaller value. Like this the computation time can be drastically reduced and only the important constraints will be processed. Furthermore the weighting of the pose of the odometry and the local SLAM can be adjusted, which can be usefull with bad odometry.
 
 \subsection{Testing}
 Testing of the SLAM will mostly consist out of a Black-Box Test meaning the only things that will be observed is the output and therefore the map.
@@ -164,7 +164,7 @@ The SLAM will be tested in the following cases:
 	\item Data from road detection and lidar scan with obstacles on the road.
 \end{itemize}
 
-During all of these test the navigation will solely work with the predicted goals since it is yet unsure if the SLAM map is even usable. Furthermore the same tuning will be used for all tests.\\
+During all of these tests the navigation will solely work with the predicted goals since it is yet unsure if the SLAM map is even usable. Furthermore the same tuning will be used for all tests.\\
 
 
 
@@ -174,7 +174,7 @@ Starting with the goal extraction from the map, the Parameter ``MapCostThresh'' 
 
 The Parameter ``GoalDist'' has to be configured smaller, that half of the costmap width so it can be guaranteed, that the goal is all ways located inside the bounds of the costmap to prevent errors. With a costmap width and hight of 9 meter the parameter is set to 4 meter.\\
 
-To switch between the circle and line approximation the parameter ``CRadThresh'' is set to 6m. Setting this Parameter higher will improve the performance in wide turns while the performance on straight sections will get worse and vice versa.\\
+To switch between the circle and line approximation the parameter ``CRadThresh'' is set to 6m. Setting this parameter higher will improve the performance in wide turns while the performance on straight sections will get worse and vice versa.\\
 
 Finally the GoalAngle for the circle approximation has to be configured. This is set to $0.3\pi$, meaning the window of trustworthiness of the circles is 60°.
 
@@ -205,6 +205,7 @@ The final layer plugin setup of the costmaps results in the following:
 	\item inflation layer
 	\item dynamic cost layer
 \end{itemize}
+
 
 \textbf{local costmap}
 \begin{itemize}
@@ -281,7 +282,7 @@ To make planning easier the parameter ``cost\_factor'' can be reduced. This para
 
 Like the global planner the local planner has to be configured to comply its tasks.
 
-A good starting point for the configuration are the example configurations in the repository of the developer of the planner\cite{tebtutorials}. They offer base configurations for both differntial drive and car like, aswell as omnidirectional robots.\\
+A good starting point for the configuration are the example configurations in the repository of the developer of the planner\cite{tebtutorials}. They offer base configurations for both differential drive and car like, aswell as omnidirectional robots.\\
 
 Unfortunately teb\_local\_planner only considers lethal cost and without any configuration would follow the global path very loosely resulting in e.g. cutting corners.\\ 
 
@@ -294,7 +295,7 @@ During testing teb\_local\_planner produced mostly good and feasible paths, but 
 To suppress this behavior the weighting of the time component has been increased so the internal forces that contract the elastic band increase. This reduced the occurrence of this scenario significantly, but the local path takes longer, until it is on the right lane again, since the distance to the global path is now weighted less relative to the weight of the time component.
 
 \section{Odometry test}
-The odometry is a key component in the navigation concept, since it will be used by multiple nodes and is the representation of the robot's position in its environment.\\
+The odometry is a key component in the navigation concept, since it will be used by multiple nodes and is the representation of the robots position in its environment.\\
 
 Especially differential robots tend to have rotational error, when using the wheel-encoders to generate the odometry, since the wheels are forced to slip when the robot is turning.\\
 
@@ -326,11 +327,11 @@ The SLAM algorithm chosen for the the concept is used in a very uncommon way, si
 The data from the road detection is very self similar, meaning that for example a straight section of road will always look very similar independent of its position. The lack of details in the data from the road detection might complicate cartographers scan matching.
 
 \textbf{Data purely from road detection:}\\
-The reason for this test is to check if the SLAM algorithm can handle Mapping with as least information as possible. This will make loop-closure difficult and cartographer has to work with the self simillar data only.\\
+The reason for this test is to check if the SLAM algorithm can handle mapping with as least information as possible. This will make loop-closure difficult and cartographer has to work with the self simillar data only.\\
 The aim is, that the robot can drive multiple rounds, on the track and cartographer produces an optimized map with little unmatched submaps and well connected road markings.\\
 
 \textbf{Long duration test with both road detection and lidar scan with obstacles on the side of the road:}\\
-Cartographer seems to not merge old submaps but process all of them allways, which will progressively increase computational load. Since the SLAM is supposed to be used during mapping this can become important with a lot of sensor inputs that offer constraint potential and long runtime.
+Cartographer seems to not merge old submaps but process all of them allways, which will progressively increase computational load. Since the SLAM is supposed to be used during mapping, this can become important with a lot of sensor inputs that offer constraint potential and long runtime.
 The same setup as in the \nth{2} test will be used but the focus is on the moment, at which cartographer cannot optimize in real time caused by too many submaps and constraints.\\
 
 
@@ -339,7 +340,7 @@ This test is meant to be the worst case for the SLAM algorithm during navigation
 The obstacles will be placed in two corners and therefore in the edge case where the camera has the worst chance of seeing the road because of the steering angle, aswell as on the straight section of the road to cover the case where the camera can not see the road during merging on an other lane. Furthermore the obstacles will be placed far enough apart so the lidar has only vision on one at the same time.\\
 
 
-\section{complete system test}
+\section{Complete system test}
 
 After the previous tests the entire concept has to be tested in order to check, if the concept works as anticipated.
 

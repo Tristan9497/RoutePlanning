@@ -23,9 +23,9 @@ The navigation\_stack provides a general setup proposal which seems to be a good
 \end{figure}
 
 
-\section{platform specific nodes}
+\section{Platform specific nodes}
 Since the platform specific nodes are unique to each robot these will need to be adjusted.\\
-\subsection{sensor sources}
+\subsection{Sensor sources}
 
 The following sensors will be predefined for this concept:
 
@@ -37,7 +37,7 @@ The following sensors will be predefined for this concept:
 
 
 \subsection{Odometry source}
-The odometry is all ways a result of sensor data. Therefore we can make a direct connection between the sensor filters and the odometry input. These Filters will also feature nodes that transform the incoming sensor data into a useable format.
+The odometry is all ways a result of sensor data. Therefore we can make a direct connection between the sensor filters and the odometry input. These filters will also feature nodes that transform the incoming sensor data into a useable format.
 
 \subsection{Sensor transforms}
 To know the position of every sensor relative to the robot and his odometry the tf\_tree has to be build. While this can be realized using static transform publishers there is also a cleaner way using the ros package robot\_state\_publisher. It then requires a robot description in URDF format that specifies the relations between everything mounted on the robot.
@@ -78,7 +78,7 @@ In this scenario the global planner will be required to guide the robot on the c
 
 \subsection{local stage}
 The local stage on the other hand has the task of finding a for the kinematic of the robot feasible path that does not collide with objects.\\
-This Path needs to be close to the global path and follows the lane changes dictated by the global stage but it needs to be able to separate itself from the global path if necessary.
+This path needs to be close to the global path and follows the lane changes dictated by the global stage but it needs to be able to separate itself from the global path if necessary.
 
 \section{PoseFinder}
 The job of this node is to extract the pose of a goal from the sensor data or the map (if available).\\
