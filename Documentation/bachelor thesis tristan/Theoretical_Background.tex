@@ -1,11 +1,14 @@
 \chapter{Theoretical Background}
 \label{theoretical_background}
 This chapter will cover the needed theoretical background about the topics discussed in this thesis.
+\todo{related or existing work}
 \section{ROS}
 ROS (Robot Operating System) is an open source project developed by the ``Open Source Robotics Foundation''. Like the name suggests it is an entire operating system for robots including hardware abstraction, low-level device control, implementation of commonly used functionality, communication between processes and package management.\\
 Furthermore it provides tools and libraries to write, build and run code across multiple computers\cite{rosintro}.\\
+
+\todo{ros relevance}
 \subsection{packages}
-This is the main structure for software in ROS. A package can contain many different nodes, libraries, service etc.. Furthermore it is the smallest possible structure that can be build by ROS\cite{rosconcepts}.
+This is the main structure for software in ROS. A package can contain many different nodes\todo{node consistency}, libraries, service etc.. Furthermore it is the smallest possible structure that can be build by ROS\cite{rosconcepts}.
 \subsection{nodes}
 Nodes are processes that perform computation. Since ROS is very fine granular, a system, that controls an entire robot can contain many nodes that are connected using topics. A package can be written with the use of one of the client libraries roscpp or rospy\cite{rosconcepts}.
 \subsection{plugins}
@@ -18,7 +21,7 @@ All of the ROS nodes are connected with a publisher/subscriber like structure. T
 Not only one node but unlimited many nodes can publish and subscribe to one topic. This generally can be seen like a message bus with not limited connection permissions\cite{rosconcepts}.
 
 Unfortunately the topic system is not well fitted for request and answers between two nodes, therefore the service structure has been implemented.\\ 
-A node might offers a service under a certain node and an other node can call that service. Services can have any in- and output that can be specified in a ``.srv'' file\cite{rosconcepts}.
+A node might offer a service under a certain node and another node can call that service. Services can have any in- and output that can be specified in a ``.srv'' file\cite{rosconcepts}.
 
 \subsection{rviz}
 rviz is a 3D visualization tool offered by default in ROS. It offers functionality to visualize sensor and further geometric data.\\
@@ -79,7 +82,7 @@ The most important REP's in this project are REP 103 and REP 105.
 	
 \subsection{tf}
 In most cases robots that are controlled by ros have a so called tf\_tree. This tree is the coordinate frame structure of the robot. In it every sensor and actor has its own coordinate frame.\\
- The structure in most trees of mobile platforms is quite similar which is caused by the REP105 (ROS Enhanced Proposals) this contains a definition of recommended names for the robot frames and their order in the tree. But it should be noted that not every frame that is defined in the norm has to be in every tree. The basic structure mostly starts at a so called fixed frame. This frame will be the not changing frame in the environment. At moving robots this is often earth, map or odom, while in stationary robots this can even be base\_link.\\
+ The structure in most trees of mobile platforms is quite similar which is due to the REP105 (ROS Enhanced Proposals). This contains a definition of recommended names for the robot frames and their order in the tf tree. But it should be noted that not every frame that is defined in the norm has to be in every tree. The basic structure mostly starts at a so called fixed frame. This frame will be the not changing frame in the environment. For moving robots this is often earth, map or odom, while in stationary robots this can even be base\_link.\\
  
 
 The tree is normally build up like in the following image. \todo{add tf tree}
@@ -87,7 +90,7 @@ The tree is normally build up like in the following image. \todo{add tf tree}
 TF2 is the successor of TF and is a very powerful tool in the ROS environment. With this it is possible to transform sensor\_msgs and geometry\_msgs from one frame in another. Furthermore it offers the possibility to transform old data into the present or at any other point in the past.
 
 \subsubsection{URDF and xacro}
-The robot hardware description consists of one or more URDF(Unified Robot Description Format) based xml file. Its purpose is to define the shape and geometric of every part of the robot. 
+The robot hardware description consists of one or more URDF(Unified Robot Description Format) based xml files. Their purpose is to define the shape and geometric of every part of the robot. 
 
 \subsubsection{robot\_state\_publisher}
 	This package uses the robot hardware description and builds up the tf\_tree using static\_transform\_publishers.
@@ -104,7 +107,7 @@ This is the default global planner of move\_base. It features Dijkstra and A* pa
 
 Dijkstra does only consider determines the cost to get from the start node to every other node, until it finds the goal, from which it then can backtrack the shortest/cheapest path.\cite{AlgorithmenundDatenstrukturen}.\\
 
-A* is based on the dijkstra algorithm but has one main difference. It considers not only the cost from the start to the current cell in the grid, but aswell a heuristic parameter, which is a general guess for the cost from the cell to the finish. The heuristic parameter is mostly bound to the euclidean distance between the cell in the grid and the goal cell. Like this the parameter will never over estimate the actual cost of the path\cite{AlgorithmenundDatenstrukturen}. This weights cells that are in the general direction to the goal more then other cells and in certain situations speeds up the path finding.\\
+A* is based on the dijkstra algorithm but has one main difference. It considers not only the cost from the start to the current cell in the grid, but as well a heuristic parameter, which is a general guess for the cost from the cell to the finish. The heuristic parameter is mostly bound to the euclidean distance between the cell in the grid and the goal cell. Like this the parameter will never overestimate the actual cost of the path\cite{AlgorithmenundDatenstrukturen}. This weights cells that are in the general direction to the goal more then other cells and in certain situations speeds up the path finding.\\
 
 \subsection{local\_planner}
 The local planner is meant to produce a feasible path, that generally follows the path produced by the global planner. It takes care of collision avoidance and considers the dynamic of the robot itself.
@@ -119,9 +122,9 @@ dwa\_local\_planner uses as the name suggests a dynamic window approach. This ap
 The algorithm generates a set of possible trajectories based on the dynamic constraints, a given time frame, the local costmap and the global plan and selects the ``best'' trajectory\cite{dwa}.
 
 \subsection{costmap}
-A costmap is a grid stile map, whose purpose is to store information about obstacles in the surrounding of the robot.\\
+A costmap is a grid stile map and its purpose is to store information about obstacles in the surrounding of the robot.\\
 There are two different costmaps, the global costmap and the local costmap.
-The global costmap is by the global planner to find a collision free path. Whereas the local costmap is used by the local planner for local planning.\cite{navsetup}\\
+The global costmap is by the global planner to find a collision free path, whereas the local costmap is used by the local planner for local planning.\cite{navsetup}\\
 
 \begin{figure}[H]
 	\includegraphics[width=.5\textwidth]{Pictures/costmap_rviz}
@@ -185,6 +188,8 @@ The carolo cup is an event hosted by University Braunschweig and is an event in 
 
 There are two different levels of difficulty the carolo basic cup and the carolo master cup\cite{carolocup}.
 
+\todo{ warum sind die environmental conditions des carolo cups sinnvoll zu nutzen/ zu erforschen? (in 2.4?)
+}
 
 
 
