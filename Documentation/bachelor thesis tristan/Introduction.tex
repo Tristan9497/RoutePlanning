@@ -1,5 +1,6 @@
 \chapter{Introduction}
 \label{introduction}
+\todo{Abkürzungsverzeichniss}
 
 When looking at the recent trends in the car industry, autonomous driving is probably one of the most important topics.\todo{lot of research like company xy article tesla?} Furthermore, this trend can also be seen in other industries  in which autonomous robots are used to simplify and accelerate production steps. 
 
@@ -12,7 +13,7 @@ Prof. Dr.-Ing. Stefan Hörmann is looking for a new concept for the navigation f
 \todo{presence remove will etc.}
 The navigation of a mobile system from ground up includes a wide range of topics and problems, such as sensor data filtering and combination to generate a stable and reliable odometry, or path finding in an environment including obstacles with respect to the dynamics of the robot.\\
 
-Extending the work of Prof. Dr-Ing. Stefan Hörmann on his ROS based road detection, this navigation will also be developed for ROS Noetic. This allows the usage of various packages supplied as open source projects for the ROS Framework.
+Extending the work of Prof. Dr-Ing. Stefan Hörmann on his ROS based road detection, this navigation will also be developed for ROS Noetic. This allows the usage of various packages supplied as open source projects for the ROS framework.
 
 \section{Structure}
 
@@ -29,13 +30,13 @@ The configuration and test setup of the nodes in the stack will be covered in ch
 
 Finally the results of the tests will be discussed in chapter \ref{resultanddiscussion}, which leads to potentially needed optimizations and a conclusion of the performance of the navigation.
 
-\section{Limitations and Requirements}
+\section{Limitations and requirements}
 
 Before diving into the details and developing concepts the guidelines and requirements of the project have to be defined.
 
 This thesis aims for a navigation of a robot in an environment that is similar to the carolo cup but deviates at some parts.
 
-\subsection{Robot and Environment}
+\subsection{Robot and environment}
 While the robot itself has very strict regulations in the carolo cup these will not all apply here.\\
 
 For testing purposes the entire robot with all sensors and the drive controller will be simulated.
@@ -74,7 +75,7 @@ Since the environment will be simulated the simulator has to have the following 
 \begin{itemize}
 	\item Sensor plugins with configurable error and ROS interfaces
 	\item Differential drive plugin
-	\item custom models integration
+	\item Custom models integration
 	\item URDF conversion
 	\item Not too computationally heavy
 \end{itemize}
@@ -87,7 +88,7 @@ Custom models is a strict requirement since this thesis focuses on a very specif
 
 A URDF conversion plugin is very important like this differences between the simulated robot and the tf-tree in ROS can be avoided and the robot will be defined in one file only.\\
 
-To get the best correlation between simulation and real world the simulator should be able to run as close to real time as possible. This will make the simulated sensor data way more reliable and puts the nodes of the navigation\_stack under a realistic load.
+To get the best correlation between simulation and real world, the simulator should be able to run close to real time. This will make the simulated sensor data way more reliable and puts the nodes of the navigation\_stack under a realistic load.
 
 \subsection{Navigation}
 The navigation is supposed to cover free driving without obstacles, as well as with static obstacles avoidance. It will not cover dynamic obstacles, road sign detection or driving situations like intersections and parking.\\

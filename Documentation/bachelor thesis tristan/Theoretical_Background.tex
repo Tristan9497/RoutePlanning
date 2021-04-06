@@ -1,4 +1,4 @@
-\chapter{Theoretical Background}
+\chapter{Theoretical background}
 \label{theoretical_background}
 This chapter will cover the needed theoretical background about the topics discussed in this thesis.
 \todo{related or existing work}
@@ -36,7 +36,7 @@ rqt is a qt based tool for the development of GUI's for the ROS framework\cite{r
 \subsubsection{rqt\_tf\_tree}
 	rqt\_tf\_tree can be used to display the tf\_tree of the current system. It displays all tf frames and their hierarchic structure\cite{rqttftree}.
 \subsection{REP}
-REP's (short for ROS enhanced proposals) are guidelines made and maintained by the ros community. It is highly advisable to follow the guidelines as much as possible.
+REP's (short for ROS enhanced proposals) are guidelines made and maintained by the ROS community. It is highly advisable to follow the guidelines as much as possible.
 
 Complying to these guidelines allows external people easier comprehension of the structure of the robot and eliminates misunderstandings.
 
@@ -47,19 +47,20 @@ The most important REP's in this project are REP 103 and REP 105.
 	
 	\textbf{Coordinate Frame}
 	\begin{itemize}
-		\item \textbf{X-Axis} - Forward
-		\item \textbf{Y-Axis} - Left
-		\item \textbf{Z-Axis} - Up
+		\item \textbf{X-Axis} - forward
+		\item \textbf{Y-Axis} - left
+		\item \textbf{Z-Axis} - up
 	\end{itemize}
 	
 	\textbf{Units}\\
+	
 	Units will always be represented in SI units and their derived units.\\
 	
 	\textbf{The order of preference for rotations}
 	\begin{enumerate}
 		\item Quaternion
 		\item Rotation matrix
-		\item fixed axis roll, pitch, yaw
+		\item Fixed axis roll, pitch, yaw
 		\item Euler angles
 	\end{enumerate}
 	\cite{REP103}
@@ -72,7 +73,7 @@ The most important REP's in this project are REP 103 and REP 105.
 	\textbf{Coordinate Frames}
 	\begin{itemize}
 		\item \textbf{base\_link} is a fixed frame on the robot base. It serves as the reference points for all of hardware mounted on the robot itself like sensors.
-		\item \textbf{odom} is a world fixed frame that serves as the reference for the pose of the robot.\\ Since the pose of the robot will drift over time it wont serve as a good long term reference.\\In most cases the odom frame will be computed using localization sensors like wheel odometry, imu's, visual odometry, etc. which leads to a continuous frame.
+		\item \textbf{odom} is a world fixed frame that serves as the reference for the pose of the robot.\\ Since the pose of the robot will drift over time, it wont serve as a good long term reference.\\In most cases the odom frame will be computed using localization sensors like wheel odometry, imu's, visual odometry, etc. which leads to a continuous frame.
 		\item \textbf{map} is a world fixed coordinate frame that serves as the reference for the odometry frame. It is also the base for a map of the environment such as the ones provided by slam algorithms. The frame is time discrete since it is mostly computed by localization algorithms.
 	\end{itemize}
 	
@@ -80,17 +81,17 @@ The most important REP's in this project are REP 103 and REP 105.
 	
 	
 	
-\subsection{tf}
-In most cases robots that are controlled by ros have a so called tf\_tree. This tree is the coordinate frame structure of the robot. In it every sensor and actor has its own coordinate frame.\\
- The structure in most trees of mobile platforms is quite similar which is due to the REP105 (ROS Enhanced Proposals). This contains a definition of recommended names for the robot frames and their order in the tf tree. But it should be noted that not every frame that is defined in the norm has to be in every tree. The basic structure mostly starts at a so called fixed frame. This frame will be the not changing frame in the environment. For moving robots this is often earth, map or odom, while in stationary robots this can even be base\_link.\\
+\subsection{TF}
+In most cases robots that are controlled by ROS have a tf\_tree. This tree is the coordinate frame structure of the robot. This tf\_tree includes a coordinate frame for every sensor and actor.\\
+ The structure in most trees of mobile platforms is quite similar which is due to the REP105 (ROS enhanced proposals). This contains a definition of recommended names for the robot frames and their order in the tf tree. But it should be noted that not every frame that is defined in the norm has to be in every tree. The basic structure mostly starts with a fixed frame. This frame will be the not changing frame in the environment. For moving robots this is often earth, map or odom, while in stationary robots this can even be base\_link.\\
  
 
 The tree is normally build up like in the following image. \todo{add tf tree}
 
 TF2 is the successor of TF and is a very powerful tool in the ROS environment. With this it is possible to transform sensor\_msgs and geometry\_msgs from one frame in another. Furthermore it offers the possibility to transform old data into the present or at any other point in the past.
 
-\subsubsection{URDF and xacro}
-The robot hardware description consists of one or more URDF(Unified Robot Description Format) based xml files. Their purpose is to define the shape and geometric of every part of the robot. 
+\subsubsection{URDF and Xacro}
+The robot hardware description consists of one or more URDF(Unified Robot Description Format) based XML files. Their purpose is to define the geometric shape of every part of the robot. 
 
 \subsubsection{robot\_state\_publisher}
 	This package uses the robot hardware description and builds up the tf\_tree using static\_transform\_publishers.
@@ -105,9 +106,9 @@ The global planner in move\_base has the task of finding a path from start to fi
 \subsubsection{base\_global\_planner}
 This is the default global planner of move\_base. It features Dijkstra and A* path finding algorithms.\\
 
-Dijkstra does only consider determines the cost to get from the start node to every other node, until it finds the goal, from which it then can backtrack the shortest/cheapest path.\cite{AlgorithmenundDatenstrukturen}.\\
+Dijkstra does only consider determines the cost to get from the start node to every other node, until it finds the goal. From this goal Dijkstra can backtrack the shortest/cheapest path.\cite{AlgorithmenundDatenstrukturen}.\\
 
-A* is based on the dijkstra algorithm but has one main difference. It considers not only the cost from the start to the current cell in the grid, but as well a heuristic parameter, which is a general guess for the cost from the cell to the finish. The heuristic parameter is mostly bound to the euclidean distance between the cell in the grid and the goal cell. Like this the parameter will never overestimate the actual cost of the path\cite{AlgorithmenundDatenstrukturen}. This weights cells that are in the general direction to the goal more then other cells and in certain situations speeds up the path finding.\\
+A* is based on the Dijkstra algorithm but has one main difference. It considers not only the cost from the start to the current cell in the grid, but as well a heuristic parameter, which is a general guess for the cost from the cell to the finish. The heuristic parameter is mostly bound to the euclidean distance between the cell in the grid and the goal cell. Like this the parameter will never overestimate the actual cost of the path\cite{AlgorithmenundDatenstrukturen}. This weights cells that are in the general direction to the goal more then other cells and in certain situations speeds up the path finding.\\
 
 \subsection{local\_planner}
 The local planner is meant to produce a feasible path, that generally follows the path produced by the global planner. It takes care of collision avoidance and considers the dynamic of the robot itself.
@@ -127,26 +128,27 @@ There are two different costmaps, the global costmap and the local costmap.
 The global costmap is by the global planner to find a collision free path, whereas the local costmap is used by the local planner for local planning.\cite{navsetup}\\
 
 \begin{figure}[H]
+\centering
 	\includegraphics[width=.5\textwidth]{Pictures/costmap_rviz}
 	\caption{costmap with obstacles and inflation \cite{costmap}}
 	\label{costmap}
 \end{figure}
 
 
-\subsubsection{Cost Values}
+\subsubsection{Cost values}
 The values in a costmap can be in the range [0-255], but the underlying structure categorizes them in the following 3 sections:
 \begin{itemize}
-	\item lethal obstacle
-	\item free space
-	\item no information
+	\item Lethal obstacle
+	\item Free space
+	\item No information
 \end{itemize}
 
-\subsection{marking and clearing}
+\subsection{Marking and clearing}
 Obstacles in the costmap can not only be marked, but also cleared by the subscribed data source. For each data source a configuration regarding the clearing and marking permissions is necessary. For clearing the costmap uses a raytracing algorithm, which allows the costmap to handle moving obstacles\cite{costmap}.
 \subsubsection{Inflation}
 Inflation is a process where a occupied cell is inflated by over the distance decreasing cost values for a configurable radius, as pictured in Figure \ref{costmap}.\\
 This process is used by the default plugin inflation\_layer with the cost distribution pictured in Figure \ref{costdistribution}\cite{costmap}.
-
+\todo{size?}
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\linewidth]{Pictures/costmapinflation}
@@ -158,13 +160,13 @@ The usage of inflation has two reasons. First it is used to close gaps between t
 The second reason is to prevent the global planner from getting too close to obstacles, since it does not feature any collision checking. Therefore the inflation radius is typically set to slightly more than the radius of the robot\cite{costmap}.
 
 \subsubsection{Layer}
-The costmap uses a layer structure of plugins that can handle different tasks. The costmap then combines the data from each layer, to produce the final costmap.\\
+The costmap uses a layer structure of plugins that can handle different tasks. It finally combines the data from each layer, to produce the final costmap.\\
 
 By default the costmap\_2d package offers the following 3 layers:
 \begin{itemize}
-	\item \textbf{static map layer} is a layer that converts a prerecorded map into obstacles.
-	\item  \textbf{obstacle layer} is a plugin that handles input from sensor sources. The plugin marks and raytraces obstacles in 2D. It can handle LaserScans PointCloud and PointCloud2.
-	\item \textbf{inflation layer} handles the inflation of lethal obstacles in the costmap.
+	\item \textbf{Static map layer} is a layer that converts a prerecorded map into obstacles.
+	\item  \textbf{Obstacle layer} is a plugin that handles input from sensor sources. The plugin marks and raytraces obstacles in 2D. It can handle LaserScans PointCloud and PointCloud2.
+	\item \textbf{Inflation layer} handles the inflation of lethal obstacles in the costmap.
 \end{itemize}
 
 Furthermore the plugins Social ``Costmap Layer'' and ``Range Sensor Layer'' are offered.
@@ -173,11 +175,11 @@ Using the pluginlib interface and the costmap libraries custom layers for the co
 
 
 
-\section{cartographer}
+\section{Cartographer}
 Cartographer is a lidar based SLAM developed by Google. In contrast to gmapping it is based on loop closure to ensure real time mapping even in relatively big environments.\\
-Submaps are considered for loop closure, if they are close to each other. A scan matcher tries to find constraints between the submaps and the current scan. When searching for loop closure constraints at a certain rate one can achieve basically instantaneous optimization of the map just by the fact that the current scan is similar to one of the underlying submaps\cite{cartographer}.\\
+Submaps are considered for loop closure, if they are close to each other. A scan matcher tries to find constraints between the submaps and the current scan. When searching for loop closure constraints at a certain rate one can achieve basically instantaneous optimization of the map, just by the fact that the current scan is similar to one of the underlying submaps\cite{cartographer}.\\
 
-\section{edge effect}
+\section{Edge effect}
 
 The edge effect is an error source during laser based distance measurement.
 When the laser beam used for measurement is directly at an edge of an obstacle, this splits the beam or rather blocks a part of it. The resulting measurement lies in the range of all distances measured by the beam and is therefore located behind the real edge of the obstacle like further described in the paper of Klapa about the ``Edge effect and its impact upon the accuracy of 2D and 3D modeling using laser scanning'' \cite{edgeeffect}.\\
