@@ -1,45 +1,60 @@
 \chapter{Introduction}
 \label{introduction}
+\todo{Abkürzungsverzeichniss}
 
-When looking at the recent trends in the car industry, autonomous driving is probably one of the most important topics. This trend can also be seen in the industry in general with autonomous robots, that simplify and accelerate production steps and can withstand dangerous environments while doing so.\\
+When looking at the recent trends in the car industry, autonomous driving is probably one of the most important topics.\todo{lot of research like company xy article tesla?} Furthermore, this trend can also be seen in other industries  in which autonomous robots are used to simplify and accelerate production steps. 
 
-The event ``Carolo-Cup'' hosted by the Technical University of Braunschweig offers a place for teams to compete against each other with their autonomous 1:10 model cars and therefore supports the development of the field itself. This offers an incentive to participate to a lot of universities in Germany and beyond.\\
 
-Prof. Dr.-Ing. Stefan Hörmann is looking for a new concept for the navigation for the team of the University Aalen, the concept and initial development of which will be covered in this thesis.\\
 
+The event ``Carolo-Cup''\todo{name consistency} hosted by the Technical University of Braunschweig offers a place for teams to compete against each other with their autonomous 1:10 model cars and therefore supports the development of the research field itself. This creates an incentive to participate to a lot of universities in Germany and beyond.\\
+\todo{existing, goal and this work relations }
+
+Prof. Dr.-Ing. Stefan Hörmann is looking for a new concept for the navigation for the team of the University Aalen. The concept and its initial development will be covered in this thesis.\\
+\todo{presence remove will etc.}
 The navigation of a mobile system from ground up includes a wide range of topics and problems, such as sensor data filtering and combination to generate a stable and reliable odometry, or path finding in an environment including obstacles with respect to the dynamics of the robot.\\
 
-Extending the work of Prof. Dr-Ing. Stefan Hörmann on his ROS based road detection, this navigation will also be developed for ROS Noetic. This allows the usage of various packages supplied as open source projects for the ROS Framework.
+Extending the work of Prof. Dr-Ing. Stefan Hörmann on his ROS based road detection, this navigation will also be developed for ROS Noetic. This allows the usage of various packages supplied as open source projects for the ROS framework.
 
 \section{Structure}
 
-This thesis will be structured into four main parts.
+This thesis is structured into four main parts.
 
-Chapter \ref{Concept} covers the initial planning of the navigation in form of a Concept. It incorporates initial approaches and will give a broad introduction to the structure of the navigation.\\
+\todo{chapter 2 ?}
+\todo{step step procedure}
+Chapter \ref{Concept} covers the initial planning of the navigation in form of a concept. It incorporates initial approaches and will give a broad introduction to the structure of the navigation.\\
 
-In chapter \ref{Selection} the selection of the nodes of the base structure of the stack will be discussed. Furthermore it will incorporate definitions and requirements for additionally needed tasks.\\
+In chapter \ref{Selection} the selection of the nodes of the base structure of the stack will be discussed. Furthermore the development of all custom nodes will be covered
 
-The configuration and testing of the nodes in the stack will be covered in \ref{configurationandtesting}.
+The configuration and test setup of the nodes in the stack will be covered in chapter \ref{configurationandtesting}.
 
 
-Finally the Results of the tests will be discussed, which allows the formulation of an outlook on future work in chapter \ref{outlook}.
+Finally the results of the tests will be discussed in chapter \ref{resultanddiscussion}, which leads to potentially needed optimizations and a conclusion of the performance of the navigation.
 
-\section{Limitations and Requirements}
+\section{Limitations and requirements}
 
 Before diving into the details and developing concepts the guidelines and requirements of the project have to be defined.
 
 This thesis aims for a navigation of a robot in an environment that is similar to the carolo cup but deviates at some parts.
 
-\subsection{Robot and Environment}
+\subsection{Robot and environment}
 While the robot itself has very strict regulations in the carolo cup these will not all apply here.\\
 
 For testing purposes the entire robot with all sensors and the drive controller will be simulated.
 
-The robot that will be used is a differential drive robot from the company Parallax with a diameter of 450mm.\\
+The robot that will be used is a differential drive robot from the company Parallax with a diameter of 450mm as pictured in Figure \ref{arlore}.\\
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.7\textwidth]{arlo real}
+	
+	\caption{Mobile robot Parallax Arlo \cite{arloreal}}
+	\label{arlore}
+\end{figure}
+
 
 Equally to the carolo cup regulations the lane width is defined by double robot width and will be set to 900mm. 
 
-The Robot will be equiped with the following sensors:
+The robot will be equiped with the following sensors:
 
 \begin{itemize}
 	\item Lidar
@@ -56,16 +71,16 @@ The programming language will be mostly C++ to allow uniformity in the software 
 Like in the carolo cup the software is not supposed to have any connection to systems outside of the robot.\\
 
 \subsection{Simulation}
-Since the environment will be simulated the Simulator has to have the following features.
+Since the environment will be simulated the simulator has to have the following features.
 \begin{itemize}
 	\item Sensor plugins with configurable error and ROS interfaces
 	\item Differential drive plugin
-	\item custom models integration
+	\item Custom models integration
 	\item URDF conversion
 	\item Not too computationally heavy
 \end{itemize}
 
-The simulation will mostly focus on sensor data. That is why sensor plugins with configurable error and a ROS interfaces are needed. Like this the data will be as representative as possible to the real world.\\
+The simulation will mostly focus on sensor data. That is why sensor plugins with configurable error and a ROS interfaces are needed. Like this the data will be as representative as possible of the real world.\\
 
 In addition to the sensor plugins the simulator needs to provide a plugin for differential drive steering. This will be the replacement for the motor controller of the real robot.\\
 
@@ -73,10 +88,10 @@ Custom models is a strict requirement since this thesis focuses on a very specif
 
 A URDF conversion plugin is very important like this differences between the simulated robot and the tf-tree in ROS can be avoided and the robot will be defined in one file only.\\
 
-To get the best correlation between simulation and real world the simulator should be able to run as close to real time as possible. This will make the simulated sensor data way more reliable and puts the nodes of the navigation\_stack under the right load.
+To get the best correlation between simulation and real world, the simulator should be able to run close to real time. This will make the simulated sensor data way more reliable and puts the nodes of the navigation\_stack under a realistic load.
 
 \subsection{Navigation}
-The navigation is supposed to cover free driving with out obstacles, as well as with static obstacles avoidance. It will not cover dynamic obstacles, road sign detection or driving situations like intersections and parking.\\
+The navigation is supposed to cover free driving without obstacles, as well as with static obstacles avoidance. It will not cover dynamic obstacles, road sign detection or driving situations like intersections and parking.\\
 
 Development of an entire stack exceeds the content of this thesis, so an open source navigation project will be used which needs to satisfy the following requirements.
 \begin{itemize}
@@ -87,3 +102,5 @@ Development of an entire stack exceeds the content of this thesis, so an open so
 	\item Path planning and navigation in totally unknown environments
 	\item Velocity output as linear and angular velocities
 \end{itemize}
+
+\todo{beschreibung}

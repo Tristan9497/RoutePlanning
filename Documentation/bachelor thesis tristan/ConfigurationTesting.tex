@@ -1,47 +1,56 @@
-\chapter{Configuration and Testing}
+\chapter{Configuration and testing}
 \label{configurationandtesting}
+\todo{differntiate betwee simulation and navigation 2 chapters?}
+
 This chapter will contain the configuration of all nodes of the concept. In addition the newly developed nodes have to be tested as well as the entire navigation concept.
 
+The nodes of the system are highly interconnected, therefore it is hard to test nodes while eliminating the error of others.
 
-The structure of this chapter is to address the outer nodes of the navigation concept first and then move to the inner nodes.\\
+The final config of the discussed nodes can be found in Appendix \ref{config}.
 
+\section{URDF and robot\_state\_publisher}
 
-\section{URDF and Robot State Publisher}
+The URDF model is based on the model of Christen Lofland, who created this for his own open source project\cite{chrisl8}.\\
 
-The URDF model is based on the URDF model of Christen Lofland, who created this for his own open source project\cite{chrisl8}.\\
+Unfortunately this model has been created to generate the fixed transforms of a real model only, so it does not have moveable joints for the wheels or any plugins for sensors and the differential steering. In addition to that it uses .stl files for both visual and collision volumes which results in unpredictable collision distances.\\
 
-Unfortunately this model has been created to be used for a real model, so it does not have moveable joints for the wheels or any plugins for sensors and the differential steering. In addition to that it uses .stl files for both visual and collision volumes which results in unpredictable collision distances.\\
-
-To keep the model as simple as possible one common xacro file is used, that includes the individual files for the following parts:
+To keep the model as simple as possible one common xacro file is used, that loads the individual files for the following parts:
 \begin{itemize}
 	\item Arlo body
-	\item camera
-	\item lidar
-	\item imu
-	\item gazebo plugins for all sensors and differential drive
+	\item Camera
+	\item Lidar
+	\item IMU
+	\item Gazebo plugins for all sensors and differential drive
 \end{itemize}
 
-All of the files are xacro files in contrast to pure urdf so parameters and macros can be used, which makes the robot model more flexible.\\
+All of the files are Xacro files in contrast to pure URDF so parameters and macros can be used, which makes the robot model more flexible.\\
 
-The plugins for gazebo have not been included in the individual files so the urdf can be used for real robots with a similar sensor setup without big modification but just with the exclusion of the plugin file.
+The plugins for Gazebo have not been included in the individual files so the URDF can be used for real robots with a similar sensor setup without big modification but just with the exclusion of the plugin file.
 
-The resulting Robot then looks like pictured in Figure \ref{arlourdf}.
+The resulting robot then looks like pictured in Figure \ref{arlourdf}.
 
-\begin{figure}
+\begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/arlourdf}
-	\caption{ArloBot URDF with sensors and gazebo plugins}
+	\caption{ArloBot URDF with sensors and Gazebo plugins}
 	\label{arlourdf}
 \end{figure}
 
+\todo{add and ref tf tree of running system}
+
+Using rqt\_tf\_tree the tf tree can be checked for conformity to ``REP 105'' and the concept.\\ 
+The tf\_tree of the running concept is pictured in Figure \ref{}.\\
+As visible the fixed frame of the setup is ``map'' the following transform to the ``odom'' frame is published by cartographer. The transformation between the ``odom'' frame and ``base\_footprint'' then gets published by robot\_localization here named ``ekf\_se''.\\
+The following transformations and frames are published by ``robot\_state\_publisher'' according to the URDF of the robot.
 
 \section{Gazebo}
-The setup of the simulation consist out of the modelling of the world, the conversion of the model into a sdf file and the general launch file.
+The setup of the simulation consist out of the modeling of the world, the conversion of the model into a sdf file and the general launch file.
 
-As described the modeling of the world will be performed using blender.\\
+As described in the concept the world will be modeled using the software blender.\\
 
-The modeling itself is very straight forward since one segment of the road can be modeled and extruded along a closed path. Unfortunately the export of this model with the configured texture is not as intuitive and requires a work around.\\
+\todo{rewrite blender problems maybe conclusion problems}
+The modeling itself is very straight forward since one segment of the road can be modeled and extruded along a closed path like pictured in \ref{simworld}. Unfortunately the export of this model with the configured texture is not as intuitive and requires a work around.\\
 
-Blender seems to not apply the texture if the model is exported directly as a colada file, so the file has to be exported as a Wavefront OBJ file. While gazebo can theoretically handle both formats the model editor of gazebo overrides the texture of the obj file perminately.\\
+Blender seems to not apply the texture if the model is exported directly as a colada file, so the file has to be exported as a Wavefront OBJ file. While gazebo can theoretically handle both formats the model editor of gazebo overrides the texture of the obj file permanentely.\\
 
 When importing the OBJ file back into blender and exporting it again as a colada file the texture remains attached to the mesh. The model editor in gazebo overrides this texture as well, but in this case the applied texture can be removed in the generated sdf file and the road texture remains.\\
 
@@ -49,14 +58,12 @@ A important step is to set the road to static in the sdf file so it is not affec
 
 Using gazebo a .world file can be created, that includes a sun, the modeled road and a black ground plane so the robot does not drop into infinity, if it leaves the road.\\
 
-The finished world then looks like pictured in Figure \ref{AppendixAdditionalTopics}
-
-The course of this road has been constructed so it features the following features:
+The course of this road has been constructed to feature the following elements:
 
 \begin{itemize}
-	\item left and right curves
-	\item tight and wide curves
-	\item long straight section
+	\item Left and right curves
+	\item Tight and wide curves
+	\item Long straight section
 \end{itemize}
 
 It will be the environment for most of the following tests.
@@ -71,21 +78,20 @@ It will be the environment for most of the following tests.
 Gazebo then can be started from a launch file by defining the generated world.\\
 
 \subsection{Plugins}
-The configuration of the sensor and drive plugins are fairly straight forward, based on the Tutorial page in the gazebo\cite{gazebotutorial}.\\
+The configuration of the sensor and drive plugins are fairly straight forward, based on the tutorial page in the Gazebo documentation\cite{gazebotutorial}.\\
 
 
 
-While trying to simulate the original camera of the robot based on its datasheets and the calibration parameters, it is observable that not all parameters of the camera\_info message can be set in the sdf file.
+While trying to simulate the original camera of the robot based on its datasheets (Appendix \ref{AppendixDataSheets}) and the calibration parameters, it is observable that not all parameters of the camera\_info message can be set in the sdf description of the plugin.
 
 Overall it does not seem to be possible to mimic the original camera, hence the camera will be modeled without distortion with the assumption that a calibrated camera and image rectification packages like ``image\_proc'' would produce a comparable result.
 
 
 
-\section{Filter}
 
-As described the filter incorporate nodes that process the data so it can be used by the navigation concept. The following sections will cover the configuration of the individual nodes and their testing.
 
-\subsection{road\_detection}
+
+\section{road\_detection}
 The road\_detection provided by Prof. Dr. Stefan Hörmann consist out of the following six nodes of which some need configuration to work with the specific camera setup.
 
 \begin{itemize}
@@ -105,227 +111,49 @@ To get a reliable result from the ``LineFinder'' the amount of tiles in x and y 
 In this scenario the robot drives on a wider road than usual for the carolo cup, so the parameter maxSegmentDistance has been increased to 0.9 m so the line segments of the middle line will still be matched to the same line.\\
 When the robot drives around a tight corner the road often starts at an angle relative to the robots x axis. The parameter ``maxStartAngleDiff'' has been increased to 75° to get more coverage in this case.\\
 
-While configuring the road detection the first step is to configure the orientation and position of the camera in the node``edgeProjector'' according to the definition in the urdf file. In addition to that the camera picture has to be cropped so the robot is not visible anymore in the picture.\\
+While configuring the road detection the first step is to configure the orientation and position of the camera in the node``edgeProjector'' according to the definition in the URDF file. In addition to that the camera picture has to be cropped so the robot is not visible anymore in the picture.\\
 
-In the ``LineTracker'' Node the distance, at which lines should be evaluated needs to be set, so the node does not see the edge of the picture, in which the distortion has the largest effect.\\
+In the ``LineTracker'' node the distance, at which lines should be evaluated needs to be set, so the node does not see the edge of the picture, in which the distortion has the largest effect.\\
 
 
-The RoadDetector Node needs an estimate for the lane width as a min and max value and a maximum angle between two individual road markings. These values are obviously specific for the environment.\\
+The RoadDetector node needs an estimate for the lane width as a min and max value and a maximum angle between two individual road markings. These values are obviously specific for the environment.\\
 
-To check if the roadDetection offers good enough results a long duration test will be performed, during which the output of the roadRecordEvaluation will be monitored. This displays the relation between the amount of recognized road and overall attempts to find a road.
+\section{MarkFreeSpace}
 
-As pictured in Figure \ref{longdurroad} the rrecordEvaluation converges to ca. 98.8\%. At the beginning the graph is not as reliable since there have not yet been enough measurements.\\
-The duration of the test was roughly 1.5 hours of continuous navigation without obstacles on the track pictured in ref{simworld}.
+The parameters in Table \ref{markfreespaceparams} have to be configured so the robot will have a tendency to the right lane but still is able to drive on the left lane, if necessary. This means, that the maxcost has to be significantly smaller than the lethal (254). The Minimum cost has to be smaller than the neutral cost of the global planner, which defaults to 50. To complicate the transition to the left lane, the inflation radius of it is set to 50\% of the right lane and the radius of the right cost removal  is set to 40\% to guarantee a free space on the right lane.\\
+\todo{lane lane lane trackside?}
+Around obstacles the cost removal is set to 1.5 meter so the obstacle avoidance will finish within the 2 meter guideline defined in the carolo cup rules\cite{carolocup}.\\
 
-\begin{figure}[H]
-	\includegraphics[width=\textwidth]{Pictures/long duration road detection test}
-	\caption{roadRecordEvaluation during long duration test}
-	\label{longdurroad}
-\end{figure}
+The distances between the inflated points and the cleared points has to be fairly large to limit the computational load. For the inflation only the last point of the polynomial will be inflated, since a uniform cost distribution along the road marking is not too important. The distance between the cleared cells is set to 0.5 meters, to guarantee a clear section on the right lane.
 
-
-
-\subsection{laser\_filter}
-
-
-The Lidar sensor is simulated with realistic noise and errors. This also introduces the well known edge errors in Laser distance measurement. Here the beam is split by an edge and the averaged measurement results in a measurement way behind the obstacle like further described in the paper of Klapa about the ``Edge effect and its impact upon the accuracy of 2D and 3D modeling using laser scanning'' \cite{edgeeffect}.\\
-
-When using a lidar to project obstacles in the costmap this error produces a lot of point. like lethal error obstacles that significately hinder navigation as visible in Figure \ref{unfiltered lidar}.
-
-\begin{figure}[H]
-	\includegraphics[width=\textwidth]{Pictures/Needs filtering of Laser}
-	\caption{Unfiltered Lidar data in costmap}
-	\label{unfiltered lidar}
-\end{figure}
-
-To remove these error measurements the ROS package ``laser\_filters'' can be used. Among many different filters plugins that can be constructed into a filter chain it features the filter plugin ``ScanShadowFilter'' that is developed to remove the veiling effect around obstacles cause by the edge effect \cite{laserfilters}.
-
-Figure \ref{lasercomp} shows a comparison between the filtered and not filtered laser scan, while keeping the data for 10 seconds. This allows to see the quickly jumping outliers caused by the edge effect. The filter seems well configured since the filtered points have no single outlier but still featuring a very good representation of the measured obstacle.
-
-\begin{figure}[H]
-	\includegraphics[width=\textwidth]{Pictures/LASERFILTER COMP}	
-	\caption{comparison between filtered and not filtered laser scan (red - filtered, turquoise - raw)}
-	\label{lasercomp}
-\end{figure}
-
-
-\subsection{robot\_localization}
-
-When looking at the odometry published by the differential drive plugin in Figure \ref{wheel odom} we notice, that it has rotational error.\\
-
-\begin{figure}
-	\includegraphics[width=\textwidth]{Pictures/rot error}
-	\caption{Odometry from wheel encoder}
-	\label{wheel odom}
-
-\end{figure}
-
-
-The following nodes require odometry:
-\begin{itemize}
-	\item cartographer
-	\item move\_base
-	\item posefinder
-\end{itemize}
-
-To improve the odometry the ROS package robot\_localization can be used. It provides an extended kalman filter for the fusion of sensor data for odometry.\\
-
-To counter the rotational error the IMU and the encoder-odometry will be fused.\\
-
-The IMU provides the following data:
-\begin{itemize}
-	\item orientation
-	\item angular velocity
-	\item linear acceleration
-\end{itemize}
-
-Based on the knowledge about the usecase of the IMU it does not make a lot of sense to fuse all of the data of the IMU and the kalman filter needs to be configured accordingly.\\
-
-
-At first the measurements for three dimensional use can be removed, which are:
-\begin{itemize}
-	\item pitch angle and velocity
-	\item roll angle and velocity
-	\item linear acceleration in z
-\end{itemize}
-
-The IMU is used for localization purposes, therefore the linear acceleration data are not interesting, since they would need to be integrated twice to be used for the pose. This would amplify every little error in acceleration over time making the odometry unreliable over time.\\
-
-Accordingly the only things fused from the imu are the yaw orientation and velocity.\\
-
-Just like the IMU data the integration of the wheel-odometry data has to be discussed which consist only from linear and angular velocity.\\
-Here the most interesting part is the y velocity since the robot is relying on differential drive steering and therefore not able to have y accelerations other than drift.\\
-
-In contrast to the acceleration values of the IMU the y velocity will be included since according to Tom Moore \cite{robotlocalizationconfiguration} it will give certainty that the robot has not moved in the y direction. Obviously the x and yaw velocity has to be included aswell.
-The position component of the wheel-odometry on the other hand will not be used, based on the fact that the position is already derived from the velocitys this would include the same data twice.\\
-
-Unfortunately this does not solve the problem of the odometry correction yet. As visible in Figure \ref{pose comparison wheel odom + IMU} the odometry of the extended kalman filter has large jumps in it compared to the wheel-odometry. When observing it in real time the ekf odometry starts to drift and jumps back after a certain amount of time.\\
-Looking at the linear velocities of both the ekf and the wheel odometry in Figure \ref{velocity comparison wheel odom + IMU} it is noticeable that the ekf filter does estimate a continuous acceleration, whereas the velocity of the wheel encoders actually decreases.\\
-
-
-
-\begin{figure}
-	\includegraphics[width=\textwidth]{Pictures/odom pose comp}
-	\caption{pose comparison wheel odom + IMU}
-	\label{pose comparison wheel odom + IMU}
-
-\end{figure}
-
-\begin{figure}
-	\includegraphics[width=\textwidth]{Pictures/comparison odom}
-	\caption{velocity comparison wheel odom + IMU}
-	\label{velocity comparison wheel odom + IMU}
-
-\end{figure}
-
-
-To fix this a logical approach is to include more data about the robots movement. Fortunately robot\_localization has an input for command velocities such as velocities produced by move base.\\
-It is very important to set the control timeout to a value that is larger than the cycle time of move\_base. Otherwise this will lead to translational offsets caused by too low estimate for the velocities like shown in Figure \ref{velwithcmd}.
-
-\begin{figure}
-	\includegraphics[width=\textwidth]{Pictures/velocity comp}
-	\caption{velocity offset caused by too low control timout}
-	\label{velocity offset}
-
-\end{figure}
-
-
-After the inclusion of the command velocity the acceleration limits can be set equal to the limits in the local planner.
-
-When observing both the pose and velocities again it is noticeable, that the odometry has drastically improved as pictured in Figure \ref{Odometry comparison wheel odomIMUcmdvel}, equally the velocities stay closer together as pictured in \ref{velocity comparison wheel odomIMUcmdvel}.
-
-\begin{figure}
-	\includegraphics[width=\textwidth]{Pictures/odom after one round}
-	\caption{Odometry comparison wheel odom + IMU + cmd\_vel}
-	\label{Odometry comparison wheel odomIMUcmdvel}
-
-\end{figure}
-\begin{figure}
-	\includegraphics[width=\textwidth]{Pictures/circle vel}
-	\caption{Velocity comparison with cmd\_vel}
-	\label{velwithcmd}
-\end{figure}
-
-
-
-\begin{figure}
-	\includegraphics[width=\textwidth]{Pictures/odom comp multiple rounds}
-	\caption{Odom comparison multiple rounds}
-	\label{Odom comparison multiple rounds}
-
-\end{figure}
-
-Even after four rounds the odometry has not gained a large error in both translational and rotational as pictured in Figure \ref{Odom comparison multiple rounds}, furthermore the difference between the original odometry of the wheel encoders to the odometry from robot localization is quite remarkable.
-
-After the rotantional and translational errors are marginal the scale of the odometry needs to be checked.
-To isolate the different errors from the scaling error a circular track is build with a radius of 10 meter. Since the turning radius is constant this isolates the rotational error which can be seen at the graph of the wheel odometry in Figure \ref{circular track}.\\
-The radius has to be chosen that high to display the potential error better.\\
-
-Since the robot is driving on the lane and not on the middle road marking the expected radius is 10,45 meter. When evaluating the EKF odom in Figure \ref{circular track} we see that the scale is very precise.
- 
-\begin{figure}[H]
-	\includegraphics[width=\textwidth]{Pictures/circle odom}
-	\caption{Odom comparison circular track}
-	\label{circular track}
-
-\end{figure}
-
-As a final test the odometry from the robot\_localization node is compared to the true position from the simulation.
-
- \begin{figure}[H]
-	\includegraphics[width=\textwidth]{Pictures/odom with true}
-	\caption{Comparison with true position}
-	\label{trueodom}
-\end{figure}
-
-The comparison in Figure \ref{trueodom} shows, that the filtered odometry has a slight translational error, but is very similar to the true odometry extracted from the simulation, hence it is good enough tuned. 
-\subsection{MarkFreeSpace}
-
-As discribed in the selection, this node has the task of supplying individual point clouds to the following three nodes:
-
-\begin{itemize}
-	\item dynamic\_cost\_layer costmap plugin
-	\item obstacle\_layer costmap plugin
-	\item cartographer
-\end{itemize}
-
-The cloudes for the obstacle\_layer and for cartographer are just different combinations of the points from the road detection and the lidar scanner this does not have any configuration options and is very basic and therefore will not be covered in detail.
-
-The dynamic\_cast\_layer of the global costmap will only inflate every point by the specified parameters of a cost distribution, so this node has to build a message as described in the selection section of this node.\\
-
-Since the data that needs to be sent to the costmap layer originates from two different sensors they have to be synced in time, meaning the newer signal needs to be transformed back in time to the last occurrence of the older signal and transformed in the base frame of the robot.\\
-
-After that the points can be merged into the point cloud. While doing so the cost parameters of the individual points gets set aswell. If a specific section needs to be removed out of the costmap layer these points will be appended to the end of the point vector of the pointcloud so they will not be overridden by other inflated points.\\
-
-To keep this node flexible in regards to the environment, the inflation radii for all points are derived from the current road width, which is supplied by the road\_detection and can be configured using rqt\_reconfigure. 
-In addition to that the distance between the inflated points of each road marking and the min and max values of the cost distribution can be configured.
+The final configuration is pictured in Appendix \ref{config}.
 
 
 \section{Cartographer}
 The goal of this node is to produce a map that gets more reliable over time.\\
 
-Unfortunately the data available for Cartographer is very self simillar, meaning a straight road will allways look the same and therefore does not have sufficient features for proper loop closure. In contrast to the points from the road detection the lidar can actually supply such features and will therefore be a good improvement for the resulting map.\\
+Unfortunately the data available for Cartographer is very self similar, meaning a straight road will always look the same and therefore does not have sufficient features for proper loop closure. In contrast to the points from the road detection the lidar can actually supply such features and will therefore be a good improvement for the resulting map.\\
 
-But it is not guaranteed that the lidar will even sees anything the SLAM algorithm has to work with the points of the road detection only aswell.
+But it is not guaranteed that the lidar will even sees anything the SLAM algorithm has to work with the points of the road detection only as well.\\
 
-The basic configuration of cartographer is purely based on the setup of the robot. In this case cartographer is supposed to use lidar and the points of the road detection at the same time. To reduce the amount of times one of the sensor doesn't see anything these will need to be merged in the markfreespace node and cartographer will receive one PointCloud2 only.\\
-To improve the map further the odometry supplied by the robot\_localization package is used as an input, aswell as the IMU.
+The basic configuration of Cartographer is purely based on the setup of the robot. In this case Cartographer is supposed to use lidar and the points of the road detection at the same time. To reduce the amount of times one of the sensor doesn't see anything, these will need to be merged in the markfreespace node and Cartographer will receive one PointCloud2 only.\\
+To improve the map further the odometry supplied by the robot\_localization package is used as an input, as well as the IMU.
 
-Furthermore cartographer will be set to 2d map building.
+Furthermore Cartographer will be set to 2d map building.
 
 
 \subsection{Tuning}
-With the basic configuration cartographer is not able to provide a reliable map and a tuning procedure has to be performed. Here the general recommendation of the tuning guide should be followed, which states to tune local SLAM first and disabling global slam while doing so \cite{cartographertuning}.
+With the basic configuration of Cartographer is not able to provide a reliable map and a tuning procedure has to be performed. Here the general recommendation of the tuning guide should be followed, which states to tune local SLAM first and disabling global slam while doing so \cite{cartographertuning}.
 To tune the local SLAM the parameter of the tracjectory builder have to be adjusted.\\
-The trajectory builder contains a scan-matcher, which will compare incoming sensor data a tries to align it with each other as good as possible. This behavior can be tuned by configuring the size of the linear and angular search windows and the weight for the rotation and translation of the incoming scans.\\
-One more important setting is the size of the sub maps. These can be adjusted by the amount of scans they contain. Since the submaps will consist out of the scan matched obstacles it is important to set the size of the submaps not to high, if the incoming data will be very self simillar. Otherwise the scanmatcher will combine too many scans while shifting them over each other since they look so simillar. This results in both rotational and translational error.\\
+The trajectory builder contains a scan-matcher, which will compare incoming sensor data and tries to align it with each other as good as possible. This behavior can be tuned by configuring the size of the linear and angular search windows and the weight for the rotation and translation of the incoming scans.\\
+One more important setting is the size of the sub maps. These can be adjusted by the amount of scans they contain. Since the submaps will consist out of the scan matched obstacles it is important to set the size of the submaps not to high, if the incoming data will be very self similar. Otherwise the scanmatcher will combine too many scans while shifting them over each other since they look so similar. This results in both rotational and translational error.\\
 As soon as the local SLAM produces a reliable result after multiple rounds of the robot the global SLAM can be activated and tuned.\\
 
-The global SLAM has two options of combining the submaps the loop-closure, which will check, if the robot was at this spot already, and a scanmatcher, which will try to match the submaps to the current scan. For both of these the weights can be adjusted individually and like in the local SLAM the size of the window for translation and rotation can be adjusted. Reducing the window size to a minimum is aswell important when dealing with self simillar data, so the submaps will not be shifted on top of each other. The size should be chosen so the global SLAM can still correct errors of the individual submaps 
-With these values and the submaps the global planner calculates constraints between the maps which will be valued between 0 and 1. These constraints can be blocked with a threshold value that will block constraints with a smaller value. like this the computation time can be drastically reduced and only the important constraints will be processed. Furthermore the weighting of the Pose of the odometry and the local SLAM can be adjusted, which can be usefull with bad odometry.
+The global SLAM has two options of combining the submaps the loop-closure, which will check, if the robot was at this spot already, and a scanmatcher, which will try to match the submaps to the current scan. For both of these the weights can be adjusted individually and like in the local SLAM the size of the window for translation and rotation can be adjusted. Reducing the window size to a minimum is important when dealing with self similar data, so the submaps will not be shifted on top of each other. The size should be chosen so the global SLAM can still correct errors of the individual submaps.\\
+With these values and the submaps the global planner calculates constraints between the maps which will be valued between 0 and 1. These constraints can be blocked with a threshold value that will block constraints with a smaller value. Like this the computation time can be drastically reduced and only the important constraints will be processed. Furthermore the weighting of the pose of the odometry and the local SLAM can be adjusted, which can be useful with bad odometry.
 
 \subsection{Testing}
-Testing of the SLAM will mostly consist out of a Black-Box Test meaning the only things that will be observed is the output and therefore the map.
+Testing of the SLAM will mostly consist out of a Black-Box test meaning the only things that will be observed is the output and therefore the map.
 The SLAM will be tested in the following cases:
 \begin{itemize}
 	\item Data purely from the road detection.
@@ -334,152 +162,21 @@ The SLAM will be tested in the following cases:
 	\item Data from road detection and lidar scan with obstacles on the road.
 \end{itemize}
 
-During all of these test the navigation will solely work with the predicted goals since it is yet unsure if the SLAM map is even usable. Furthermore the same tuning will be used for all tests.\\
-
-\textbf{Data purely from road detection:}\\
-The reason for this test is to check if the SLAM algorithm can handle Mapping with as least information as possible. This will make loop-closure difficult and cartographer has to work with the self simillar data only.\\
-The aim is, that the robot can drive multiple rounds, on the track and cartographer produces an optimized map with little unmatched submaps and well connected road markings.\\
-
-The following pictures contain the SLAM map after the \nth{1},\nth{2} and \nth{3} round.\\
-
-\begin{figure}[H]
-	\centering
-	\begin{subfigure}{.3\linewidth}
-		\includegraphics[width=\textwidth]{Pictures/1slamtest1}
-		\caption{First}
-		\end{subfigure}	
-	%\hskip2em
-	\begin{subfigure}{.3\linewidth}
-		\includegraphics[width=\textwidth]{Pictures/1slamtest2}
-		\caption{Second}
-	\end{subfigure}
-	%\hskip2em
-	\begin{subfigure}{.3\linewidth}
-		\includegraphics[width=\textwidth]{Pictures/1slamtest3}
-		\caption{Third}
-	\end{subfigure}
-
-	\caption{Slam Map of first three rounds}
-	\label{1slamtest}
-
-\end{figure}
-
-In the first round the map is not yet optimized. Like pictured in  Figure \ref{1slamtest} the road is not connected at the bottom after the first round, but has slight translational error.\\
-In the second round the road is closed, but some submaps are slightly misaligned which can be seen by the blurry road markings.\\
-This is well corrected in the third round and will improve from here on with every round, until the computational effort is too high.\\
-\textbf{Data purely from localization and lidar scan with obstacles on the side of the road:}\\
+During all of these tests the navigation will solely work with the predicted goals since it is yet unsure if the SLAM map is even usable. Furthermore the same tuning will be used for all tests.\\
 
 
-As pictured in Figure \ref{2slamtest} cartographer manages to close the road already after the first round. After the second round the road borders are slightly blurry, therefore the submaps are not yet perfectly matched. This blurriness slightly improves after the third round, but the submaps are not yet perfectly matched with each other.
-
-\begin{figure}[H]
-	\centering
-	\begin{subfigure}{.3\linewidth}
-		\includegraphics[width=\textwidth]{Pictures/2slamtest1}
-		\caption{\nth{1} round}
-		\end{subfigure}	
-	%\hskip2em
-	\begin{subfigure}{.3\linewidth}
-		\includegraphics[width=\textwidth]{Pictures/2slamtest2}
-		\caption{\nth{2} round}
-	\end{subfigure}
-	%\hskip2em
-	\begin{subfigure}{.3\linewidth}
-		\includegraphics[width=\textwidth]{Pictures/2slamtest3}
-		\caption{\nth{3} round}
-	\end{subfigure}
-
-	\caption{Slam Map of first three rounds}
-	\label{2slamtest}
-
-\end{figure}
-
-
-
-\textbf{Long duration test with both road detection and lidar scan with obstacles on the side of the road:}\\
-Cartographer seems to not merge old submaps but process all of them allways, which will progressively increase computational load. Since the SLAM is supposed to be used during mapping this can become important with a lot of sensor inputs that offer constraint potential and long runtime.
-The same setup as in the \nth{2} test will be used but the focus is on the moment, at which cartographer cannot optimize in real time caused by too many submaps and constraints.\\
-
-The map build by cartographer during this test (Figure \ref{3slamtest}) shows, that the map builds a very good representation of the real environment over the first four rounds.\\
-
-After the \nth{7} round it is noticeable, that the matching of submaps seems to take more and more time, which is visible by a trace of unmatched submaps, that are slightly shifted. This is caused by the computational burden caused by the amount of submaps. In this round the cartographer node already takes up 20\% of the cpu resources and increases continuously. At this point realtime scan and submap matching is not possible anymore, resulting in enormous processing delays.
-
-\begin{figure}[H]
-	\centering
-	\begin{subfigure}{.3\linewidth}
-		\includegraphics[width=\textwidth]{Pictures/2slamtest}
-		\caption{Real Environment}
-		\end{subfigure}	
-	%\hskip2em
-	\begin{subfigure}{.3\linewidth}
-		\includegraphics[width=\textwidth]{Pictures/2slamtest4}
-		\caption{\nth{4} round}
-	\end{subfigure}
-	%\hskip2em
-	\begin{subfigure}{.3\linewidth}
-		\includegraphics[width=\textwidth]{Pictures/2slamtest7}
-		\caption{\nth{7} round}
-	\end{subfigure}
-
-	\caption{Slam Map rounds during long duration test}
-	\label{3slamtest}
-
-\end{figure}
-
-
-\textbf{Data purely from localization and lidar scan with obstacles on the road:}\\
-This test is meant to be the worst case for the SLAM algorithm during navigation. The purpose is to check how cartographer handles data loss during obstacle avoidance and lane swapping.
-The obstacles will be placed in two corners and therefore in the edge case where the camera has the worst chance of seeing the road because of the steering angle, aswell as on the straight section of the road to cover the case where the camera can not see the road during merging on an other lane. Furthermore the obstacles will be placed far enough apart so the lidar has only vision on one at the same time.\\
-
-\begin{figure}[H]
-	\centering
-	\begin{subfigure}{.3\linewidth}
-		\includegraphics[width=\textwidth]{Pictures/3slamtest1}
-		\caption{\nth{1} round}
-		\end{subfigure}	
-	%\hskip2em
-	\begin{subfigure}{.3\linewidth}
-		\includegraphics[width=\textwidth]{Pictures/3slamtest4}
-		\caption{\nth{4} round}
-	\end{subfigure}
-	%\hskip2em
-	\begin{subfigure}{.3\linewidth}
-		\includegraphics[width=\textwidth]{Pictures/3slamtest10}
-		\caption{\nth{10} round}
-	\end{subfigure}
-
-	\caption{Slam Map rounds during long duration test}
-	\label{4slamtest}
-
-\end{figure}
-
-As pictured in \ref{4slamtest} cartographer struggles with aligning the submaps during obstacle avoidance and suffers from rotational error.\\
-Fortunately these errors are mostly corrected over the period of the next few rounds.\\ In the \nth{10} round however cartographer suffers from the same issue highlighted by the long duration test. Here it is clearly visible, that the queue of unmatched submaps is more than one entire round.\\
-
-\textbf{Discussion of the test results}\\
-As proven by the first two tests, cartographer is well tuned and the map would be useable for goal extraction. The submaps are well alligned and the map has no huge translational or rotational offset.\\
-
-The \nth{3} and \nth{4} test on the other hand display the limitations of the slam algorithm.\\
-When obstacles are located on the right lane the allignment of the submaps fails and a lot of submaps cant be attached to the rest of the map. After passing the obstacle the map gets better again, which would imply that the map could be good enough for goal extraction, if no obstacle is near the robot.\\
-The \nth{3} test proves that cartographer is not usable in SLAM mode during long time navigation an a circuit. This is caused by the amount of submaps that are close to each other and the resulting amount of constraints between each of them.
-
-Based on these test results it is not feasible to use the SLAM map for navigation with obstacles on the road, since the map is just not reliable enough and it is not certain of there are obstacles on the road or not. 
 
 \section{PoseFinder}
 
-The posefinder node has been developed according to Figure \ref{posefinder structure}.
+Starting with the goal extraction from the map, the parameter ``MapCostThresh'' will be set to 50, meaning the probability of being an obstacle has to be at least 50\%. The reduction radius has to be configured slightly larger than the road width, so the points extracted on both road markings can be combined, even if the road is slightly angled. With a road width of 1.8 meter, 2 meter will be chosen for this parameter.\\
 
-A good map would probably offer more potential to find a goal, that is either close or on the upcoming road than predictions made based on the currently visible road markings, hence this will be checked at first.\\
+The parameter ``GoalDist'' has to be configured smaller, that half of the costmap width so it can be guaranteed, that the goal is all ways located inside the bounds of the costmap to prevent errors. With a costmap width and hight of 9 meter the parameter is set to 4 meter.\\
 
-According to 
+To switch between the circle and line approximation the parameter ``CRadThresh'' is set to 6m. Setting this parameter higher will improve the performance in wide turns while the performance on straight sections will get worse and vice versa.\\
+
+Finally the GoalAngle for the circle approximation has to be configured. This is set to $0.3\pi$, meaning the window of trustworthiness of the circles is 60°.
 
 
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=.5\textwidth]{Pictures/posefinder diagram}
-	\caption{Posefinder internal structure}
-	\label{posefinder structure}
-\end{figure}
 
 
 \section{Costmaps}
@@ -495,25 +192,26 @@ Since the data here comes form the road detection and a lidar and both have a ce
 
 To fill theses gaps in the costmap the provided plugin inflation\_layer can be used. It will inflate only the lethal obstacles in the costmap with a configurable cost distribution.\\
 
-This setup is already enough for the local costmap, where as the global planner needs to fulfill the quest of changing lanes if necessary but all-ways preferring the right lane. For this a custom plugin will be needed that makes the transition to the left lane more expensive but still possible.
+This setup is already enough for the local costmap, where as the global planner needs to fulfill the quest of changing lanes if necessary but always preferring the right lane. For this a custom plugin will be needed that makes the transition to the left lane more expensive but still possible.
 
 
-The final layer plugin setup of the costmaps results in the following:
+The final layer plugin setup of the costmaps results in the following:\\
 
-\textbf{global costmap}
+\textbf{Global costmap:}
 \begin{itemize}
-	\item obstacle layer
-	\item inflation layer
-	\item dynamic cost layer
+	\item obstacle\_layer
+	\item inflation\_layer
+	\item dynamic\_cost\_layer
 \end{itemize}
 
-\textbf{local costmap}
+
+\textbf{Local costmap:}
 \begin{itemize}
-	\item obstacle layer
-	\item inflation layer
+	\item obstacle\_layer
+	\item inflation\_layer
 \end{itemize}
 
-The costmaps will both have the same size that should allways be larger than the distance, at which the goalfinder searches for goals.
+The costmaps will both have the same size that should always be larger than the distance, at which the goalfinder searches for goals.
 
 Since both costmaps are rolling window costmaps they will reference the continuos frame ``odom'' and move with the frame ``base\_footprint''.
 
@@ -521,46 +219,6 @@ Counterintuitively the robot radius needs to be set smaller than the robot actua
 This footprint is only considered by the global planner, which is only required to provide a rough path. The local planner has its own setting for a footprint, therefore the obstacle avoidance will still work as expected.
 
 The last remaining settings are the resolutions and the frequencies of the costmaps, which are chosen based on the performance of the navigation and the computational load.
-
-
-\subsection{dynamic\_cost\_layer}
-Enhancing to the plugins provided in the navigation stack this layer handles inflation of cells with a configurable cost decay and radius. While this seems to be similar to the provided inflation layer, this offers way more flexibility since it will inflate specific points by their individual radius and cost distribution and not just every lethal one by one fixed distribution.\\
-
-This behavior can be used to inflate the left road marking in the global costmap to force the global plan on the right side of the road. The plugin can also be used to inflate cells with zero cost, which is useful to guarantee a cost free right lane or to give some free space around obstacles located on the road.\\
-
-The layer receives a message of type sensor\_msgs::PointCloud on a configurable topic. This PointCloud is expected to feature Channel Values for the inflation radius, the maximal and the minimal cost for each individual point.\\
-
-Since we can't assume that the incoming points will be in the frame of the costmap the points in the costmap have to be transformed into the right frame using tf2.\\
-
-To minimize the computation load a bresenham based algorithm for the circle rasterization will be used.\cite{ComputerGraphics} Now the point symmetry around the cell can be used to further minimize the computational load and only $\frac{1}{8}$th of the circle has to be computed. The rasterization process can be described by the following image.\\
-
-\begin{figure}
-	\centering
-	\includegraphics[width=.5\textwidth]{Pictures/rasterization}
-	\caption{modified bresenham rasterization with efficient surface filling}
-	\label{rasterization}
-\end{figure}
-
-
-Adding to the typical behavior of the bresenham rasterization the area of the circle will be filled using the point symmetry and by skipping overlapping points of the lines like in Figure \ref{rasterization}. Here it is visible, that every row with the same color is only calculated once and then projected in all eight octants. The Black cells on the perimeter are the rasterized cells of the bresenham algorithm.
-
-The cells within the circles perimeter are filled with the cost specified for that point. For this the following linear decaying \nth{1} degree function will be used which requires the computation of the distance of the rasterized cell to the center of the circle.
-
-\[cost(distance)=maxcost-distance*\frac{maxcost-mincost}{radius}\]\\
-with: \[distance=\sqrt{cell.x^2+cell.y^2}\]
-
- Since this will still require the usage of a square root for each cell in the circle This will be optimized as well.\\
-
-The goal here is to use a function that contains only the squared distance, which still represents a decaying trend. This requirement rules out every function with an odd degree, as well as all functions with an x offset. This leaves all functions with an even degree from which we choose the \nth{2} degree function to reduce square operators. The comparison between the two functions can be seen in the picture below.
-
-\[cost(distance)=maxcost-distance^2*\frac{maxcost-mincost}{radius^2}\]\\
-
-\begin{figure}[H]
-	\begin{center}
-	\includegraphics[width=140mm]{Pictures/linear cost comparison}
-	\caption{cost distribution comparison with maxcost=250 mincost=100 radius=1}
-	\end{center}
-\end{figure}
 
 
 \section{Planners}
@@ -594,13 +252,14 @@ Another important setting is necessary since the global costmap is used as a rol
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\textwidth]{Pictures/borders}
-	\label{boardererror}
+	
 	\caption{global planner border error}
+	\label{boardererror}
 \end{figure}
 
 To prevent this behavior the not documented parameter ``outline\_map'' has to be set to false. The default value of this parameter is therefore changed in the forked version of the navigation stack.
 
-To make planning easier the parameter ``cost\_factor'' can be reduced. This parameter multiplies the cost of every cell in the costmap before planning which
+To make planning easier the parameter ``cost\_factor'' can be reduced. This parameter multiplies the cost of every cell in the costmap before planning, which
  would make the gradually decreasing cost of the dynamic\_cost\_layer redundant.
  
  
@@ -611,31 +270,77 @@ To make planning easier the parameter ``cost\_factor'' can be reduced. This para
  \begin{figure}[H]
  	\centering
  	\includegraphics[width=.7\textwidth]{Pictures/out of bounds}	
+ 	
+ 	\caption{potential field generated by global\_planner plugin}
  	\label{potentialfield}
- 	\caption{Potential field generated by global\_planner plugin}
  \end{figure}
 
 
 \subsection{teb\_local\_planner}
 
-Like the global planner the local planner has to be configured to comply to the tasks the local planner has.
+Like the global planner the local planner has to be configured to comply its tasks.
 
-A good starting point for the configuration are the example configurations in the repository of the developer of the planner\cite{tebtutorials}. They offer base configurations for both differntial drive and car like, aswell as omnidirectional robots.\\
+A good starting point for the configuration are the example configurations in the repository of the developer of the planner\cite{tebtutorials}. They offer base configurations for both differential drive and car like, aswell as omnidirectional robots.\\
 
 Unfortunately teb\_local\_planner only considers lethal cost and without any configuration would follow the global path very loosely resulting in e.g. cutting corners.\\ 
 
-To give the planner a tendency to follow the global planner closer the option ``viapoint'' can be used. This allows to set points at a configurable distance to each other on the global path, that attract the local path and therefore pull the local path and the robot to the correct lane. The attraction of the local path through the via points is then tuned so the robot drives roughly in the middle of the right lane, when no obstacle is on the road, but still can separate itself from the global path, when avoiding obstacles.\\
+To give the planner a tendency to follow the global planner closer the option ``viapoint'' can be used. This allows to set points at a configurable distance to each other on the global path, that pull the local path and the robot to the correct lane. The attraction of the local path through the via points is then tuned so the robot drives roughly in the middle of the right lane, when no obstacle is on the road, but still can separate itself from the global path, when avoiding obstacles.\\
 
-The parameter ``max\_global\_plan\_lookahead\_dist'' controls how much of the global plan is actually considered by the local planner. This parameter highly influences the computational load when setting the distance to larger values. Using shorted distances results in oscillations while driving straight, which is caused by the jumping global path.
+The parameter ``max\_global\_plan\_lookahead\_dist'' controls how much of the global plan is actually considered by the local planner. This parameter highly influences the computational load when setting the distance to larger values. Using shorted distances results in oscillations while driving straight, which is caused by the jumping global path.\\
 
 During testing teb\_local\_planner produced mostly good and feasible paths, but sometimes it generated loops along the global path, that would result in the robot turning in spot, before it follows the global path further. This leads to the robot changing the driving direction since after half of a turn the PoseFinder finds new goals, that are feasible.\\
 
 To suppress this behavior the weighting of the time component has been increased so the internal forces that contract the elastic band increase. This reduced the occurrence of this scenario significantly, but the local path takes longer, until it is on the right lane again, since the distance to the global path is now weighted less relative to the weight of the time component.
 
+\section{Odometry test}
+The odometry is a key component in the navigation concept, since it will be used by multiple nodes and is the representation of the robots position in its environment.\\
 
-\section{complete system test}
+Especially differential robots tend to have rotational error, when using the wheel-encoders to generate the odometry, since the wheels are forced to slip when the robot is turning.\\
 
-After the test of every node the entire concept has to be tested in order to check, if the concept works as anticipated.
+To test the quality of the odometry the robot will be placed in the world pictured in Figure \ref{simworld}. Now the robot is supposed to drive one round, during which the odometry of the robot will be tracked.\\
+
+In theory the trace of the odometry should be closed perfectly, after the robot performed its first round.\\
+
+\section{Lidar test}
+The lidar is the only sensor, which detects static obstacles in the surrounding of the robot. Hence the quality of the data has to be checked.
+
+To test the performance of the simulated lidar the robot will simply navigate in the world pictured in Figure \ref{simworld} and detect obstacles along the road.\\
+
+The quality of the data will be observed by looking at the raw data, aswell as the costmap, that receives the measurements of the lidar.\\
+
+The evaluation of the costmap is necesarry, since it will mark measurements of the lidar as lethal. With increasing noise the marked obstacles will be less precise, therefore the lidar has direct influence on the performance of the navigation even when obstacles are not on the road.
+
+The main focus of this test is sensor noise, since the Gazebo sensor plugin is configured based on the data sheet of the real lidar (Appendix \ref{AppendixDataSheets}).
+
+\section{road\_detection test}
+As the road\_detection is the only data source providing informations about the road it is crucial for successful navigation.
+
+To check if the roadDetection offers good enough results a long duration test will be performed, during which the output of the roadRecordEvaluation node will be monitored, which outputs the relation between the amount of recognized road and overall attempts to find a road.\\
+
+The robot will navigate on the course pictured in Figure \ref{simworld} until the output of the roadRecordEvaluation settles to a reliable result.
+
+\section{SLAM test}
+The SLAM algorithm chosen for the the concept is used in a very uncommon way, since it is not only receiving input from a real range finding sensor, but as well from the road detection.
+
+The data from the road detection is very self similar, meaning that for example a straight section of road will always look very similar independent of its position. The lack of details in the data from the road detection might complicate cartographers scan matching.\\
+
+\textbf{Data purely from road detection:}\\
+The reason for this test is to check if the SLAM algorithm can handle mapping with as least information as possible. This will make loop-closure difficult and cartographer has to work with the self similar data only.\\
+The aim is, that the robot can drive multiple rounds, on the track and cartographer produces an optimized map with little unmatched submaps and well connected road markings.\\
+
+\textbf{Long duration test with both road detection and lidar scan with obstacles on the side of the road:}\\
+Cartographer seems to not merge old submaps but process all of them always, which will progressively increase computational load. Since the SLAM is supposed to be used during mapping, this can become important with a lot of sensor inputs that offer constraint potential and long runtime.
+The same setup as in the \nth{2} test will be used but the focus is on the moment, at which cartographer cannot optimize in real time caused by too many submaps and constraints.\\
+
+
+\textbf{Data purely from localization and lidar scan with obstacles on the road:}\\
+This test is meant to be the worst case for the SLAM algorithm during navigation. The purpose is to check how cartographer handles data loss during obstacle avoidance and lane swapping.
+The obstacles will be placed in two corners and therefore in the edge case where the camera has the worst chance of seeing the road because of the steering angle, aswell as on the straight section of the road to cover the case where the camera can not see the road during merging on an other lane. Furthermore the obstacles will be placed far enough apart so the lidar has only vision on one at the same time.\\
+
+
+\section{Complete system test}
+
+After the previous tests the entire concept has to be tested in order to check, if the concept works as anticipated.
 
 Autonomous navigation in the following test scenarios will be performed:
 
@@ -652,66 +357,14 @@ During all test the following criteria will be monitored aswell as any unexpecte
 	\item obstacle avoidance distance to object
 \end{itemize}
 
-For these tests the exact position of the obstacles and the robot will be used for evaluation. This allows to determine the exact distance between the robot and obstacles, aswell as if the robot is still on the road. The distance to the right lane will be determined by using the polynomial provided by the road detection. A so called ``avoidance'' starts when the robot is just slightly over the middle line, without any hysteresis.
+For these tests the exact position of the obstacles and the robot will be used for evaluation. This allows to determine the exact distance between the robot and obstacles, aswell as if the robot is still on the road.\\
+The distance to the right lane will be determined by using the polynomial provided by the road detection. A so called ``avoidance'' starts when the robot is just slightly over the middle line, without any hysteresis.
 
-As defined in the rules of the carolo cup the merging onto the right lane during the obstacle avoidance is supposed to take place within the next two meters after an obstacle \ref{carolo-cup}.
+As defined in the rules of the carolo cup the merging onto the right lane during the obstacle avoidance is supposed to take place within the next two meters after an obstacle \cite{carolocup}.
 
 In all tests the robot will drive multiple rounds if possible to produce reliable results. The tests will be performed in the environment pictured in Figure \ref{simworld}.\\
 
-\textbf{No obstacles}\\
-The reasoning for this test is, to check how good the robot stays on the right lane. Therefore the robot drives in the described test environment, while the difference between the right lane and the robot center is monitored.
 
-\begin{figure}[H]
-	\includegraphics[width=\textwidth]{Pictures/final analysis no obstacle}
-	\caption{absolute error of the robot trajectory and rectified signal of the avoidance duration}
-	\label{noobserr}
-\end{figure}
-
-As pictured in \ref{noobserr} the robot has left the road markings once.\\
-
-\begin{figure}[H]
-	\begin{subfigure}{.5\linewidth}
-		\includegraphics[width=\textwidth]{Pictures/obstacle left final 2}
-		\caption{obstacles on left lane}
-	\end{subfigure}	
-	%\hskip2em
-	\begin{subfigure}{.5\linewidth}
-		\includegraphics[width=\textwidth]{Pictures/right final obs}
-		\caption{obstacles on right lane}
-	\end{subfigure}
-
-	\caption{Obstacle placement for both final tests}
-	\label{obstaclefinaltest}
-
-\end{figure}
-\textbf{Obstacles on left lane}\\
-This test is supposed to test the behavior of the navigation when obstacles block the view of the camera but the robot has to drive on the right side. In this test the robot will not drive as many rounds, since the goal is to observe the behavior when passing goals. In contrast to Figure \ref{noobserr} the distance to the nearest obstacle will be included in the graph, thus it can be determined, if the robot left the lane because it is near an obstacle or not, for this the true positions from the simulation will be used. The obstacle distance will only be tracked, if it is below 3 meters.
-\begin{figure}[H]
-	\includegraphics[width=\textwidth]{Pictures/left obs final obs2}
-	\caption{graph of left lane obstacle test}
-	\label{leftobsfinal}
-\end{figure}
-As visible in figure \ref{leftobsfinal} the robot left the right lane way more often compared to \ref{noobserr}.\\
-While observing the robot during driving it was noticeable, that the robot mostly left the lane, directly after it passed an obstacle in or directly after a corner. In this case the predicted goal pulls the robot into the middle of the road, since the costmap does not yet have information about the road and therefore will not force the global plan to the right lane. \\
-
-\textbf{Obstacles on right lane}\\
-
-To cover the possible scenarios of the carolo cup this test is supposed to be a realistic application with a few obstacle scattered over the entire environment on the right lane. Like in the last test the obstacles will be located as well in corners, as on straight sections of the road.
-
-\begin{figure}[H]
-	\includegraphics[width=\textwidth]{Pictures/right obs final obs}
-	\caption{graph of right lane obstacle test}
-	\label{rightobsfinal}
-\end{figure}
-
-
-As pictured in Figure \ref{obstaclefinaltest}, there are five obstacles on the right lane. These can be seen, when inspecting the graphe in Figure \ref{rightobsfinal}, which shows two rounds of the robot.
-
-Furthermore the graph shows, that the robot successfully avoided all obstacles in both rounds. Unfortunately the robot left the lane three times, when no obstacle in the proximity of it.\\
-
-In the middle of the graph the robot took particularly long for the avoidance.
-
-The graph also shows, that the avoidance is all ways finished before the robot is two meters away from the obstacle and therefore satisfies this condition.
 
 
 

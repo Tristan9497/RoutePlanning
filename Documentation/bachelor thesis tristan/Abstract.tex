@@ -1,10 +1,19 @@
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
-\label{abstract}
-This bachelor thesis is about the concept, setup/development and testing of a software stack used for the autonomous navigation in an environment defined by the rules of the carolo cup.\\
+\label{abstract}\todo{conceptual design instead of concept}
+This thesis covers the conceptual design, setup/development and testing of a software stack used for the autonomous navigation in an environment defined by the rules of the carolo cup.\\
 
- The aim of this stack is lane following and obstacle avoidance based on a sensor data of the environment. This thesis extends the work of Prof. Hörmann who provided the road detection and is supposed to be used by the carolo cup team of university aalen in the future. Even though the robot used in this thesis does not satisfy the rules of the carolo cup the stack should be configurable for different robots aswell.\\
+ The aim of this stack is lane following and obstacle avoidance based on sensoric environmental data. \todo{builds on?}This thesis extends the work of Prof. Hörmann who provided the road detection and is supposed to be used by the carolo cup team of University Aalen in the future.\\
+ The robot used in this work does not satisfy the rules of the Carolo-Cup since it is to big and used wrong steering techinque.\todo{goal of developing a. stack for different steering -> therefore arlo} This introduces the requirement of the navigation to be configurable for different robots.
+ 
+ Even though the robot used in this thesis does not satisfy the rules of the Carolo-Cup the stack should be configurable for different robots as well.\\
+\todo{aswell -> as well}
+The robot is equipped with a lidar, a camera, wheel encoders and an IMU (Inertia Measurement Unit). The data of these sensors will be filtered and processed using existent ros packages as well as newly developed ones. The resulting data will be fed into the navigation stack that then determines the best route for the robot using planner plugins that are configured to suit the specific tasks and the dynamic constraints of the robot.\\
 
-The robot is equipped with a lidar, a camera, wheel encoders and an imu. The data of these sensors will be filtered and processed using existent ros packages as well as newly developed ones. The resulting data will be fed into the navigation stack that then determines the best route for the robot.\\
+For testing purposes and to make quick hardware changes possible, the robot and the entire environment is simulated using gazebo.\\\todo{ein zwei sätze mehr}\todo{gazebo name consistency}
 
-Since there wasn't a driving robot available at the start of this thesis the task of simulating the robot with all of its sensor data and actors has been incorporated into the subject of this work. 
+The navigation finds new goals by predicting the future course of the road.\\
+
+The resulting navigation manages to drive the robot on a course while mostly staying on the right lane. During obstacle avoidance the robot often manages to avoid the obstacles, but in some cases the estimation of the future road course is too imprecise, which leads to the robot leaving the road.\\
+
+Since the resulting software stack is based on move\_base and its usage of plugins it is highly flexible for future iterations and improvements.\\
