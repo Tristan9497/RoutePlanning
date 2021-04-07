@@ -16,7 +16,7 @@ Both simulators seem to fulfill most of the defined requirements to a certain ex
 V-REP, aswell as Gazebo, offers plugins and URDF conversion for custom models, but an even bigger selection of mobile robot models. Which unfortunately can only be used as examples since the required models are very specific.\\
 In contrast to V-REP, Gazebo does not contain an integrated model editor.
 
-Based on computational load compared in the paper of L. Pitonakova et al. and the setup differences between both simulators, Gazebo will be chosen for this project. But both simulators would have been an excellent choice\cite{Pitonakova}.\todo{fix this}
+Based on computational load compared in the paper of L. Pitonakova et al. and the setup differences between both simulators, Gazebo is chosen for this project.
 
 \subsection{Model}
 Since Gazebo doesn't have an integrated model editor the freeware ``blender'' will be used for the model generation of the environment.
@@ -132,7 +132,7 @@ This suggest that a prediction for the possible upcoming road is needed. To a sm
 Since the road mostly consists of circles of varying radii and origins, it is self evident, that using the polynomials in their restricted domain to represent a section of a circle will give a better estimate.\\
 This circle can be calculated using the least square approach presented in Randy Bullocks paper on least square circle fitting \cite{leastsquarecircle}.\\
 
-In theory this approximation should work for almost straight sections as well, but the radius and the origin will trend to infinity and caused by the camera noise and the inaccuracy of the road detection the representation of the road will get worse and worse.\\\todo{rewrite tht the the}
+In theory this approximation should work for almost straight sections as well, but radius and origin will trend to infinity and caused by camera noise and the inaccuracy of the road detection the representation of the road will get worse and worse.\\
 
 Similar to the least square approach for the circles an approach for the lines can be formulated.
 
@@ -144,7 +144,7 @@ With the calculated points on both circles or on both lines the mean can be calc
 
 \subsection{Goal from map}
 
-If the robot is running a SLAM algorithm during the first, round the map should be finished once the robot passes its start point. Then the approximation is unnecessary since extracting goals directly from the slam map is more efficient and provides goals that will  always be on the road. Furthermore the distance, at which goals will be found can be increased, which results in higher speeds and/or lower planner frequencies.\\\todo{rewrite which which}
+If the robot is running a SLAM algorithm during the first, round the map should be finished once the robot passes its start point. Then the approximation is unnecessary since extracting goals directly from the slam map is more efficient and provides goals that will  always be on the road. Furthermore the distance, at which goals will be found can be increased, this results in higher speeds of the robot and/or lower planner frequencies.\\
 
 To find a goal in the SLAM map a circle rasterization algorithm will be used that is based on Bresenham rasterization \cite{ComputerGraphics}.\\
 
@@ -203,7 +203,7 @@ Based on the possibility of the obstacle\_layer of the costmap to raytrace marke
 
 For the slam algorithm both data sources need to be fused into one PointCloud2. Therefore the points need to be transformed into the same frame and into the same time, before being published.\\
 
-The data of the dynamic cost layer has to contain more information. It is in the form of a sensor\_msgs::PointCloud and contains channel values for point individual inflation radius, min-cost and max-cost. By giving the layer point individual inflation parameters the node provides information about the cells on the left road marking that need to have inflated cost values and information about the points on the right road marking that should have a clear zone around them. Furthermore the node provides points of obstacles that are on the road and clears the inflated cost around it. \todo{rewrite ?}Which will allow the global planner to make a plan for passing the obstacle.\\
+The data of the dynamic cost layer has to contain more information. It is in the form of a sensor\_msgs::PointCloud and contains channel values for point individual inflation radius, min-cost and max-cost. By giving the layer point individual inflation parameters the node provides information about the cells on the left road marking that need to have inflated cost values and information about the points on the right road marking that should have a clear zone around them. Furthermore the node provides points of obstacles that are on the road and clears the inflated cost around it. This cleared zone makes the generation of path past the obstacle easier for the global planner.\\
 
 The following parameters are offered for further configuration:
 
@@ -287,7 +287,7 @@ The plugin can be configured individually for the costmap using rqt\_reconfigure
 
 \section{SLAM}
 There are numerous lidar based SLAM packages available for ROS, but with the defined restriction of being able to use both, the points extracted from the road detection, as well as the lidar data, most of the lidar based SLAM algorithms wont work since they only accept one input of  the type sensor\_msgs::LaserScan.\\
-This rules out the popular options for Lidar based SLAM like gmapping and HectorSLAM and the well documented package Google Cartographer will be used based on its flexibility in regards to robot configurations.\\
+This rules out the popular options for lidar based SLAM like gmapping and HectorSLAM and the well documented package Google Cartographer will be used based on its flexibility in regards to robot configurations.\\
 This package comes with an advantage of being based on loop closure which might be useful when driving rounds in a circuit stile environment. The robot will drive the same route over and over again and thus the map could get more and more reliable over time even though the data is very self similar and not great for SLAM.\\
 
 Cartographer accepts numerous different input types including both PointCloud2 and LaserScan sensor messages. Additionally Cartographer can use provided odometry, aswell as IMU data to improve the result.\\
