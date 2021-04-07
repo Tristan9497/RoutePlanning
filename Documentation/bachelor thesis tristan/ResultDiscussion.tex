@@ -40,7 +40,7 @@ Just like the IMU data the integration of the wheel-odometry data has to be disc
 
 Here the most interesting part is the y velocity since the robot is relying on differential drive steering and therefore not able to have instantaneous y acceleration other than drift.\\
 
-In contrast to the acceleration values of the IMU the y velocity will be included since according to Tom Moore (the developer of robot\_localization) it will give certainty that the robot has not moved in the y direction\cite{robotlocalizationconfiguration}. Obviously the x and yaw velocity have to be included aswell.
+In contrast to the acceleration values of the IMU the y velocity will be included since according to Tom Moore (the developer of robot\_localization) it will give certainty that the robot has not moved in the y direction\cite{robotlocalizationconfiguration}. Obviously the x and yaw velocity have to be included as well.
 
 The position component of the wheel-odometry on the other hand will not be used, based on the fact that the position is already derived from the velocitys this would include the same data twice.\\
 
@@ -345,7 +345,7 @@ Furthermore the graph shows, that the robot successfully avoided all obstacles i
 
 In the middle of the graph the robot took particularly long for the avoidance.
 
-The graph also shows, that the avoidance is allways finished before the robot is two meters away from the obstacle and therefore satisfies this condition.
+The graph also shows, that the avoidance is always finished before the robot is two meters away from the obstacle and therefore satisfies this condition.
 
 \subsection{Discussion}
 

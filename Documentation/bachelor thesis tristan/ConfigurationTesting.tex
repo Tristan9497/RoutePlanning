@@ -269,7 +269,7 @@ To make planning easier the parameter ``cost\_factor'' can be reduced. This para
 
 Like the global planner the local planner has to be configured to comply its tasks.
 
-A good starting point for the configuration are the example configurations in the repository of the developer of the planner\cite{tebtutorials}. They offer base configurations for both differential drive and car like, aswell as omnidirectional robots.\\
+A good starting point for the configuration are the example configurations in the repository of the developer of the planner\cite{tebtutorials}. They offer base configurations for both differential drive and car like, as well as omnidirectional robots.\\
 
 Unfortunately teb\_local\_planner only considers lethal cost and without any configuration would follow the global path very loosely resulting in e.g. cutting corners.\\ 
 
@@ -295,7 +295,7 @@ The lidar is the only sensor, which detects static obstacles in the surrounding 
 
 To test the performance of the simulated lidar the robot will simply navigate in the world pictured in Figure \ref{simworld} and detect obstacles along the road.\\
 
-The quality of the data will be observed by looking at the raw data, aswell as the costmap, that receives the measurements of the lidar.\\
+The quality of the data will be observed by looking at the raw data, as well as the costmap, that receives the measurements of the lidar.\\
 
 The evaluation of the costmap is necesarry, since it will mark measurements of the lidar as lethal. With increasing noise the marked obstacles will be less precise, therefore the lidar has direct influence on the performance of the navigation even when obstacles are not on the road.
 
@@ -324,7 +324,7 @@ The same setup as in the \nth{2} test will be used but the focus is on the momen
 
 \textbf{Data purely from localization and lidar scan with obstacles on the road:}\\
 This test is meant to be the worst case for the SLAM algorithm during navigation. The purpose is to check how cartographer handles data loss during obstacle avoidance and lane swapping.
-The obstacles will be placed in two corners and therefore in the edge case where the camera has the worst chance of seeing the road because of the steering angle, aswell as on the straight section of the road to cover the case where the camera can not see the road during merging on an other lane. Furthermore the obstacles will be placed far enough apart so the lidar has only vision on one at the same time.\\
+The obstacles will be placed in two corners and therefore in the edge case where the camera has the worst chance of seeing the road because of the steering angle, as well as on the straight section of the road to cover the case where the camera can not see the road during merging on an other lane. Furthermore the obstacles will be placed far enough apart so the lidar has only vision on one at the same time.\\
 
 
 \section{Complete system test}
@@ -339,14 +339,14 @@ Autonomous navigation in the following test scenarios will be performed:
 	\item obstacles on right lane
 \end{itemize}
 
-During all test the following criteria will be monitored aswell as any unexpected problems during the test:
+During all test the following criteria will be monitored as well as any unexpected problems during the test:
 
 \begin{itemize}
 	\item distance to the right lane when no obstacle is close
 	\item obstacle avoidance distance to object
 \end{itemize}
 
-For these tests the exact position of the obstacles and the robot will be used for evaluation. This allows to determine the exact distance between the robot and obstacles, aswell as if the robot is still on the road.\\
+For these tests the exact position of the obstacles and the robot will be used for evaluation. This allows to determine the exact distance between the robot and obstacles, as well as if the robot is still on the road.\\
 The distance to the right lane will be determined by using the polynomial provided by the road detection. A so called ``avoidance'' starts when the robot is just slightly over the middle line, without any hysteresis.
 
 As defined in the rules of the Carolo-Cup the merging onto the right lane during the obstacle avoidance is supposed to take place within the next two meters after an obstacle \cite{carolocup}.
