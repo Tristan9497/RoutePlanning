@@ -17,10 +17,9 @@ Extending the work of Prof. Dr-Ing. Stefan Hörmann on his ROS based road detect
 
 \section{Structure}
 
-This thesis is structured into four main parts.
+This thesis is structured into four main parts, while Chapter \ref{theoretical_background} provides information about the needed theoretical knowledge.
 
-\todo{chapter 2 ?}
-\todo{step step procedure}
+
 Chapter \ref{Concept} covers the initial planning of the navigation in form of a concept. It incorporates initial approaches and will give a broad introduction to the structure of the navigation.\\
 
 In chapter \ref{Selection} the selection of the nodes of the base structure of the stack will be discussed. Furthermore the development of all custom nodes will be covered
@@ -34,10 +33,10 @@ Finally the results of the tests will be discussed in chapter \ref{resultanddisc
 
 Before diving into the details and developing concepts the guidelines and requirements of the project have to be defined.
 
-This thesis aims for a navigation of a robot in an environment that is similar to the carolo cup but deviates at some parts.
+This thesis aims for a navigation of a robot in an environment that is similar to the Carolo-Cup but deviates at some parts.
 
 \subsection{Robot and environment}
-While the robot itself has very strict regulations in the carolo cup these will not all apply here.\\
+While the robot itself has very strict regulations in the Carolo-Cup these will not all apply here.\\
 
 For testing purposes the entire robot with all sensors and the drive controller will be simulated.
 
@@ -52,7 +51,7 @@ The robot that will be used is a differential drive robot from the company Paral
 \end{figure}
 
 
-Equally to the carolo cup regulations the lane width is defined by double robot width and will be set to 900mm. 
+Equally to the Carolo-Cup regulations the lane width is defined by double robot width and will be set to 900mm. 
 
 The robot will be equiped with the following sensors:
 
@@ -68,7 +67,7 @@ Additional it will feature a motor driver for differential drive steering.
 \section{Software}
 Generally the software will be developed for ROS-Noetic.\\
 The programming language will be mostly C++ to allow uniformity in the software stack.\\
-Like in the carolo cup the software is not supposed to have any connection to systems outside of the robot.\\
+Like in the Carolo-Cup the software is not supposed to have any connection to systems outside of the robot.\\
 
 \subsection{Simulation}
 Since the environment will be simulated the simulator has to have the following features.

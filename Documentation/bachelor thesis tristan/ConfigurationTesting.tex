@@ -1,6 +1,6 @@
 \chapter{Configuration and testing}
 \label{configurationandtesting}
-\todo{differntiate betwee simulation and navigation 2 chapters?}
+\todo{differentiate betwee simulation and navigation 2 chapters?}
 
 This chapter will contain the configuration of all nodes of the concept. In addition the newly developed nodes have to be tested as well as the entire navigation concept.
 
@@ -35,10 +35,9 @@ The resulting robot then looks like pictured in Figure \ref{arlourdf}.
 	\label{arlourdf}
 \end{figure}
 
-\todo{add and ref tf tree of running system}
 
 Using rqt\_tf\_tree the tf tree can be checked for conformity to ``REP 105'' and the concept.\\ 
-The tf\_tree of the running concept is pictured in Figure \ref{}.\\
+The tf\_tree of the running concept is pictured in Appendix \ref{config}.\\
 As visible the fixed frame of the setup is ``map'' the following transform to the ``odom'' frame is published by cartographer. The transformation between the ``odom'' frame and ``base\_footprint'' then gets published by robot\_localization here named ``ekf\_se''.\\
 The following transformations and frames are published by ``robot\_state\_publisher'' according to the URDF of the robot.
 
@@ -47,16 +46,7 @@ The setup of the simulation consist out of the modeling of the world, the conver
 
 As described in the concept the world will be modeled using the software blender.\\
 
-\todo{rewrite blender problems maybe conclusion problems}
-The modeling itself is very straight forward since one segment of the road can be modeled and extruded along a closed path like pictured in \ref{simworld}. Unfortunately the export of this model with the configured texture is not as intuitive and requires a work around.\\
-
-Blender seems to not apply the texture if the model is exported directly as a colada file, so the file has to be exported as a Wavefront OBJ file. While gazebo can theoretically handle both formats the model editor of gazebo overrides the texture of the obj file permanentely.\\
-
-When importing the OBJ file back into blender and exporting it again as a colada file the texture remains attached to the mesh. The model editor in gazebo overrides this texture as well, but in this case the applied texture can be removed in the generated sdf file and the road texture remains.\\
-
-A important step is to set the road to static in the sdf file so it is not affected by the gravity of the simulation.
-
-Using gazebo a .world file can be created, that includes a sun, the modeled road and a black ground plane so the robot does not drop into infinity, if it leaves the road.\\
+The modeling itself is very straight forward since one segment of the road can be modeled and extruded along a closed path like pictured in \ref{simworld}. 
 
 The course of this road has been constructed to feature the following elements:
 
@@ -108,7 +98,7 @@ The edgeDetector is the first node of the package and extracts the edges from th
 The edgeProjector has the task to project the image on the 2D surface and therefore must know the position and orientation of the camera relative to the ground. While doing so it rectifies the image according to the provided camera information, which should contain the calibration parameters of the setup.
 
 To get a reliable result from the ``LineFinder'' the amount of tiles in x and y has been increased to get more precise lines from the internally used hough transformation.\\
-In this scenario the robot drives on a wider road than usual for the carolo cup, so the parameter maxSegmentDistance has been increased to 0.9 m so the line segments of the middle line will still be matched to the same line.\\
+In this scenario the robot drives on a wider road than usual for the Carolo-Cup, so the parameter maxSegmentDistance has been increased to 0.9 m so the line segments of the middle line will still be matched to the same line.\\
 When the robot drives around a tight corner the road often starts at an angle relative to the robots x axis. The parameter ``maxStartAngleDiff'' has been increased to 75° to get more coverage in this case.\\
 
 While configuring the road detection the first step is to configure the orientation and position of the camera in the node``edgeProjector'' according to the definition in the URDF file. In addition to that the camera picture has to be cropped so the robot is not visible anymore in the picture.\\
@@ -120,9 +110,8 @@ The RoadDetector node needs an estimate for the lane width as a min and max valu
 
 \section{MarkFreeSpace}
 
-The parameters in Table \ref{markfreespaceparams} have to be configured so the robot will have a tendency to the right lane but still is able to drive on the left lane, if necessary. This means, that the maxcost has to be significantly smaller than the lethal (254). The Minimum cost has to be smaller than the neutral cost of the global planner, which defaults to 50. To complicate the transition to the left lane, the inflation radius of it is set to 50\% of the right lane and the radius of the right cost removal  is set to 40\% to guarantee a free space on the right lane.\\
-\todo{lane lane lane trackside?}
-Around obstacles the cost removal is set to 1.5 meter so the obstacle avoidance will finish within the 2 meter guideline defined in the carolo cup rules\cite{carolocup}.\\
+The parameters in Table \ref{markfreespaceparams} have to be configured so the robot will have a tendency to the right lane but still is able to drive on the left lane, if necessary. This means, that the maxcost has to be significantly smaller than the lethal (254). The Minimum cost has to be smaller than the neutral cost of the global planner, which defaults to 50. To complicate the transition to the left lane, the inflation radius of it is set to 50\% of the right lane and the radius of the right cost removal  is set to 40\% to guarantee a free space on the right road side.\\
+Around obstacles the cost removal is set to 1.5 meter so the obstacle avoidance will finish within the 2 meter guideline defined in the Carolo-Cup rules\cite{carolocup}.\\
 
 The distances between the inflated points and the cleared points has to be fairly large to limit the computational load. For the inflation only the last point of the polynomial will be inflated, since a uniform cost distribution along the road marking is not too important. The distance between the cleared cells is set to 0.5 meters, to guarantee a clear section on the right lane.
 
@@ -360,7 +349,7 @@ During all test the following criteria will be monitored aswell as any unexpecte
 For these tests the exact position of the obstacles and the robot will be used for evaluation. This allows to determine the exact distance between the robot and obstacles, aswell as if the robot is still on the road.\\
 The distance to the right lane will be determined by using the polynomial provided by the road detection. A so called ``avoidance'' starts when the robot is just slightly over the middle line, without any hysteresis.
 
-As defined in the rules of the carolo cup the merging onto the right lane during the obstacle avoidance is supposed to take place within the next two meters after an obstacle \cite{carolocup}.
+As defined in the rules of the Carolo-Cup the merging onto the right lane during the obstacle avoidance is supposed to take place within the next two meters after an obstacle \cite{carolocup}.
 
 In all tests the robot will drive multiple rounds if possible to produce reliable results. The tests will be performed in the environment pictured in Figure \ref{simworld}.\\
 

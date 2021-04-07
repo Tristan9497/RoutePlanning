@@ -203,7 +203,7 @@ Based on the possibility of the obstacle\_layer of the costmap to raytrace marke
 
 For the slam algorithm both data sources need to be fused into one PointCloud2. Therefore the points need to be transformed into the same frame and into the same time, before being published.\\
 
-The data of the dynamic cost layer has to contain more information. It is in the form of a sensor\_msgs::PointCloud and contains channel values for point individual inflation radius, min-cost and max-cost. By giving the layer point individual inflation parameters the node provides information about the cells on the left road marking that need to have inflated cost values and information about the points on the right road marking that should have a clear zone around them. Furthermore the node provides points of obstacles that are on the road and clears the inflated cost around it. \todo{rewrite ?}Which will allow the global planner to make a plan for passing the obstacle.\\
+The data of the dynamic cost layer has to contain more information. It is in the form of a sensor\_msgs::PointCloud and contains channel values for point individual inflation radius, min-cost and max-cost. By giving the layer point individual inflation parameters the node provides information about the cells on the left road marking that need to have inflated cost values and information about the points on the right road marking that should have a clear zone around them. Furthermore the node provides points of obstacles that are on the road and clears the inflated cost around it. This cleared zone makes the generation of path past the obstacle easier for the global planner.\\
 
 The following parameters are offered for further configuration:
 
@@ -287,7 +287,7 @@ The plugin can be configured individually for the costmap using rqt\_reconfigure
 
 \section{SLAM}
 There are numerous lidar based SLAM packages available for ROS, but with the defined restriction of being able to use both, the points extracted from the road detection, as well as the lidar data, most of the lidar based SLAM algorithms wont work since they only accept one input of  the type sensor\_msgs::LaserScan.\\
-This rules out the popular options for Lidar based SLAM like gmapping and HectorSLAM and the well documented package Google Cartographer will be used based on its flexibility in regards to robot configurations.\\
+This rules out the popular options for lidar based SLAM like gmapping and HectorSLAM and the well documented package Google Cartographer will be used based on its flexibility in regards to robot configurations.\\
 This package comes with an advantage of being based on loop closure which might be useful when driving rounds in a circuit stile environment. The robot will drive the same route over and over again and thus the map could get more and more reliable over time even though the data is very self similar and not great for SLAM.\\
 
 Cartographer accepts numerous different input types including both PointCloud2 and LaserScan sensor messages. Additionally Cartographer can use provided odometry, aswell as IMU data to improve the result.\\
