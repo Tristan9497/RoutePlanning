@@ -352,8 +352,7 @@ The graph also shows, that the avoidance is allways finished before the robot is
 The results of the complete system tests show, that the navigation performs really well during simple lane following, since the road detection recognizes the road almost always as shown in the road\_detection test.
 
 While observing the robot during driving past obstacles on the left lane it was noticeable, that the robot mostly left the lane, directly after it passed an obstacle in or directly after a corner.\\ 
-In this case the predicted goal pulls the robot into the middle of the road since the costmap does not has information about the road and therefore will not force the global plan to the right lane. The approximated goal is still constructed with the circle approximation since the upcoming straight section has not been seen.\\
-\todo{it does not has or have}
+In this case the predicted goal pulls the robot into the middle of the road since the costmap does not have information about the road and therefore will not force the global plan to the right lane. The approximated goal is still constructed with the circle approximation since the upcoming straight section has not been seen.\\
 
 Obstacle avoidance suffers from a similar problem. As shown in the \nth{3} test. Here it is visible, that the robot passes the obstacle nicely, but afterwards drives along the center of the road, which causes the spikes of the rectified signal visible in Figure \ref{rightobsfinal} after the avoidance. As soon as the robot has passed an obstacle fully, it drives straight to the predicted goal while waiting on new data from the roadDetection, which often causes unnecessary long avoidance periods.
 

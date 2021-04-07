@@ -106,10 +106,8 @@ The following simplified schematic is the concept of the navigation stack setup.
 
 
 The PoseFinder will first find a goal based on the current state of the map and the sensor data and sends it to the navigation stack. This uses the filtered sensor data to determine, where the robot is, where it is allowed to go and where not. The cascading planners then determine first a rough, collision free, path on the correct lane and then a path that is possible for the kinematics of the robot. This path then gets converted to velocity commands and sent to the differential drive controller.\\
-This procedure will be repeated at a configurable frequency so the robot will never reach its finish. 
 
-This is necessary since it is unknown if the goal is in the space that has not been explored yet, is perfectly on the future road or if it is in an obstacle.\todo{rewrite}
-
+The goal found by the approximation unfortunately is not certainly on the road. It could as well be in an obstacle or of the road, which would make complete navigation to the goal impossible. Hence this procedure will be repeated at a configurable frequency, the robot will never reach its finish. 
 
 
 
