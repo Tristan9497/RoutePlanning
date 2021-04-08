@@ -81,13 +81,13 @@ When observing the results again it is noticeable, that the odometry has drastic
 
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/odom after one round}
-	\caption{Odometry comparison wheel odom + IMU + cmd\_vel}
+	\caption{odometry comparison wheel odom + IMU + cmd\_vel}
 	\label{Odometry comparison wheel odomIMUcmdvel}
 
 \end{figure}
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/circle vel}
-	\caption{Velocity comparison with cmd\_vel}
+	\caption{velocity comparison with cmd\_vel}
 	\label{velwithcmd}
 \end{figure}
 
@@ -95,7 +95,7 @@ When observing the results again it is noticeable, that the odometry has drastic
 
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/odom comp multiple rounds}
-	\caption{Odom comparison multiple rounds}
+	\caption{odom comparison multiple rounds}
 	\label{Odom comparison multiple rounds}
 
 \end{figure}
@@ -110,7 +110,7 @@ Since the robot is driving on the lane and not on the middle road marking the ex
  
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/circle odom}
-	\caption{Odom comparison circular track}
+	\caption{odom comparison circular track}
 	\label{circular track}
 
 \end{figure}
@@ -119,7 +119,7 @@ As a final test the odometry from the robot\_localization node is compared to th
 
  \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/odom with true}
-	\caption{Comparison with true position}
+	\caption{comparison with true position}
 	\label{trueodom}
 \end{figure}
 
@@ -135,7 +135,7 @@ When using a ``realistic'' lidar to project obstacles into the costmap this erro
 
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/Needs filtering of Laser}
-	\caption{Lidar Test result}
+	\caption{lidar Test result}
 	\label{unfiltered lidar}
 \end{figure}
 
@@ -185,7 +185,7 @@ The following pictures contain the SLAM map after the \nth{1},\nth{2} and \nth{3
 		\caption{Third}
 	\end{subfigure}
 
-	\caption{Slam Map of first three rounds}
+	\caption{slam map of first three rounds}
 	\label{1slamtest}
 
 \end{figure}
@@ -216,7 +216,7 @@ As pictured in figure \ref{2slamtest} Cartographer manages to close the road alr
 		\caption{\nth{3} round}
 	\end{subfigure}
 
-	\caption{Slam Map of first three rounds}
+	\caption{slam map of first three rounds}
 	\label{2slamtest}
 
 \end{figure}
@@ -246,7 +246,7 @@ After the \nth{7} round it is noticeable, that the matching of submaps seems to 
 		\caption{\nth{7} round}
 	\end{subfigure}
 
-	\caption{Slam Map rounds during long duration test}
+	\caption{slam map rounds during long duration test}
 	\label{3slamtest}
 
 \end{figure}
@@ -271,7 +271,7 @@ After the \nth{7} round it is noticeable, that the matching of submaps seems to 
 		\caption{\nth{10} round}
 	\end{subfigure}
 
-	\caption{Slam Map rounds during long duration test}
+	\caption{slam map rounds during long duration test}
 	\label{4slamtest}
 
 \end{figure}
@@ -302,8 +302,7 @@ The reasoning for this test is, to check how good the robot stays on the right l
 	\label{noobserr}
 \end{figure}
 
-As pictured in Figure \ref{noobserr} the robot has left the road markings once.\\\todo{more info and description}
-
+As pictured in Figure \ref{noobserr} the robot has left the road markings once, caused by the bug of the global planner described in Section \ref{globalplannertest}. During all other rounds the robot stayed on the right lane while having slight oscillations.\\
 \begin{figure}[H]
 	\begin{subfigure}{.5\linewidth}
 		\includegraphics[width=\textwidth]{Pictures/obstacle left final 2}
@@ -315,7 +314,7 @@ As pictured in Figure \ref{noobserr} the robot has left the road markings once.\
 		\caption{obstacles on right lane}
 	\end{subfigure}
 
-	\caption{Obstacle placement for both final tests}
+	\caption{obstacle placement for both final tests}
 	\label{obstaclefinaltest}
 
 \end{figure}
