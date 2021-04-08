@@ -8,9 +8,8 @@ This trend can also be seen in other industries  in which autonomous robots are 
 
 
 The event ``Carolo-Cup'' hosted by the Technical University of Braunschweig offers a place for teams to compete against each other with their autonomous 1:10 model cars and therefore supports the development of the research field itself. This creates an incentive to participate to a lot of universities in Germany and beyond.\\
-\todo{existing, goal and this work relations }
 
-At the moment of the start of this work the existing part was solely the roadDetection developed by Prof. Dr.-Ing. Stefan Hörmann with the goal to use it in the Carolo-Cup. To use it, a software stack has to be build around it, that uses the data to navigate the robot on the course, the development of this stack is addressed in this thesis.
+At the moment of the start of this work the existing part was solely the roadDetection developed by Prof. Dr.-Ing. Stefan Hörmann with the goal to use it in the Carolo-Cup. To use it, a software stack has to be build around it, that uses the data to navigate the robot on the course, the development and configuration of the stack is addressed in this thesis.
 
 
 The navigation of a mobile system from ground up includes a wide range of topics and problems, such as sensor data filtering and combination to generate a stable and reliable odometry, or path finding in an environment including obstacles with respect to the dynamics of the robot.\\
@@ -94,15 +93,13 @@ To get the best correlation between simulation and real world, the simulator sho
 \subsection{Navigation}
 The navigation is supposed to cover free driving without obstacles, as well as with static obstacles avoidance. It will not cover dynamic obstacles, road sign detection or driving situations like intersections and parking.\\
 
-Development of an entire stack exceeds the content of this thesis, so an open source navigation project will be used which needs to satisfy the following requirements.
+
+The robot navigates in a totally unknown environment, while the navigation needs to be flexible to the kinematics of the robot, the development of an entire stack that satisfies this exceeds the content of this thesis, so an open source navigation project will be used which needs to satisfy the following requirements. 
 
 \begin{itemize}
-	\item Sensor input.
 	\item Goal pose input
 	\item 2D mobile platform support usage of the conventional drive systems like ackermann and differential
 	\item Path planning in respect to the robots kinematic and shape, as well as the environment detected by the sensors.
 	\item Path planning and navigation in totally unknown environments
 	\item Velocity output as linear and angular velocities
 \end{itemize}
-
-\todo{beschreibung}

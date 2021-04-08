@@ -7,7 +7,7 @@ Furthermore it provides tools and libraries to write, build and run code across 
 
 \todo{ros relevance}
 \subsection{packages}
-This is the main structure for software in ROS. A package can contain many different nodes\todo{node consistency}, libraries, service etc.. Furthermore it is the smallest possible structure that can be build by ROS\cite{rosconcepts}.
+This is the main structure for software in ROS. A package can contain many different nodes, libraries, service etc.. Furthermore it is the smallest possible structure that can be build by ROS\cite{rosconcepts}.
 \subsection{nodes}
 Nodes are processes that perform computation. Since ROS is very fine granular, a system, that controls an entire robot can contain many nodes that are connected using topics. A package can be written with the use of one of the client libraries roscpp or rospy\cite{rosconcepts}.
 \subsection{plugins}
@@ -194,10 +194,14 @@ When the laser beam used for measurement is directly at an edge of an obstacle, 
 \section{Carolo-Cup}
 The Carolo-Cup is an event hosted by University Braunschweig and is an event in which the teams of many different universities can compete against each other and present their work and progress in the field of autonomous driving.
 
-There are two different levels of difficulty the carolo basic cup and the carolo master cup\cite{carolocup}.
+The Cup offers a fair ground by reducing environmental influence like lighting but creates scenarios based on a realistic environment for the navigation. Judges from science and finance related fields will rate the individual teams based on static and dynamic events.
 
-\todo{ warum sind die environmental conditions des Carolo-Cups sinnvoll zu nutzen/ zu erforschen? (in 2.4?)
-}
+Static events are the concept, technical approaches, project management, presentation and the agenda of the teams, whereas the dynamic events are different for the two different difficulty levels.
+
+The Basic-Cup covers free driving with and without static obstacles, as well as parking. The Master-Cup adds more difficulty by offering dynamic obstacles, traffic signs and variations of the road markings for no pass or express zones\cite{carolocup}\cite{vdecarolo}.
+
+
+
 
 
 
