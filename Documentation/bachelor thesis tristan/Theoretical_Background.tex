@@ -1,9 +1,8 @@
-\chapter{Related Work and Theoretical background}
+\chapter{Theoretical background}
 \label{theoretical_background}
-This chapter will give insight on projects and publications in this field to formulate a research question. Furthermore the chapter covers the needed theoretical background about the topics discussed in this thesis.
+This chapter covers the needed theoretical background about the topics discussed in this thesis.
 \section{Related Work}
-
-\subsection{Navigation}
+The following content provides information to outline and to describe the related research area. As autonomous navigation is the core area 
 
 
 \section{ROS}
@@ -84,7 +83,7 @@ The most important REP's in this project are REP 103 and REP 105.
 	
 	
 	
-\subsection{TF}
+\subsection{tf}
 In most cases robots that are controlled by ROS have a tf\_tree. This tree is the coordinate frame structure of the robot. This tf\_tree includes a coordinate frame for every sensor and actor.\\
  The structure in most trees of mobile platforms is quite similar which is due to the REP105 (ROS enhanced proposals). This contains a definition of recommended names for the robot frames and their order in the tf tree. But it should be noted that not every frame that is defined in the norm has to be in every tree. The basic structure mostly starts with a fixed frame. This frame will be the not changing frame in the environment. For moving robots this is often earth, map or odom, while in stationary robots this can even be base\_link.\\
  
@@ -100,10 +99,10 @@ The tree is normally build up like in Figure \ref{stdtftree}.
 
 TF2 is the successor of TF and is a very powerful tool in the ROS environment. With this it is possible to transform sensor\_msgs and geometry\_msgs from one frame in another. Furthermore it offers the possibility to transform old data into the present or at any other point in the past.
 
-\subsubsection{URDF and Xacro}
+\subsection{URDF and Xacro}
 The robot hardware description consists of one or more URDF(Unified Robot Description Format) based XML files. Their purpose is to define the geometric shape of every part of the robot. 
 
-\subsubsection{robot\_state\_publisher}
+\subsection{robot\_state\_publisher}
 	This package uses the robot hardware description and builds up the tf\_tree using static\_transform\_publishers.
 
 
@@ -204,7 +203,92 @@ Static events are the concept, technical approaches, project management, present
 
 The Basic-Cup covers free driving with and without static obstacles, as well as parking. The Master-Cup adds more difficulty by offering dynamic obstacles, traffic signs and variations of the road markings for no pass or express zones\cite{carolocup} \cite{vdecarolo}.
 
+Robot restrictions relevant in this thesis:
+\begin{itemize}
+	\item \textbf{Scale} 1:10
+	\item \textbf{Width} - max. 300mm
+	\item \textbf{Wheel base} - min. 200mm
+	\item \textbf{Steering} - at least one axle must be steerable
+\end{itemize}
 
+Track restrictions relevant in this thesis:
+\begin{itemize}
+	\item \textbf{lane width} 350-450mm
+	\item \textbf{sharpest turn radius} 1000mm
+\end{itemize}
+
+\chapter{Requirements}
+\label{requirements}
+
+This chapter defines requirements for parts of this work, based on the scope of the thesis and the theoretical background.
+
+\section{Robot and environment}
+
+The robot itself is very restricted in the Carolo-Cup in size and steering technique. In this thesis this these restrictions will be ignored, in order to use the default mobile robotic platform Arlo from the manufacturer Parallax, pictured in Figure \ref{arlore}.\\
+
+This decision is based on a potential comparisons after this thesis between real and simulated environments. This could give insight on problems in the navigation that have not yet been addressed.\\
+
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.7\textwidth]{arlo real}
+	
+	\caption{mobile robot ``Parallax Arlo'' \cite{arloreal}}
+	\label{arlore}
+\end{figure}\todo{primare source parallax}
+
+As a consequence to the previous choice regarding the robot the road has to be altered, so the proportions between robot size and road dimensions remain the same. Since the Arlo robot has a diameter of 450mm the track width is set to 900mm to keep the 1:2 scale.
+
+The sensor setup of the robot is inspired by the current setup of the Arlo robot platform in the mobile robotic platforms lab.
+
+Therefore the robot is equipped with the following sensors:
+
+\begin{itemize}
+	\item Lidar
+	\item Wheel encoder
+	\item Camera
+\end{itemize}
+
+As the navigation might require additional sensors this is not a fixed requirement but the default configuration.
+
+The robot needs to control the wheels with a motor controller. Since the navigation is supposed to be flexible in regards to the steering the input of this is configured as linear and angular velocities.
+
+\section{Software}
+As mentioned in the introduction the navigation is developed for ROS-Noetic, furthermore roscpp is prefered over rospy to keep the source code of developed ROS nodes as uniform as possible.
+
+\section{Simulation}
+Since the environment is simulated the simulator has to have the following features.
+\begin{itemize}
+	\item Realistic sensor plugins Sensor plugins with ROS interfaces
+	\item Differential drive plugin
+	\item Custom models integration
+	\item URDF conversion
+	\item Not too computationally heavy
+\end{itemize}
+
+The simulation is mostly focus on sensor data. That is why sensor plugins with configurable error and a ROS interfaces are needed. Like this the data will be as representative as possible of the real world.\\
+
+In addition to the sensor plugins the simulator needs to provide a plugin for differential drive steering. This is the replacement for the motor controller of the Arlo platform.\\
+
+Custom models is a strict requirement since this thesis focuses on a very specific robot. Furthermore the integration of custom models is necessary to put the robot in different road scenarios.\\
+
+A URDF conversion plugin is very important like this differences between the simulated robot and the tf-tree in ROS can be avoided and the robot will be defined in one file only.\\
+
+To get the best correlation between simulation and real world, the simulator should be able to run close to real time. This will make the simulated sensor data way more reliable and puts the nodes of the navigation\_stack under a realistic load.
+
+\section{Navigation}
+The navigation is supposed to cover free driving without obstacles, as well as with static obstacles avoidance. It will not cover dynamic obstacles, road sign detection or driving situations like intersections and parking.\\
+
+
+The robot navigates in a totally unknown environment, while the navigation needs to be flexible to the kinematics of the robot, the development of an entire stack that satisfies this exceeds the content of this thesis, so an open source navigation project will be used which needs to satisfy the following requirements. 
+
+\begin{itemize}
+	\item Goal pose input
+	\item 2D mobile platform support usage of the conventional drive systems like ackermann and differential
+	\item Path planning in respect to the robots kinematic and shape, as well as the environment detected by the sensors.
+	\item Path planning and navigation in totally unknown environments
+	\item Velocity output as linear and angular velocities
+\end{itemize}
 
 
 

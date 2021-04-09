@@ -8,7 +8,7 @@ Diese Bachelor-Thesis handelt von der Erstellung eines Konzepts, dem Aufbau und 
 
 Das Ziel dieses ``Software Stacks'' ist, einer Straßenspur zu folgen und dabei potentiellen Hindernissen auf der Straße auszuweichen. Diese Thesis führt die Arbeit von Prof. Hörmann fort, der die von ihm Entwickelte Spurerkennung zur Verfügung stellte und soll in der Zukunft vom Carolo-Cup Team der Hochschule Aalen verwendet werden können. Obwohl der in dieser Arbeit verwendete Roboter nicht konform zum Regelwerk des Carolo-Cups ist, soll der Stack auch für andere Roboter konfigurierbar sein.\\
 
-Der Roboter verfügt über einen Lidar, eine Kamera, Rad-Encoder und einen IMU (inertia measurement unit). Die Daten dieser Sensoren werden gefiltert und dann mit bestehenden und selbst entwickelten ROS packages aufbereitet. Die resultierenden Daten werden dann an den Navigation Stack  übergeben, der dann die beste Route mittels planer plugins, die für die Aufgaben und die Dynamik des Roboters konfiguriert sind, ermittelt.\\
+Der Roboter verfügt über einen Lidar, eine Kamera, Rad-Encoder und eine IMU (inertia measurement unit). Die Daten dieser Sensoren werden gefiltert und dann mit bestehenden und selbst entwickelten ROS packages aufbereitet. Die resultierenden Daten werden dann an den Navigation Stack  übergeben, der dann die beste Route mittels planer plugins, die für die Aufgaben und die Dynamik des Roboters konfiguriert sind, ermittelt.\\
 
 Um das Testen der Navigation zu vereinfachen und die Hardware-Iteration zu beschleunigen, wird der Roboter, zusammen mit der gesamten Umgebung simuliert.
 
