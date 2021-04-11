@@ -143,7 +143,7 @@ The global SLAM has two options of combining the submaps the loop-closure, which
 With these values and the submaps the global planner calculates constraints between the maps which will be valued between 0 and 1. These constraints can be blocked with a threshold value that will block constraints with a smaller value. Like this the computation time can be drastically reduced and only the important constraints will be processed. Furthermore the weighting of the pose of the odometry and the local SLAM can be adjusted, which can be useful with bad odometry.
 
 \subsubsection{Testing}
-Testing of the SLAM will mostly consist out of a Black-Box test meaning the only things that will be observed is the output and therefore the map.
+Testing of the SLAM will consist out of a Black-Box test meaning the only things that will be observed is the output and therefore the map.
 The SLAM will be tested in the following cases:
 \begin{itemize}
 	\item Data purely from the road detection.
@@ -235,7 +235,7 @@ The two algorithms that are offered by the global\_planner node are Dijkstra and
 \end{figure}
 
 
-It is obvious, that A* is much more efficient in this use case since the robot will mostly go straight or in a slight curve. Therefore, A* will be chosen for the global planner.\\
+It is obvious, that A* is much more efficient in this use case since the robot will go straight or in a slight curve. Therefore, A* will be chosen for the global planner.\\
 
 Another important setting is necessary since the global costmap is used as a rolling window costmap. The global\_planner will be default outline the global costmap with lethal cost to prevent the global planner to plan outside of a fixed costmap. This behaviour results in artifacts, after the map has moved together with the robot which hinder the planners from finding a path.
 
@@ -278,7 +278,7 @@ To give the planner a tendency to follow the global planner closer the option ``
 
 The parameter ``max\_global\_plan\_lookahead\_dist'' controls how much of the global plan is actually considered by the local planner. This parameter highly influences the computational load when setting the distance to larger values. Using shorted distances results in oscillations while driving straight, which is caused by the jumping global path.\\
 
-During testing teb\_local\_planner produced mostly good and feasible paths, but sometimes it generated loops along the global path, that would result in the robot turning in spot, before it follows the global path further. This leads to the robot changing the driving direction since after half of a turn the PoseFinder finds new goals, that are feasible.\\
+During testing teb\_local\_planner produced good and feasible paths, but sometimes it generated loops along the global path, that would result in the robot turning in spot, before it follows the global path further. This leads to the robot changing the driving direction since after half of a turn the PoseFinder finds new goals, that are feasible.\\
 
 To suppress this behavior the weighting of the time component has been increased so the internal forces that contract the elastic band increase. This reduced the occurrence of this scenario significantly, but the local path takes longer, until it is on the right lane again, since the distance to the global path is now weighted less relative to the weight of the time component.
 \section{Testing}
