@@ -9,7 +9,7 @@ There are many options, when it comes to robot simulation environments, which ma
 
 \subsection{Selection}
 To begin of the selection process a group of reasonable simulators needs to be collected. The two selected options are Gazebo and V-REP since they are the two most used robotics 3D simulators \cite{SimComp}.\\
-The newest version of V-Rep is now called CoppeliaSim. Unfortunately, there are no comparisons between it and Gazebo yet. Performing a thorough comparison between both would exceed the scope of this thesis. Therefore its predecessor V-Rep will be compared. \\
+The newest version of V-Rep is now called CoppeliaSim. Unfortunately, there are no comparisons between it and Gazebo yet. Performing a thorough comparison between both would exceed the scope of this thesis. Therefore, its predecessor V-Rep will be compared. \\
 
 Both simulators seem to fulfill most of the defined requirements to a certain extend, while Gazebo seems to have a easier installation process and integration into ROS.\\
 Gazebo is included in the default packages of ROS Noetic since it is developed by the Open Source Robotics Foundation as the default simulator for ROS\cite{ROSPkg}.
@@ -66,7 +66,7 @@ This results in lethal cells in the costmap for each point of the lidar sensor a
 
 Unfortunately, there is no costmap plugin that can be used to make certain areas more expensive than others without marking them as lethal. This leads to the following concept of a custom costmap layer.
 
-The only information about where the lane is, comes from the road detection, which outputs polynomials that approximate the road markings. The aim is to make a gradually increasing cost from the middle of the right lane to the left road marking. Therefore the left road marking needs to be inflated using dynamically adjustable parameters for the cost distribution.\\
+The only information about where the lane is, comes from the road detection, which outputs polynomials that approximate the road markings. The aim is to make a gradually increasing cost from the middle of the right lane to the left road marking. Therefore, the left road marking needs to be inflated using dynamically adjustable parameters for the cost distribution.\\
 To guarantee that the right lane still has space without cost, the right road marking needs to be inflated too. To simplify lane changes in the case of obstacle avoidance these obstacle need to have a cost free zone around them.
 The layer should also feature a reset option as a recovery behavior.
 
@@ -110,7 +110,7 @@ Furthermore the local planner needs to have a good performance in tight corridor
 During all of this the local planner needs to use the information of lethal obstacles to prevent crashes in its optimized path.\\
 
 
-Base and DWA are two planners that are included in the navigation stack. Similar to the global planner selection, the successor and therefore DWA is chosen seems like a good option. According to Kaiyu Zeng, this is the general recommendation for mobile robotics platforms\cite{navtuningguide}. But dwa struggles with navigation in narrow corridors and therefore can not be used.
+Base and DWA are two planners that are included in the navigation stack. Similar to the global planner selection, the successor and therefore DWA is chosen seems like a good option. According to Kaiyu Zeng, this is the general recommendation for mobile robotics platforms\cite{navtuningguide}. As described in the theoretical background, dwa struggles with navigation in narrow corridors and therefore can not be used.
 
 In contrast to the method of the dwa planner, the elastic band approach is better suited for narrow corridors. The two planner, that use this approach are eband\_local\_planner and teb\_local\_planner. Choosing between these two is difficult, since they both share the same base principle. Because it supports carlike robots teb\_local\_planner is selected.
 
@@ -241,7 +241,7 @@ Like described in the concept, the purpose of this node is to provide data to th
 Based on the possibility of the obstacle\_layer of the costmap to raytrace marked obstacles, it needs to receive a PointCloud2 that contains points from the polynomials of the road detection. If this pointcloud would contain the points of the lidar as well, the obstacle layer would remove the points of the road marking, if an obstacle is behind it.\\
 
 
-For the SLAM algorithm both data sources need to be fused into one point cloud. Therefore the points need to be transformed into the same frame and time, before being published.\\
+For the SLAM algorithm both data sources need to be fused into one point cloud. Therefore, the points need to be transformed into the same frame and time, before being published.\\
 
 The data of the dynamic cost layer has to contain more information. It is in the form of a point cloud and contains channel values for point individual inflation radius, min-cost and max-cost. By giving the layer point individual inflation parameters the node provides information about the cells on the left road marking that need to have inflated cost values and information about the points on the right road marking that should have a clear zone around them. Furthermore, the node provides points of obstacles that are on the road and clears the inflated cost around it. This cleared zone makes the generation of a path past the obstacle easier for the global planner.\\
 

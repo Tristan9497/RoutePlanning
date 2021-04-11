@@ -235,7 +235,7 @@ The two algorithms that are offered by the global\_planner node are Dijkstra and
 \end{figure}
 
 
-It is obvious, that A* is much more efficient in this use case since the robot will mostly go straight or in a slight curve. Therefore A* will be chosen for the global planner.\\
+It is obvious, that A* is much more efficient in this use case since the robot will mostly go straight or in a slight curve. Therefore, A* will be chosen for the global planner.\\
 
 Another important setting is necessary since the global costmap is used as a rolling window costmap. The global\_planner will be default outline the global costmap with lethal cost to prevent the global planner to plan outside of a fixed costmap. This behaviour results in artifacts, after the map has moved together with the robot which hinder the planners from finding a path.
 
