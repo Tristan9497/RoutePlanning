@@ -6,15 +6,15 @@ This chapter covers the needed theoretical background about the topics discussed
 ROS (Robot Operating System) is an open source project developed by the ``Open Source Robotics Foundation''. Like the name suggests it is an entire operating system for robots including hardware abstraction, low-level device control, implementation of commonly used functionality, communication between processes and package management.\\
 Furthermore it provides tools and libraries to write, build and run code across multiple computers\cite{rosintro}.\\
 
-\subsection{packages}
+\subsection{Packages}
 This is the main structure for software in ROS. A package can contain many different nodes, libraries, service etc.. Furthermore it is the smallest possible structure that can be build by ROS\cite{rosconcepts}.
-\subsection{nodes}
+\subsection{Nodes}
 Nodes are processes that perform computation. Since ROS is very fine granular, a system, that controls an entire robot can contain many nodes that are connected using topics. A package can be written with the use of one of the client libraries roscpp or rospy\cite{rosconcepts}.
-\subsection{plugins}
+\subsection{Plugins}
 
 Plugins are a software type introduced by the pluginlib package that is a component of ``ros\_core''. Plugins are classes, that comply with a certain plugin interface. This allows to change the behavior of a node by loading different plugins for a certain task. Like this the original source code of the node does not need to be modified\cite{pluginlib}.
 
-\subsection{topics and services}
+\subsection{Topics and Services}
 All of the ROS nodes are connected with a publisher/subscriber like structure. The topic is basically just a name for a certain message.\\
 
 Not only one node but unlimited many nodes can publish and subscribe to one topic. This generally can be seen like a message bus with not limited connection permissions\cite{rosconcepts}.
@@ -106,17 +106,22 @@ The robot hardware description consists of one or more URDF(Unified Robot Descri
 \subsection{move\_base}
 Move\_base is an implementation of an action, that tries to control a mobile platform to get as close to a given goal as possible. It offers an implementation of the costmap\_2d package and supports any global and local planner, that adheres to the interface defined by the nav\_core package\cite{movebase}.
 
-\subsection{global\_planner}
-The global planner in move\_base has the task of finding a path from start to finish in the global costmap, without going through lethal cells. It does not consider collisions or the size of the robot.
+\subsection{nav\_core}
+This package include common interfaces for the global and local planners used in move\_base.
+
+Furthermore it provides an interface for recovery behaviours\cite{navcore}.
+
+\subsection{Global Planner}
+The global planner in move\_base has the task of finding a path from start to goal in the global costmap, without going through lethal cells. The shape of the robot is not directly considered by the global planner for collision checking. Only the collision with lethal cells of the costmap is respected.
 
 \subsubsection{base\_global\_planner}
 This is the default global planner of move\_base. It features Dijkstra and A* path finding algorithms.\\
 
 Dijkstra does only consider determines the cost to get from the start node to every other node, until it finds the goal. From this goal Dijkstra can backtrack the shortest/cheapest path.\cite{AlgorithmenundDatenstrukturen}.\\
 
-A* is based on the Dijkstra algorithm but has one main difference. It considers not only the cost from the start to the current cell in the grid, but as well a heuristic parameter, which is a general guess for the cost from the cell to the finish. The heuristic parameter is mostly bound to the euclidean distance between the cell in the grid and the goal cell. Like this the parameter will never overestimate the actual cost of the path\cite{AlgorithmenundDatenstrukturen}. This weights cells that are in the general direction to the goal more then other cells and in certain situations speeds up the path finding.\\
+A* is based on the Dijkstra algorithm but has one main difference. It considers not only the cost from the start to the current cell in the grid, but as well a heuristic parameter, which is a general guess for the cost from the cell to the goal. The heuristic parameter is mostly bound to the euclidean distance between the cell in the grid and the goal cell. Like this the parameter will never overestimate the actual cost of the path\cite{AlgorithmenundDatenstrukturen}. This weights cells that are in the general direction to the goal more then other cells and in certain situations speeds up the path finding.\\
 
-\subsection{local\_planner}
+\subsection{Local Planner}
 The local planner is meant to produce a feasible path, that generally follows the path produced by the global planner. It takes care of collision avoidance and considers the dynamic of the robot itself.
 
 \subsubsection{teb\_local\_planner}
@@ -128,15 +133,18 @@ The elastic band approach can be described as a series of nodes that are interco
 dwa\_local\_planner uses as the name suggests a dynamic window approach. This approach is based on a dynamic window defined by the maximum values for the robots acceleration velocity in all of the dimensions relevant for 2D operation.\\
 The algorithm generates a set of possible trajectories based on the dynamic constraints, a given time frame, the local costmap and the global plan and selects the ``best'' trajectory\cite{dwa}.
 
-\subsection{costmap}
+Since the planner only considers a set of trajectories, that are not influenced by the environment, tuning of the planner is difficult. 
+This can be justified, by the fact that a small variety of angular velocities would allow the planner to navigate in tight corridors, whereas it would hinder the turning capabilities in corners at the same translational speed.
+
+\subsection{Costmap}
 A costmap is a grid stile map and its purpose is to store information about obstacles in the surrounding of the robot.\\
 There are two different costmaps, the global costmap and the local costmap.
 The global costmap is by the global planner to find a collision free path, whereas the local costmap is used by the local planner for local planning.\cite{navsetup}\\
 
 \begin{figure}[H]
 \centering
-	\includegraphics[width=.5\textwidth]{Pictures/costmap_rviz}
-	\caption{costmap with obstacles and inflation \cite{costmap}}
+	\includegraphics[width=.5\textwidth]{Pictures/inflationref}
+	\caption{costmap with obstacles and inflation \cite{infl}}
 	\label{costmap}
 \end{figure}
 
@@ -144,13 +152,15 @@ The global costmap is by the global planner to find a collision free path, where
 \subsubsection{Cost values}
 The values in a costmap can be in the range [0-255], but the underlying structure categorizes them in the following 3 sections:
 \begin{itemize}
-	\item Lethal obstacle
-	\item Free space
-	\item No information
+	\item Lethal obstacle - 254
+	\item Free space - 0
+	\item No information - 255
 \end{itemize}
 
-\subsection{Marking and clearing}
-Obstacles in the costmap can not only be marked, but also cleared by the subscribed data source. For each data source a configuration regarding the clearing and marking permissions is necessary. For clearing the costmap uses a raytracing algorithm, which allows the costmap to handle moving obstacles\cite{costmap}.
+\subsection{Marking and Clearing}
+Obstacles in the costmap can not only be marked, but also cleared by the subscribed data source. For each data source a configuration regarding the clearing and marking permissions is necessary.\\
+For clearing the costmap uses a raytracing algorithm, which allows the costmap to handle moving obstacles\cite{costmap}. Raytracing is a rendering technique, that follows the trace of a ray, in order to determine the influence of that ray with objects. 
+In this application, this is done by casting rays from the robot to the current measurement of the sensors, which allows to determine if a lethal cell in the costmap is feasible.
 \subsubsection{Inflation}
 Inflation is a process where a occupied cell is inflated by over the distance decreasing cost values for a configurable radius, as pictured in Figure \ref{costmap}.\\
 This process is used by the default plugin inflation\_layer with the cost distribution pictured in Figure \ref{costdistribution}\cite{costmap}.
@@ -163,7 +173,7 @@ This process is used by the default plugin inflation\_layer with the cost distri
 \end{figure}
 
 The usage of inflation has two reasons. First it is used to close gaps between two measured obstacles and therefore usefull, if the sensor resolution is relatively corse.\\
-The second reason is to prevent the global planner from getting too close to obstacles, since it does not feature any collision checking. Therefore the inflation radius is typically set to slightly more than the radius of the robot\cite{costmap}.
+The second reason is to prevent the global planner from getting too close to obstacles, since it does not feature any collision checking, that considers the robot shape, but only checks for lethal cells in the costmap. Therefore the inflation radius is typically set to slightly more than the radius of the robot\cite{costmap}.
 
 \subsubsection{Layer}
 The costmap uses a layer structure of plugins that can handle different tasks. It finally combines the data from each layer, to produce the final costmap.\\
@@ -181,18 +191,18 @@ Using the pluginlib interface and the costmap libraries custom layers for the co
 
 
 
-\section{Cartographer}
-Cartographer is a lidar based SLAM developed by Google. In contrast to gmapping it is based on loop closure to ensure real time mapping even in relatively big environments.\\
+\section{Google Cartographer}
+Google Cartographer is a lidar based SLAM algorithm developed by Google. In contrast to gmapping it is based on loop closure to ensure real time mapping even in relatively big environments.\\
 Submaps are considered for loop closure, if they are close to each other. A scan matcher tries to find constraints between the submaps and the current scan. When searching for loop closure constraints at a certain rate one can achieve basically instantaneous optimization of the map, just by the fact that the current scan is similar to one of the underlying submaps\cite{cartographer}.\\
 
-\section{Edge effect}
+\section{Edge Effect}
 
 The edge effect is an error source during laser based distance measurement.
 When the laser beam used for measurement is directly at an edge of an obstacle, this splits the beam or rather blocks a part of it. The resulting measurement lies in the range of all distances measured by the beam and is therefore located behind the real edge of the obstacle like further described in the paper of Klapa about the ``Edge effect and its impact upon the accuracy of 2D and 3D modeling using laser scanning'' \cite{edgeeffect}.\\
 
 
 \section{Carolo-Cup}
-The Carolo-Cup is an event hosted by University Braunschweig and is an event in which the teams of many different universities can compete against each other and present their work and progress in the field of autonomous driving.
+The Carolo-Cup is an event hosted by Braunschweig University and is an event in which the teams of many different universities can compete against each other and present their work and progress in the field of autonomous driving.
 
 The Cup offers a fair ground by reducing environmental influence like lighting but creates scenarios based on a realistic environment for the navigation. Judges from science and finance related fields will rate the individual teams based on static and dynamic events.
 
@@ -229,7 +239,7 @@ Track restrictions relevant in this thesis:
 
 This chapter defines requirements for parts of this work, based on the scope of the thesis and the theoretical background.
 
-\section{Robot and environment}
+\section{Robot and Environment}
 
 The regulations of the Carolo-Cup strongly restrict the size and the steering type of the used robot. In this thesis these restrictions will be ignored, in order to use the mobile robotic platform Arlo from the manufacturer Parallax pictured in Figure \ref{arlore}. This platform is the default platform of the laboratory for mobile robotics at Aalen University\\
 
@@ -246,14 +256,14 @@ This decision is based on a potential comparisons after this thesis between real
 
 As a consequence to the previous choice regarding the robot, the road has to be altered, so the proportions between robot size and road dimensions remain the same. Since the Arlo robot has a diameter of 450mm the track width is set to 900mm to keep the 1:2 scale.
 
-The sensor setup of the robot is inspired by the current setup of the Arlo robot platform in the mobile robotic platforms lab.
+The sensor setup of the robot is based on the anticipated tasks in the Carolo-Cup. 
 
 Therefore the robot is equipped with the following sensors:
 
 \begin{itemize}
-	\item Lidar
-	\item Wheel encoders
-	\item Camera
+	\item Lidar - obstacle detection
+	\item Wheel encoders - odometry
+	\item Camera - road detection
 \end{itemize}
 
 As the navigation might require additional input this is not a fixed requirement, but the initial configuration.
@@ -296,9 +306,7 @@ The robot navigates in a for itself totally unknown environment, while the navig
 	\item Velocity output as linear and angular velocities
 \end{itemize}
 
-
-
-
+\todo{add pictures of wanted driving behavior}
 
 
 

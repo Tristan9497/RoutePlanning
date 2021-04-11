@@ -5,35 +5,38 @@ This chapter covers the package selection and the setup of all nodes in the conc
 
 
 \section{Simulation}
-There are many options, when it comes to robot simulation environments, which makes a selection mandatory. The chosen simulator then needs to be configured and equipped with models, sensors and a drive system.
+There are many options, when it comes to robot simulation environments, which makes a proper selection mandatory. The chosen simulator then needs to be configured and equipped with models, sensors and a drive system.
 
 \subsection{Selection}
 To begin of the selection process a group of reasonable simulators needs to be collected. The two selected options are Gazebo and V-REP since they are the two most used robotics 3D simulators \cite{SimComp}.\\
+The newest version of V-Rep is now called CoppeliaSim. Unfortunately, there are no comparisons between it and Gazebo yet. Performing a thorough comparison between both would exceed the scope of this thesis. Therefore its predecessor V-Rep will be compared. \\
 
 Both simulators seem to fulfill most of the defined requirements to a certain extend, while Gazebo seems to have a easier installation process and integration into ROS.\\
 Gazebo is included in the default packages of ROS Noetic since it is developed by the Open Source Robotics Foundation as the default simulator for ROS\cite{ROSPkg}.
 
-V-REP, as well as Gazebo, offers plugins and URDF conversion for custom models, but an even bigger selection of mobile robot models. Which unfortunately can only be used as examples since the required models are very specific.\\
+V-REP, as well as Gazebo, offers plugins and URDF conversion for custom models, but an even bigger selection of mobile robot models. Unfortunately, they can only be used as examples since the required models are very specific.\\
 In contrast to V-REP, Gazebo does not contain an integrated model editor.
 
-Based on computational load compared in the paper of L. Pitonakova et al. and the setup differences between both simulators, Gazebo is chosen for this project\cite{Pitonakova}.
+The comparison in the paper of L. Pitonakova et al. regarding computational load shows, that V-Rep is the most resource hungry environment, when compared to ARGoS and Gazebo\cite{Pitonakova}. Real time simulation is highly wanted in this thesis, so the results can be compared to real results in the future.
+
+Based on the fact, that Gazebo is included in the ROS-Noetic package list and has a smaller computational load compared to V-Rep, it will be the simulation environment in this project.
 
 \subsection{Model}
-Since Gazebo doesn't have an integrated model editor the freeware ``blender'' will be used for the model generation of the environment.
+Since Gazebo doesn't have an integrated model editor the freeware ``blender'' will be used for the generation of the model of the environment, since it has options for exporting collada files (.dae) usable in Gazebo.
 
 As described in the requirements the robot models will be generated using URDF which will be covered later.
 
 \section{move\_base}
 
-As described in the concept the navigation stack will be used in this thesis. Therefore the action move\_base will be used to get the robot to a given goal.\\
- move\_base incorporates nav\_core and costmap\_2d and their internal nodes which need to be selected according to the requirements of the navigation.\\ 
+As described in the concept, the navigation stack will be used in this thesis. Therefore, the action move\_base will be used to get the robot to a given goal.\\
+ move\_base incorporates nav\_core and costmap\_2d and their internal nodes, which need to be selected according to the requirements of the navigation.\\ 
 The selection of these nodes will be separated into a global and local stage, since the individual nodes are highly interconnected and the wanted behavior affects both.
 
 \subsection{Global stage}
 
 \subsubsection{Planner}
 
-Since the planner needs to adhere to the nav\_core interface \cite{navcore} the following selection of the documentation can be used as a possible selection.
+Since the global planner needs to communicate with the nav\_core interface  the following selection as described in the documentation of nav\_core can be used as possible candidates\cite{navcore}:
 
 \begin{itemize}
 	\item global\_planner
@@ -48,18 +51,20 @@ Here the choice is fairly easy, since base\_global\_planner is the successor of 
 Carrot planner isn't suited for this use-case since it doesn't fullfil the requirement of being able to cover lane changes since it will not generate plans, that go around obstacles. Instead it will generate a straight path to the goal and shortens the path if the goal is behind or in an obstacle\cite{corrotplanner}.
 
 \subsubsection{Costmap}
-Since costmap\_2d is embedded in move\_base the package doesn't need to be selected itself. Instead of the package the layers of the individual costmap need to be selected.\\
+Since costmap\_2d is embedded in move\_base the package does not need to be selected itself. Instead the layers of the individual costmap need to be selected.\\
 
-As defined in the concept, the global costmap needs to have information about lethal obstacles, road markings as well as a defined preference for the right lane.\\
+As defined in the concept, the global costmap needs to have information about lethal obstacles, road markings, as well as a defined preference for the right lane.\\
 
-For the road markings and the obstacles, a combination of an obstacle layer and an inflation layer will be needed.\\
-This results in lethal cells in the costmap for each point of the roadDetection and the lidar. These points will still have gaps in between each other, which will be filled by using the inflation layer that inflates every point with a defined cost distribution.\\
+For the road markings and the obstacles, a combination of an obstacle layer and an inflation layer will be used.\\
+This results in lethal cells in the costmap for each point of the lidar sensor and the left and right lane of the road detection. These points will still have gaps in between each other, which will be filled by using the inflation layer that inflates every point with a defined cost distribution.\\
+
+\todo{picture}
 
 Unfortunately there is no costmap plugin that can be used to make certain areas more expensive than others without marking them as lethal. This leads to the following concept of a custom costmap layer.
 
-The only information about where the lane is, comes from the roadDetection, which outputs polynomials that approximate the road markings. The aim is to make a gradually increasing cost from the middle of the right lane to the left road marking. Therefore the left road marking needs to be inflated using dynamically adjustable parameters for the cost distribution.\\
+The only information about where the lane is, comes from the road detection, which outputs polynomials that approximate the road markings. The aim is to make a gradually increasing cost from the middle of the right lane to the left road marking. Therefore the left road marking needs to be inflated using dynamically adjustable parameters for the cost distribution.\\
 To guarantee that the right lane still has space without cost, the right road marking needs to be inflated too. To simplify lane changes in the case of obstacle avoidance these obstacle need to have a cost free zone around them.
-The plugin should also feature a reset option as a recovery behavior.
+The layer should also feature a reset option as a recovery behavior.
 
 All of this results in a layer with the following abilities:
 
@@ -70,7 +75,7 @@ All of this results in a layer with the following abilities:
 	\item Service to reset the cost in the layer
 \end{itemize}
 
-The cost distribution over the road is picture in Figure \ref{navigation stack setup}. It is noticeable, that the  cost overlaps to the right lane which is necessary, since the global planner only considers cost greater than 50 by default resulting in a ``clear'' right lane.
+The cost distribution over the road is pictured in figure \ref{navigation stack setup}. It is noticeable, that the cost of the left road marking overlaps to the right lane. This is necessary, since the global planner only considers cost greater than 50 by default resulting in a ``clear'' right lane.
 
 \begin{figure}[H]
 	\centering
@@ -81,7 +86,7 @@ The cost distribution over the road is picture in Figure \ref{navigation stack s
 
 \subsection{Local stage}
 \subsubsection{Planner}
-In contrast to the global planner there are way more options for the local planner node. Like the global planners the local planners will be selected using the options offered in the following description of the nav\_core\cite{navcore}.
+In contrast to the global planner there are way more options for the local planner node to choose from. Like the global planners the local planners will be selected using the options offered in the following description of nav\_core\cite{navcore}.
 
 \begin{itemize}
 	\item base\_local\_planner
@@ -93,7 +98,7 @@ In contrast to the global planner there are way more options for the local plann
 
 To choose the local planner the requirements have to be defined first.\\
 
-Since the global planner is taking care of the obstacles and the road lanes, the local planner has the general task of following the global path and creating a command velocity that is feasible in regards to the kinematics of the robot.\\
+Since the global planner is taking care of the obstacles and the road lanes, the local planner has the general task of following the global path and creating a command velocity that is feasible in regards to the dynamics of the robot.\\
 
 Smooth lane changes are highly wanted in this project. This will help the camera and therefore the road detection to keep seeing the road during a lane swap. To achieve this, the planner is supposed to drive close to the global plan and to smooth out the edges.
 Furthermore the local planner needs to have a good performance in tight corridor situations, since those will often be caused by obstacles blocking one lane.\\
@@ -101,33 +106,32 @@ Furthermore the local planner needs to have a good performance in tight corridor
 During all of this the local planner needs to use the information of lethal obstacles to prevent crashes in its optimized path.\\
 
 
-Base and DWA are two planners that are included in the navigation stack. Similar to the global planner selection we choose the successor and therefore DWA, which according to Kaiyu Zeng is the general recommendation for mobile robotics platforms\cite{navtuningguide}.\\
+Base and DWA are two planners that are included in the navigation stack. Similar to the global planner selection, the successor and therefore DWA is chosen seems like a good option. According to Kaiyu Zeng, this is the general recommendation for mobile robotics platforms\cite{navtuningguide}. But dwa struggles with navigation in narrow corridors and therefore can not be used.
+
+In contrast to the method of the dwa planner, the elastic band approach is better suited for narrow corridors. The two planner, that use this approach are eband\_local\_planner and teb\_local\_planner. Choosing between these two is difficult, since they both share the same base principle. Because it supports carlike robots teb\_local\_planner is selected.
 
 
-In addition to DWA we choose one of the planners with an elastic band approach. The choice between these two is difficult since they both share the same base principle. The decision here is to use teb\_local\_planner for the further selection since it supports carlike robots and therefore satisfies the requirements for the navigation.\\
-
-During a small test seemed like DWA local planner is not as suited for this task, since it struggles with navigating through narrow corridors, hence only teb\_local\_planner will be covered in the following parts.
 
 \subsection{Costmap}
-The local planner is only supposed to generate velocity commands that lead to no lethal collision. So the local costmap will have the same plugins as the global one without the dynamic inflation layer that is used to guide the robot to the right lane.
+The local planner is only supposed to generate velocity commands that lead to no lethal collision. Therefore, the local costmap will have the same layers as the global one without the dynamic inflation layer that is used to guide the robot to the right lane.
 
 
 \section{PoseFinder}
-As described in the concept the purpose of this node is to determine the pose of the next goal and send it to the move\_base action client. Therefore it will need to process the data from the roadDetection and if available from the SLAM map and determine a feasible goal.\\
+As described in the concept the purpose of this node is to determine the pose of the next goal and send it to the move\_base action client. Therefore, it will need to process the data from the road detection and if available from the SLAM map to determine a feasible goal.\\
 Since the robot should never reach a goal, the PoseFinder needs to determine new goals at a configurable frequency. Furthermore it needs to predict the path of the road so the robot has a goal to drive to, even if the road detection does not detect any part of the road.
 
 
 
-\subsection{Using current camera data}
+\subsection{Usage of Current Camera Data}
 The easiest way to get new goals, is to take the last point of the polynomial provided by the road detection as the position and calculate the yaw angle of the new goal with the gradient of the last two points.\\
 
-While this is a logical approach in an ideal scenario, it certainly will not work in a realistic one since a continuous data stream from the road detection can not be assure.\\
+While this is a logical approach in an ideal scenario, it certainly will not work in a realistic one since a continuous data stream from the road detection can not be guaranteed.\\
 
-This is mostly caused by the camera not always seeing enough of the road which can for example be caused by the following reasons:
+This is mostly caused by the camera not always seeing enough of the road, which can for example be caused by the following reasons:
 
 \begin{itemize}
 	\item Obstacle covering the markings
-	\item While driving a corner the camera isn't always pointed tangential to the curvature
+	\item While driving a corner the camera isn't always pointed tangential to the curvature of the road
 	\item Steering during obstacle avoidance
 	\item Noise in camera data
 \end{itemize}
@@ -140,29 +144,31 @@ This suggest that a prediction for the possible upcoming road is needed. To a sm
 Since the road mostly consists of circles of varying radii and origins, it is self evident, that using the polynomials in their restricted domain to represent a section of a circle will give a better estimate.\\
 This circle can be calculated using the least square approach presented in Randy Bullocks paper on least square circle fitting \cite{leastsquarecircle}.\\
 
-In theory this approximation should work for almost straight sections as well, but radius and origin will trend to infinity and caused by camera noise and the inaccuracy of the road detection the representation of the road will get worse and worse.\\
+In theory this approximation should work for nearly straight sections as well. This will cause radius and origin to trend to infinity. Caused by camera noise and the inaccuracy of the road detection the representation of straight sections will get increasingly inaccurate.\\
 
-Similar to the least square approach for the circles an approach for the lines can be formulated.
+Similar to the least square approach for circles, an approach for the lines can be formulated.
 
-Switching between the result of the two approximations will procuce the best result for both scenarios. This switching will be triggered by the radii of the approximated circles exceeding a configurable threshold.\\
+Switching between the result of the two approximations will produce the best result for both scenarios. This switching will be triggered by the radii of the approximated circles exceeding a configurable threshold.\\
 
-The next step is a goal extraction from the chosen approximation. This goal will be calculated at a given distance from the robot origin on the approximated route. In contrast to the approximated lines, the circles have a defined angle of trustworthiness. Otherwise small circles would cause the goal to be way of the prediction. The orientation of the goal will then be determined using the derivative of the function.\\
+\todo{circle fit picture and lines + explenation}
+
+The next step is a goal extraction from the chosen approximation. This goal will be calculated at a given distance from the robot origin on the approximated route. In contrast to the approximated lines, the circles have a defined angle of trustworthiness. Otherwise small circles would cause the goal to be way of the prediction. The orientation of the goal will then be determined using the derivative of either, the approximated circles or lines.\\
 
 With the calculated points on both circles or on both lines the mean can be calculated and represents the new goal for the robot.
 
 \subsection{Goal from map}
 
-If the robot is running a SLAM algorithm during the first, round the map should be finished once the robot passes its start point. Then the approximation is unnecessary since extracting goals directly from the slam map is more efficient and provides goals that will  always be on the road. Furthermore the distance, at which goals will be found can be increased, this results in higher speeds of the robot and/or lower planner frequencies.\\
+If the robot is running a SLAM algorithm during the first round, the goal can be extracted directly from the SLAM map afterwards.This is more efficient and provides goals that will always be on the road. Furthermore the distance, at which goals will be found can be increased, this results in higher speeds of the robot and/or lower planner frequencies.\\
 
-To find a goal in the SLAM map a circle rasterization algorithm will be used that is based on Bresenham rasterization \cite{ComputerGraphics}.\\
+To find a goal in the SLAM map a circle rasterization algorithm will be used, based on Bresenham rasterization \cite{ComputerGraphics}.\\
 
-This algorithm finds every cell on a circular path around the robot and its associated value in the map. The values outside of a given FOV (field of view) can be eliminated. Then the remaining values with a larger likelihood than a configurable threshold will be reduced to one point by taking the mean value of them.\\
+This algorithm finds every cell on a circular path around the robot and its associated value in the map. The values outside of a given FOV (field of view) can be eliminated. The remaining values with a larger likelihood than a configurable threshold will be reduced to one point by taking the mean value of them.\\
 
-The orientation of the goal is then determined by using the approximation algorithms.
+The orientation of the goal is determined by using the previously explained approximation algorithms.
 
 \subsection{Concept}
 
-Based on the previously proposed ways to determine goals the concept pictured in figure \ref{posefinder structure} can be deduced.\\
+Based on the previously proposed ways to determine goals, the concept pictured in figure \ref{posefinder structure} can be deduced.\\
 
 \begin{figure}[H]
 	\centering
@@ -175,13 +181,13 @@ The goalfinding algorithms are ordered in a hierarchic structure based on their 
 
 A accurate map of the surrounding offers the best potential to find feasible goals on the upcoming road, hence it has to be checked first, if a goal can or should be extracted from the map.
 
-Since as described every, even straight sections can be expressed by a circle segment, this approximation will have a higher priority than the line approximation.
+As described, every sections can be expressed by a circle segment. This approximation will have a higher priority than the line approximation.
 
-Finally the line approximation will be checked last and only if the circle approximation generated circles with radii, that exceed a threshold for their trustworthiness.
+Finally the line approximation will be checked and only, if the circle approximation generated circles with radii, that exceed a threshold for their trustworthiness.
 
 The result of the chosen algorithm can be used to determine a goal that will be sent as an input to move\_base.
 
-The goal found by the approximation unfortunately is not certainly on the road. It could as well be in an obstacle or of the road, which would make complete navigation to the goal impossible. Hence this procedure will be repeated at a configurable frequency, the robot will never reach its finish. 
+The goal found by the approximation unfortunately is not certainly on the road. It could as well be in an obstacle or of the road, which would make complete navigation to the goal impossible. Hence this procedure will be repeated at a configurable frequency, so the robot will never reach one of the goals. 
 
 The node is configurable using rqt\_reconfigure and the following parameters.
 
@@ -207,13 +213,13 @@ The node is configurable using rqt\_reconfigure and the following parameters.
 
 \section{MarkFreeSpace}
 
-Like described in the concept, the purpose of this node is to provide data to the SLAM algorithm as well as to the costmaps. This data consists from the points on the polynomials of the road detection in combination with the filtered points of the laser scan.\\
+Like described in the concept, the purpose of this node is to provide data to the SLAM algorithm as well as to the costmaps. This data consists from the points on the polynomials of the road detection in combination with the filtered points of the lidar scan.\\
+Based on the possibility of the obstacle\_layer of the costmap to raytrace marked obstacles, it needs to receive a PointCloud2 that contains points from the polynomials of the road detection. If this pointcloud would contain the points of the lidar as well, the obstacle layer would remove the points of the road marking, if an obstacle is behind it.\\
 
-Based on the possibility of the obstacle\_layer of the costmap to raytrace marked obstacles, it needs to receive a PointCloud2 that contains points from the polynomials of the roadDetection. If this pointcloud would contain the points of the lidar as well, the obstacle layer would remove the points of the road marking, if an obstacle is behind it.\\
 
-For the slam algorithm both data sources need to be fused into one PointCloud2. Therefore the points need to be transformed into the same frame and into the same time, before being published.\\
+For the SLAM algorithm both data sources need to be fused into one point cloud. Therefore the points need to be transformed into the same frame and time, before being published.\\
 
-The data of the dynamic cost layer has to contain more information. It is in the form of a sensor\_msgs::PointCloud and contains channel values for point individual inflation radius, min-cost and max-cost. By giving the layer point individual inflation parameters the node provides information about the cells on the left road marking that need to have inflated cost values and information about the points on the right road marking that should have a clear zone around them. Furthermore the node provides points of obstacles that are on the road and clears the inflated cost around it. This cleared zone makes the generation of path past the obstacle easier for the global planner.\\
+The data of the dynamic cost layer has to contain more information. It is in the form of a point cloud and contains channel values for point individual inflation radius, min-cost and max-cost. By giving the layer point individual inflation parameters the node provides information about the cells on the left road marking that need to have inflated cost values and information about the points on the right road marking that should have a clear zone around them. Furthermore, the node provides points of obstacles that are on the road and clears the inflated cost around it. This cleared zone makes the generation of a path past the obstacle easier for the global planner.\\
 
 The following parameters are offered for further configuration:
 
@@ -242,11 +248,11 @@ Enhancing to the plugins provided in the navigation stack this layer handles inf
 
 This behavior can be used to inflate the left road marking in the global costmap to force the global plan on the right side of the road, which is the behavior defined in the concept. The plugin can also be used to inflate cells with zero cost, which is useful to guarantee a cost free right lane or to give some free space around obstacles located on the road.\\
 
-The layer receives a message of type sensor\_msgs::PointCloud on a configurable topic. This point cloud is expected to feature channel values for the inflation radius, the maximal and the minimal cost for each individual point.\\
+The layer receives a point cloud on a configurable topic. This point cloud is expected to feature channel values for the inflation radius, the maximal and the minimal cost for each individual point.\\
 
 Since it can not be assumed, that the incoming points will be in the frame of the costmap the points in the costmap have to be transformed into the right frame using tf2.\\
 
-To minimize the computation load a Bresenham based algorithm for the circle rasterization will be used\cite{ComputerGraphics}. Now the point symmetry around the cell can be used to further minimize the computational load and only $\frac{1}{8}$th of the circle has to be computed. The rasterization process can be described by the following image.\\
+To minimize the computation load a Bresenham based algorithm for the circle rasterization will be used\cite{ComputerGraphics}. The point symmetry around the cell can be used to further minimize the computational load and only $\frac{1}{8}$th of the circle has to be computed. The rasterization process can be described by the following image.\\
 
 \begin{figure}
 	\centering
@@ -276,7 +282,7 @@ The goal here is to use a function that contains only the squared distance and n
 	\end{center}
 \end{figure}
 
-The plugin can be configured individually for the costmap using rqt\_reconfigure and the following parameters.
+The layer can be configured individually for the costmap using rqt\_reconfigure and the following parameters.
 
 \begin{table}[H]
 \centering
@@ -296,11 +302,11 @@ The plugin can be configured individually for the costmap using rqt\_reconfigure
 
 
 \section{SLAM}
-There are numerous lidar based SLAM packages available for ROS, but with the defined restriction of being able to use both, the points extracted from the road detection, as well as the lidar data, most of the lidar based SLAM algorithms wont work since they only accept one input of  the type sensor\_msgs::LaserScan.\\
+There are numerous lidar based SLAM packages available for ROS, but with the defined restriction of being able to use both, the points extracted from the road detection, as well as the lidar scan, most of the lidar based SLAM algorithms wont work since they only accept one lidar scan.\\
 This rules out the popular options for lidar based SLAM like gmapping and HectorSLAM and the well documented package Google Cartographer will be used based on its flexibility in regards to robot configurations.\\
-This package comes with an advantage of being based on loop closure which might be useful when driving rounds in a circuit stile environment. The robot will drive the same route over and over again and thus the map could get more and more reliable over time even though the data is very self similar and not great for SLAM.\\
+This package comes with an advantage of being based on loop closure, which might be useful when driving rounds in a circuit stile environment. The robot will drive the same route over and over again and thus the map could get more and more reliable over time even though the data is similar for different parts of the circuit and therefore not idal for the use with a SLAM algorithm.\\
 
-Cartographer accepts numerous different input types including both PointCloud2 and LaserScan sensor messages. Additionally Cartographer can use provided odometry, as well as IMU data to improve the result.\\
+Google Cartographer accepts numerous different input types including both point clouds and lidar scans. Additionally Google Cartographer can use provided odometry, as well as IMU data to improve the quality of the map.\\
 
 
 

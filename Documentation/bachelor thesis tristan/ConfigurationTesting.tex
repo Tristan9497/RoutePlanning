@@ -1,7 +1,7 @@
-\chapter{Configuration and testing}
+\chapter{Configuration and Testing}
 \label{configurationandtesting}
 
-This chapter is structured into three parts. The first two address the individual configuration of all nodes in the simulation as well as in the navigation.
+This chapter is structured into three parts. The first two address the individual configuration of all subsystems of the simulation and the navigation.
 
 The third section covers the test setup.
 
@@ -83,7 +83,7 @@ Overall it does not seem to be possible to mimic the original camera, hence the 
 This section discusses the configuration of all nodes of the navigation, in order to achieve the wanted results of lane following and obstacle avoidance.
 
 \subsection{road\_detection}
-The road\_detection provided by Prof. Dr. Stefan Hörmann consist out of the following six nodes of which some need configuration to work with the specific camera setup.
+The provided road\_detection consist out of the following six nodes, of which some need configuration to work with the specific camera setup.
 
 \begin{itemize}
 	\item edgeDetector
@@ -119,7 +119,7 @@ The distances between the inflated points and the cleared points has to be fairl
 The final configuration is pictured in Appendix \ref{config}.
 
 
-\subsection{Cartographer}
+\subsection{Google Cartographer}
 The goal of this node is to produce a map that gets more reliable over time.\\
 
 Unfortunately the data available for Cartographer is very self similar, meaning a straight road will always look the same and therefore does not have sufficient features for proper loop closure. In contrast to the points from the road detection the lidar can actually supply such features and will therefore be a good improvement for the resulting map.\\
@@ -283,7 +283,7 @@ During testing teb\_local\_planner produced mostly good and feasible paths, but 
 To suppress this behavior the weighting of the time component has been increased so the internal forces that contract the elastic band increase. This reduced the occurrence of this scenario significantly, but the local path takes longer, until it is on the right lane again, since the distance to the global path is now weighted less relative to the weight of the time component.
 \section{Testing}
 The nodes of the system are highly interconnected, therefore it is hard to test the nodes separately and with out influence on each other.
-\subsection{Odometry test}
+\subsection{Odometry Test}
 The odometry is a key component in the navigation concept, since it will be used by multiple nodes and is the representation of the robots position in its environment.\\
 
 Especially differential robots tend to have rotational error, when using the wheel-encoders to generate the odometry, since the wheels are forced to slip when the robot is turning.\\
@@ -292,7 +292,7 @@ To test the quality of the odometry the robot will be placed in the world pictur
 
 In theory the trace of the odometry should be closed perfectly, after the robot performed its first round.\\
 
-\subsection{Lidar test}
+\subsection{Lidar Test}
 The lidar is the only sensor, which detects static obstacles in the surrounding of the robot. Hence the quality of the data has to be checked.
 
 To test the performance of the simulated lidar the robot will simply navigate in the world pictured in Figure \ref{simworld} and detect obstacles along the road.\\
@@ -303,14 +303,14 @@ The evaluation of the costmap is necesarry, since it will mark measurements of t
 
 The main focus of this test is sensor noise, since the Gazebo sensor plugin is configured based on the data sheet of the real lidar (Appendix \ref{AppendixDataSheets}).
 
-\subsection{road\_detection test}
+\subsection{Road Detection Test}
 As the road\_detection is the only data source providing informations about the road it is crucial for successful navigation.
 
-To check if the roadDetection offers good enough results a long duration test will be performed, during which the output of the roadRecordEvaluation node will be monitored, which outputs the relation between the amount of recognized road and overall attempts to find a road.\\
+To check if the road detection offers good enough results a long duration test will be performed, during which the output of the roadRecordEvaluation node will be monitored, which outputs the relation between the amount of recognized road and overall attempts to find a road.\\
 
 The robot will navigate on the course pictured in Figure \ref{simworld} until the output of the roadRecordEvaluation settles to a reliable result.
 
-\subsection{SLAM test}
+\subsection{SLAM Test}
 The SLAM algorithm chosen for the the concept is used in a very uncommon way, since it is not only receiving input from a real range finding sensor, but as well from the road detection.
 
 The data from the road detection is very self similar, meaning that for example a straight section of road will always look very similar independent of its position. The lack of details in the data from the road detection might complicate cartographers scan matching.\\
@@ -329,7 +329,7 @@ This test is meant to be the worst case for the SLAM algorithm during navigation
 The obstacles will be placed in two corners and therefore in the edge case where the camera has the worst chance of seeing the road because of the steering angle, as well as on the straight section of the road to cover the case where the camera can not see the road during merging on an other lane. Furthermore the obstacles will be placed far enough apart so the lidar has only vision on one at the same time.\\
 
 
-\subsection{Complete system test}
+\subsection{Complete System Test}
 
 After the previous tests the entire concept has to be tested in order to check, if the concept works as anticipated.
 

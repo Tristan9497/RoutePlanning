@@ -3,7 +3,7 @@
 
 
 This chapter covers the results and the discussion of all tests formulated in Chapter \ref{configurationandtesting}. In addition potentially needed optimization steps will be highlighted.
-\section{Odometry test}
+\section{Odometry Test}
 
 When looking at the odometry published by the differential drive plugin during the test in Figure \ref{wheel odom} it is noticeable, that the measurement has a huge rotational error, which is expected since the wheels always slip slightly when turning a differential drive robot.
 \todo{picture including true odometry}
@@ -73,7 +73,6 @@ It is very important to set the control timeout to a value that is larger than t
 	\label{velocity offset}
 
 \end{figure}
-\todo{EKF abkürzung}
 
 After the inclusion of the command velocity the acceleration limits in the configuration file of robot\_localization can be set equal to the limits in the local planner configuration.
 
@@ -126,7 +125,7 @@ As a final test the odometry from the robot\_localization node is compared to th
 The comparison in Figure \ref{trueodom} shows, that the filtered odometry has a slight translational offset, but is very similar to the true odometry extracted from the simulation, hence it will be considered as sufficient for the navigation.
 
 
-\section{Lidar test}
+\section{Lidar Test}
 
 
 The lidar sensor is simulated with realistic noise and errors. This also introduces the well known edge error in laser distance measurement \cite{edgeeffect}. 
@@ -151,7 +150,7 @@ Figure \ref{lasercomp} shows a comparison between the filtered and not filtered 
 	\label{lasercomp}
 \end{figure}
 
-\section{road\_detection test}
+\section{Road Detection Test}
 
 As pictured in figure \ref{longdurroad} the performance of the road detection converges to ca. 98.8\%. At the beginning the graph is not as reliable since there have not yet been enough measurements.\\
 
@@ -163,7 +162,7 @@ The duration of the test was roughly 1.5 hours of continuous navigation without 
 	\label{longdurroad}
 \end{figure}
 
-\section{SLAM test}
+\section{SLAM Test}
 \textbf{Data purely from road detection:}\\
 
 The following pictures contain the SLAM map after the \nth{1},\nth{2} and \nth{3} round.\\
@@ -291,7 +290,7 @@ Based on these test results it is not feasible to use the SLAM map for navigatio
 
 
 
-\section{Complete system test}
+\section{Complete System Test}
 The following subsections cover the discussion of the complete system tests.\\\\
 \textbf{No obstacles}\\
 The reasoning for this test is, to check how good the robot stays on the right lane. Therefore the robot drives in the described test environment, while the difference between the right lane and the robot center is monitored.
@@ -353,7 +352,7 @@ The results of the complete system tests show, that the navigation performs real
 While observing the robot during driving past obstacles on the left lane it was noticeable, that the robot mostly left the lane, directly after it passed an obstacle in or directly after a corner.\\ 
 In this case the predicted goal pulls the robot into the middle of the road since the costmap does not have information about the road and therefore will not force the global plan to the right lane. The approximated goal is still constructed with the circle approximation since the upcoming straight section has not been seen.\\
 
-Obstacle avoidance suffers from a similar problem. As shown in the \nth{3} test. Here it is visible, that the robot passes the obstacle nicely, but afterwards drives along the center of the road, which causes the spikes of the rectified signal visible in Figure \ref{rightobsfinal} after the avoidance. As soon as the robot has passed an obstacle fully, it drives straight to the predicted goal while waiting on new data from the roadDetection, which often causes unnecessary long avoidance periods.
+Obstacle avoidance suffers from a similar problem. As shown in the \nth{3} test. Here it is visible, that the robot passes the obstacle nicely, but afterwards drives along the center of the road, which causes the spikes of the rectified signal visible in Figure \ref{rightobsfinal} after the avoidance. As soon as the robot has passed an obstacle fully, it drives straight to the predicted goal while waiting on new data from the road detection, which often causes unnecessary long avoidance periods.
 
 
 

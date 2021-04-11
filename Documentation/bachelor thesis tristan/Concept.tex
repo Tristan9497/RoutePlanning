@@ -8,10 +8,10 @@ Based on the analysis in chapter \ref{relatedwork} the navigation stack seems to
 Afterwards the tasks of the nodes in move\_base need to be defined. These will be categorized into the global and local stage, each consisting of a planner and a costmap.
 Additionally the setup requires nodes, which autonomously find new goals for the navigation and transform the sensor data into a usable format. 
 
-\section{Sensor transforms}
+\section{Sensor Transforms}
 To know the position of every sensor relative to the robot and its odometry the tf\_tree has to be build. While this can be realized by calculating the transformations between the frames manually,  using the ROS package robot\_state\_publisher is a cleaner approach. This requires a robot description in URDF format that specifies the relations between everything mounted on the robot.\\
 
-The required odom frame is build by using the position derived from the wheel encoder data.
+The required transform from the base to the odom frame is build by using the position derived from the wheel encoder data.
 
 \section{Map}
 
@@ -24,23 +24,23 @@ This potentially allows a goal extraction from the map instead of estimating it 
 
 Unfortunately, the data that can be fed to the SLAM algorithm is very limited, since it is not guaranteed, that the lidar sensor all ways sees static obstacles. Another data source for the SLAM algorithm could be the points extracted from the road detection. Unfortunately the road markings are similar to a corridor and do not have a lot of features, other than their curvature.\\
 
-This significantly decreases the reliability of the map which therefore will highly depend on good odometry.
+This significantly decreases the reliability of the map which therefore will highly depend on good odometry, since for example a straight section of the road always looks similar, even if it is on the other side of the circuit. The odometry provides an estimate, where the SLAM algorithm should attach the sensor data to the map.
 
-To get the best map, both of the data inputs have to be used, which results in the need of a SLAM algorithm with multiple inputs.\\
+To get a better map, both of the data inputs have to be used, which results in the need of a SLAM algorithm with multiple inputs.\\
 
 
-\subsection{Global stage}
+\section{Global stage}
 The general task of the global planner is like described in the theoretical background to plan a rough path through the grid of the costmap, that does not collide with any lethal cell.\\
 
 In this scenario the global planner will also be used to guide the robot on the correct lane. This results in the following requirements:
 
 \begin{itemize}
 	\item The global costmap needs information about the road markings and the obstacles detected by the lidar scan
-	\item The global costmap needs to incorporate cost that generate a preference for the right lane, but allow the global path to go to the left in case of an obstacle
-	\item The global planner has to respect every cost value
+	\item The global costmap needs to incorporate cost that generate a preference for the right lane, but allow the global path to go to the left lane in case of an obstacle
+	\item The global planner has to respect all cost values
 \end{itemize}
 
-\subsection{Local stage}
+\section{Local stage}
 The local stage on the other hand has the task of finding a path, that is feasible for the dynamics of the robot and does not collide with objects.\\
 This path is supposed to be close to the global path and follow its lane changes, but it needs to be able to separate itself from it, if necessary.
 
@@ -61,13 +61,13 @@ Therefore it consists out of the following nodes:
 
 \begin{itemize}
 	\item \textbf{roadDetection} will extract approximated polynomials for the road markings and the lanes from the camera data
-	\item \textbf{markfreespace} needs to publish point clouds to the costmaps and the SLAM algorithm consisting of the roadDetection data and the lidar scan.
+	\item \textbf{markfreespace} needs to publish point clouds to the costmaps and the SLAM algorithm consisting of the road detection data and the lidar scan.
 \end{itemize}
 
 Like described in the requirements, the simulator is supposed to produce realistic sensor data, which might need filtering. These filters are additionally located in this block.
 
 \section{Resulting Concept}
-The schematic in figure \ref{navconcept} shows the concept of the navigation.  To keep the schematic as simple as possible, not every connections between the nodes are highlighted.\\
+The schematic in figure \ref{navconcept} shows the concept of the navigation.  To keep the schematic as simple as possible, not every connections between the nodes are highlighted (Appendix \ref{config} shows the finalized schematic).\\
 
 \begin{figure}[H]
 	\begin{center}
