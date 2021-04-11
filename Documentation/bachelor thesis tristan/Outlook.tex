@@ -7,7 +7,7 @@ Using the structure of move\_base a custom local and global planner plugin can b
 
 It could be very interesting to explore different path finding algorithms than the ones offered in the global\_planner plugin. At this point the development of a custom global planner might be able to perform better given the known use case.\\
 
-Seeing the performance of the elastic band in the local planner used in this thesis a potential approach could be to move the task of lane following to the local planner, by deforming the elastic band directly with the polynomials of the road detection and weighting them individually.\\
+Seeing the performance of the elastic band in the local planner used in this thesis a potential approach could be to move the task of lane following to the local planner, by deforming the elastic band directly with the polynomials of the road detection and weighting them individually. Here the work of Christoph Rösmann presented in the realated work might serve as a starting point.\\
 
 To decrease the amount of times, where the navigation has to wait until it receives data from the road\_detection, the approximated shape of the road could be drawn into the costmap and overwritten by new incoming data of the road. This could be implemented into the dynamic\_cost\_layer that has been developed during this work.
 

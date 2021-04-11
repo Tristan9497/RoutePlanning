@@ -64,7 +64,7 @@ From these possible trajectories a configurable amount will be forward simulated
 
 The ``best'' trajectory is then chosen based on the evaluation. Since the trajectory consist of a combination from translational and rotational velocities these can be used as the input for the motor controller\cite{dwaplanner}.\\
 
-Since the planners of move\_base are implemented in the form of a plugin, not only the plugins of the navigation\_stack are available, but additional ones developed by the ROS community.\\
+Since the planners of move\_base are implemented in the form of a plugin, not only the plugins of the navigation stack are available, but additional ones developed by the ROS community.\\
 
 A popular choice is teb\_local\_planner, which uses the timed elastic band approach, introduced by Christoph Rösmann in his paper about ``Trajectory modification considering dynamic constraints of autonomous robots``.\\
 This approach uses the global path as an elastic band, that is repelled by obstacles located next to it and contracted by internal forces like the time constrain.\\
@@ -91,13 +91,13 @@ As mentioned, work of other teams in the Carolo-Cup is rarely published. Further
 
 The analysis suggest, that the navigation stack is a reasonable choice as a flexible base structure. MoveIt! is more distanced from ROS and rather focused on industrial arm-like robots. It does not seem to be fitting for the scope of this work.\\
 
-Unfortunately, the navigation stack does not provide functionality to handle zones that are less preferred. This would be a useful feature to prioritize the right lane of the road. Therefore modifications to the stack are necessary.
+Unfortunately, the navigation stack does not provide functionality to handle zones that are less preferred. This would be a useful feature to prioritize the right lane of the road. Therefore modifications to the stack are necessary.\\
 
 
-There has been a lot of research in path planning of robots. Even for different steering types. The presented solutions to these problems are not bound to a certain use case, which makes them usable in a road environment. 
-This thesis mainly focusses on the setup of a working navigation, therefore these planners can be used. The performance of these planners in a road environment are not tested yet. Therfore the development of custom planners for this use case might be necessary in the long term.
+There has been a lot of research in path planning of robots. Even for different steering types. The presented solutions to these problems are not bound to a certain use case.
+This thesis mainly focusses on the setup of a working navigation, therefore these planners can be used. The performance of these planners in a road environment are not tested yet but a selection procedure is needed. The development of custom planners for this use case might be necessary in the long term, if the performance is insufficient.\\
 
-All of this covers only the navigation related nodes, but the navigation stack asks for inputs of certain types. The sensor setup is obviously specific to each robot platform. Additionally, to achieve the required navigation behavior, custom data filtering and processing is necessary.
+All of this covers only the navigation related nodes, but the navigation stack asks for inputs of certain types. The sensor setup is obviously specific to each robot platform. Additionally, to achieve the required navigation behavior, custom data filtering and processing is necessary.\\
 
 
 While the project ArloBot of Christen Lofland does not share the same use case, it shares the same robot platform. The project is licensed under the definitions of the MIT License allowing unrestricted usage to any person. Therefore the URDF file of the robot is already existent and will be used as a starting point in this project, although it might need modifications.

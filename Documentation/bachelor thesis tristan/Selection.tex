@@ -154,11 +154,31 @@ Similar to the least square approach for circles, an approach for the lines can 
 
 Switching between the result of the two approximations will produce the best result for both scenarios. This switching will be triggered by the radii of the approximated circles exceeding a configurable threshold.\\
 
-\todo{circle fit picture and lines + explenation}
-
 The next step is a goal extraction from the chosen approximation. This goal will be calculated at a given distance from the robot origin on the approximated route. In contrast to the approximated lines, the circles have a defined angle of trustworthiness. Otherwise small circles would cause the goal to be way of the prediction. The orientation of the goal will then be determined using the derivative of either, the approximated circles or lines.\\
 
 With the calculated points on both circles or on both lines the mean can be calculated and represents the new goal for the robot.
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{.45\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/circle approx}
+		\caption{circle approximation}
+		\end{subfigure}	
+	%\hskip2em
+	\begin{subfigure}{.45\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/lineapprox}
+		\caption{line approximation}
+	\end{subfigure}
+
+	\caption{Approximations visualizations}
+	\label{aproxvis}
+
+\end{figure}
+
+A visualization of the result is pictured in figure \ref{aproxvis}.
+It shows the robot, its current goal, as well as the estimated road outlined by the geometric shapes of the respective approximation.
+
+Based on this figure the necessity of the angle of trustworthiness of the road detection becomes apparent. Assuming a larger goal distance the estimated goal would not be located on the road anymore and would point in the wrong direction as well. This makes pathfinding impossible without leaving the road.
 
 \subsection{Goal from map}
 
