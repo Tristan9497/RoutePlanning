@@ -22,14 +22,17 @@ Unfortunately, amcl and the map\_server are not suited for this use case, since 
 A SLAM (simultaneous localization and mapping) algorithm becomes highly useful since the robot might drive multiple rounds, allowing it to build its own map.\\
 This potentially allows a goal extraction from the map instead of estimating it by using the sensor data stream. Furthermore it can be used to determine the robots position relative to the map, by providing a transformation between the map and odom tf frames.
 
-Unfortunately, the data that can be fed to the SLAM algorithm is very limited, since it is not guaranteed, that the lidar sensor all ways sees static obstacles. Another data source for the SLAM algorithm could be the points extracted from the road detection. Unfortunately the road markings are similar to a corridor and do not have a lot of features, other than their curvature.\\
+Unfortunately, the data that can be fed to the SLAM algorithm is very limited, since it is not guaranteed, that the lidar sensor all ways sees static obstacles. Another data source for the SLAM algorithm could be the points extracted from the road detection. Unfortunately, the road markings are similar to a corridor and do not have a lot of features, other than their curvature.\\
 
 This significantly decreases the reliability of the map which therefore will highly depend on good odometry, since for example a straight section of the road always looks similar, even if it is on the other side of the circuit. The odometry provides an estimate, where the SLAM algorithm should attach the sensor data to the map.
 
 To get a better map, both of the data inputs have to be used, which results in the need of a SLAM algorithm with multiple inputs.\\
 
+\section{move\_base}
 
-\section{Global stage}
+move\_base consist of a global and a local part, the combination of both defines the path finding characteristic of the navigation. Since each part has a different task they can be separated into the global and local stage.
+
+\subsection{Global Stage}
 The general task of the global planner is like described in the theoretical background to plan a rough path through the grid of the costmap, that does not collide with any lethal cell.\\
 
 In this scenario the global planner will also be used to guide the robot on the correct lane. This results in the following requirements:
@@ -40,7 +43,7 @@ In this scenario the global planner will also be used to guide the robot on the 
 	\item The global planner has to respect all cost values
 \end{itemize}
 
-\section{Local stage}
+\subsection{Local Stage}
 The local stage on the other hand has the task of finding a path, that is feasible for the dynamics of the robot and does not collide with objects.\\
 This path is supposed to be close to the global path and follow its lane changes, but it needs to be able to separate itself from it, if necessary.
 

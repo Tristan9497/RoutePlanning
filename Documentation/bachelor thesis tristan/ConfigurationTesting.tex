@@ -12,7 +12,7 @@ The entire testing is performed by using Gazebo as the simulation environment. T
 
 The URDF model is based on the model of Christen Lofland, who created this for his own open source project\cite{chrisl8}.\\
 
-Unfortunately this model has been created to generate the fixed transforms of a real model only, so it does not have moveable joints for the wheels or any plugins for sensors and the differential steering. In addition to that it uses .stl files for both visual and collision volumes which results in unpredictable collision distances.\\
+Unfortunately, this model has been created to generate the fixed transforms of a real model only, so it does not have moveable joints for the wheels or any plugins for sensors and the differential steering. In addition to that it uses .stl files for both visual and collision volumes which results in unpredictable collision distances.\\
 
 To keep the model as simple as possible one common xacro file is used, that loads the individual files for the following parts:
 \begin{itemize}
@@ -122,7 +122,7 @@ The final configuration is pictured in Appendix \ref{config}.
 \subsection{Google Cartographer}
 The goal of this node is to produce a map that gets more reliable over time.\\
 
-Unfortunately the data available for Cartographer is very self similar, meaning a straight road will always look the same and therefore does not have sufficient features for proper loop closure. In contrast to the points from the road detection the lidar can actually supply such features and will therefore be a good improvement for the resulting map.\\
+Unfortunately, the data available for Cartographer is very self similar, meaning a straight road will always look the same and therefore does not have sufficient features for proper loop closure. In contrast to the points from the road detection the lidar can actually supply such features and will therefore be a good improvement for the resulting map.\\
 
 But it is not guaranteed that the lidar will even sees anything the SLAM algorithm has to work with the points of the road detection only as well.\\
 
@@ -272,7 +272,7 @@ Like the global planner the local planner has to be configured to comply its tas
 
 A good starting point for the configuration are the example configurations in the repository of the developer of the planner\cite{tebtutorials}. They offer base configurations for both differential drive and car like, as well as omnidirectional robots.\\
 
-Unfortunately teb\_local\_planner only considers lethal cost and without any configuration would follow the global path very loosely resulting in e.g. cutting corners.\\ 
+Unfortunately, teb\_local\_planner only considers lethal cost and without any configuration would follow the global path very loosely resulting in e.g. cutting corners.\\ 
 
 To give the planner a tendency to follow the global planner closer the option ``viapoint'' can be used. This allows to set points at a configurable distance to each other on the global path, that pull the local path and the robot to the correct lane. The attraction of the local path through the via points is then tuned so the robot drives roughly in the middle of the right lane, when no obstacle is on the road, but still can separate itself from the global path, when avoiding obstacles.\\
 

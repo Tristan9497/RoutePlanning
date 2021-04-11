@@ -4,15 +4,19 @@
 
 \begin{otherlanguage}{ngerman}
 \todo{translate english version}
-Diese Bachelor-Thesis handelt von der Erstellung eines Konzepts, dem Aufbau und der Entwicklung eines ``Software-Stack'' und dessen Testens für die autonome Navigation einer mobilen Roboterplattform in einer, durch das Regelwerk des Carolo-Cups beschriebenen, Umgebung.\\
+Diese Bachelor-Thesis handelt von der Erstellung eines Konzepts, der Entwicklung dem Aufbau und des Testens eines ``Software-Stack'' für die autonome Navigation einer mobilen Roboterplattform in einer, durch das Regelwerk des Carolo-Cups beschriebenen Umgebung.\\
 
-Das Ziel dieses ``Software Stacks'' ist, einer Straßenspur zu folgen und dabei potentiellen Hindernissen auf der Straße auszuweichen. Diese Thesis führt die Arbeit von Prof. Hörmann fort, der die von ihm Entwickelte Spurerkennung zur Verfügung stellte und soll in der Zukunft vom Carolo-Cup Team der Hochschule Aalen verwendet werden können. Obwohl der in dieser Arbeit verwendete Roboter nicht konform zum Regelwerk des Carolo-Cups ist, soll der Stack auch für andere Roboter konfigurierbar sein.\\
+Das Ziel dieses ``Software Stacks'' ist, einer Straßenspur zu folgen und dabei potentiellen, durch die Sensorik erkannten, Hindernissen auf der Straße auszuweichen. Diese Thesis führt die Arbeit der bereits entwickelten Spurerkennung fort und soll in der Zukunft vom Carolo-Cup Team der Hochschule Aalen verwendet werden können.\\
 
-Der Roboter verfügt über einen Lidar, eine Kamera, Rad-Encoder und eine IMU (inertia measurement unit). Die Daten dieser Sensoren werden gefiltert und dann mit bestehenden und selbst entwickelten ROS packages aufbereitet. Die resultierenden Daten werden dann an den Navigation Stack  übergeben, der dann die beste Route mittels planer plugins, die für die Aufgaben und die Dynamik des Roboters konfiguriert sind, ermittelt.\\
+Der Fokus der navigation ist nicht nur eine Ackermann Steuerung, da das Regelwerk bis auf die Einschränkung, dass mindestens eine Achse lenkbar sein muss, hier keine Limitierungen vorsieht\cite{carolocup}. Die zielstzung ist, den Stack so flexibel wie möglich zu halten.\\
 
-Um das Testen der Navigation zu vereinfachen und die Hardware-Iteration zu beschleunigen, wird der Roboter, zusammen mit der gesamten Umgebung simuliert.
+Das Labor für mobile Roboterplattformen besitzt mehrer Parallax Arlo Roboter. Um das testen zu vereinfachen wird dieser Roboter für diese Arbeit verwendet.
 
-Die resultierende Navigation steuert den Roboter auf einem Rundkurs und bleibt währenddessen meist auf der rechten Spur. Der Roboter vermeidet Hindernisse relativ zuverlässig und steuert den Roboter danach wieder auf die richtige Spur. Da die Schätzung der kommenden Straße teilweise zu ungenau ist verlässt der Roboter beim Vermeiden von Hindernissen gelegentlich die Straße.
-Da die Navigation auf move\_base und dessen Nutzung von plugins basiert, sind zukünftige Verbesserungen und Weiterentwicklung der vorliegenden Forschungsergebnisse leicht möglich.
+Dieser Roboter erfüllt jedoch die Regeln des Carolo-Cup's nicht, da er zu groß ist und die flasche Lenk-Art verwendet. Deshalb muss der ``Stack'' vom Carolo-Cup Team der Hochschule angepasst werden können.\\
+
+Der Roboter verfügt über einen Lidar Sensor, eine Kamera, Rad-Drehencoder und eine IMU (inertia measurement unit). Die Daten dieser Sensoren werden dann mit bestehenden und selbst entwickelten ROS packages verarbeitet. Die resultierenden Daten werden dann an den ``navigation stack'' übergeben, um eine Bahn zu einem geschätzten möglichen Ziel zu ermitteln.\\
+
+Um das Testen der Navigation zu vereinfachen und die Hardware Änderungen zu beschleunigen, wird der Roboter, zusammen mit der gesamten Umgebung, simuliert.
+Während der Roboter dem Rundkurs folgt, soll durchgehend die Fahrbahn genutzt werden, außer, diese wird durch Hindernisse blockiert.
 
 \end{otherlanguage}

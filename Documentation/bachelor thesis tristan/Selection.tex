@@ -48,7 +48,7 @@ Since the global planner needs to communicate with the nav\_core interface  the 
 Here the choice is fairly easy, since base\_global\_planner is the successor of navfn. It still supports the the behavior of navfn, but it offers more options, such as A* planning algorithm instead of Dijkstra.
 
 
-Carrot planner isn't suited for this use-case since it doesn't fullfil the requirement of being able to cover lane changes since it will not generate plans, that go around obstacles. Instead it will generate a straight path to the goal and shortens the path if the goal is behind or in an obstacle\cite{corrotplanner}.
+carrot\_planner isn't suited for this use-case since it doesn't fullfil the requirement of being able to cover lane changes since it will not generate plans, that go around obstacles. Instead it will generate a straight path to the goal and shortens the path if the goal is behind or in an obstacle\cite{corrotplanner}.
 
 \subsubsection{Costmap}
 Since costmap\_2d is embedded in move\_base the package does not need to be selected itself. Instead the layers of the individual costmap need to be selected.\\
@@ -56,11 +56,15 @@ Since costmap\_2d is embedded in move\_base the package does not need to be sele
 As defined in the concept, the global costmap needs to have information about lethal obstacles, road markings, as well as a defined preference for the right lane.\\
 
 For the road markings and the obstacles, a combination of an obstacle layer and an inflation layer will be used.\\
-This results in lethal cells in the costmap for each point of the lidar sensor and the left and right lane of the road detection. These points will still have gaps in between each other, which will be filled by using the inflation layer that inflates every point with a defined cost distribution.\\
+This results in lethal cells in the costmap for each point of the lidar sensor and the left and right lane of the road detection. These points will still have gaps in between each other, which will be filled by using the inflation layer that inflates every point with a defined cost distribution as pictured in figure \ref{costinfl}.\\
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.7\textwidth]{Pictures/costmap inflation}
+	\caption{visualization of the inflated sensor data in the costmap (red - road detection, green - lidar scan, blue - inflation)}
+	\label{costinfl}
+\end{figure}
 
-\todo{picture}
-
-Unfortunately there is no costmap plugin that can be used to make certain areas more expensive than others without marking them as lethal. This leads to the following concept of a custom costmap layer.
+Unfortunately, there is no costmap plugin that can be used to make certain areas more expensive than others without marking them as lethal. This leads to the following concept of a custom costmap layer.
 
 The only information about where the lane is, comes from the road detection, which outputs polynomials that approximate the road markings. The aim is to make a gradually increasing cost from the middle of the right lane to the left road marking. Therefore the left road marking needs to be inflated using dynamically adjustable parameters for the cost distribution.\\
 To guarantee that the right lane still has space without cost, the right road marking needs to be inflated too. To simplify lane changes in the case of obstacle avoidance these obstacle need to have a cost free zone around them.
@@ -187,7 +191,7 @@ Finally the line approximation will be checked and only, if the circle approxima
 
 The result of the chosen algorithm can be used to determine a goal that will be sent as an input to move\_base.
 
-The goal found by the approximation unfortunately is not certainly on the road. It could as well be in an obstacle or of the road, which would make complete navigation to the goal impossible. Hence this procedure will be repeated at a configurable frequency, so the robot will never reach one of the goals. 
+The goal found by the approximation, unfortunately is not certainly on the road. It could as well be in an obstacle or of the road, which would make complete navigation to the goal impossible. Hence this procedure will be repeated at a configurable frequency, so the robot will never reach one of the goals. 
 
 The node is configurable using rqt\_reconfigure and the following parameters.
 

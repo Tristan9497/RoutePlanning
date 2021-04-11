@@ -6,11 +6,11 @@ This thesis covers the conceptual design, setup, development and testing of a so
  The aim of this stack is lane following and obstacle avoidance based on sensory environmental data. This thesis extends work of the existing roadDetection package and is supposed to be used by the Carolo-Cup team of Aalen Univeristy in the future.\\
  
  The navigation is not supposed to be focussed only on Ackeramann steering, since the Carolo-Cup does not make restrictions to the steering type, other than at least one axle must be steerable, but ideally the stack should be as flexible as possible\cite{carolocup}.\\
- The laboratory for mobile robotic platforms at Aalen University owns multiple Parallax Arlo robots. To make future testing easier this type of robot is selected for this thesis.
+ The laboratory for mobile robotic platforms at Aalen University owns multiple Parallax Arlo robots. To make future testing easier this type of robot is selected for this thesis.\\
 
- The robot used in this work does not satisfy the rules of the Carolo-Cup since it is to big and uses the wrong steering technique. Therefore the stack needs to be flexible in order to be adapted by the Carolo-Cup team.
+ The robot used in this work does not satisfy the rules of the Carolo-Cup since it is to big and uses the wrong steering technique. Therefore the stack needs to be flexible in order to be adapted by the Carolo-Cup team.\\
 
-The robot is equipped with a lidar sensor, camera, wheel encoders and an IMU (Inertia Measurement Unit). The data of these sensors will be processed using existing ROS (Robot Operating System) packages as well as newly developed ones. The resulting data will be used by the navigation stack to determine the best route for the robot. This is done with the use of predictive algorithms.\\
+The robot is equipped with a lidar sensor, camera, wheel encoders and an IMU (Inertia Measurement Unit). The data of these sensors will be processed using existing ROS (Robot Operating System) packages as well as newly developed ones. The resulting data will be used by the navigation stack to determine a route to a goal supplied by a predictive algorithm.\\
 
 For testing purposes and to make quick hardware changes possible, the robot and the entire system is simulated using the Gazebo simulation environment.\\
 
