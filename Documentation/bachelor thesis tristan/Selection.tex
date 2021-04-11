@@ -1,8 +1,7 @@
 \chapter{Selection and development}
 \label{Selection}
 
-This chapter will cover the package selection and the setup of all nodes in the concept. In addition to that the development of the custom nodes will be discussed.
-
+This chapter covers the package selection and the setup of all nodes in the concept. In addition to that the development of the custom nodes will be discussed. This results in nodes assigned to each block in the schematic.
 
 
 \section{Simulation}
@@ -11,7 +10,8 @@ There are many options, when it comes to robot simulation environments, which ma
 \subsection{Selection}
 To begin of the selection process a group of reasonable simulators needs to be collected. The two selected options are Gazebo and V-REP since they are the two most used robotics 3D simulators \cite{SimComp}.\\
 
-Both simulators seem to fulfill most of the defined requirements to a certain extend, while Gazebo seems to have a easier installation process and integration into ROS. Gazebo is included in the default packages of ROS Noetic since it is developed by the Open Source Robotics Foundation as the default simulator for ROS\cite{ROSPkg}.
+Both simulators seem to fulfill most of the defined requirements to a certain extend, while Gazebo seems to have a easier installation process and integration into ROS.\\
+Gazebo is included in the default packages of ROS Noetic since it is developed by the Open Source Robotics Foundation as the default simulator for ROS\cite{ROSPkg}.
 
 V-REP, as well as Gazebo, offers plugins and URDF conversion for custom models, but an even bigger selection of mobile robot models. Which unfortunately can only be used as examples since the required models are very specific.\\
 In contrast to V-REP, Gazebo does not contain an integrated model editor.
@@ -26,11 +26,10 @@ As described in the requirements the robot models will be generated using URDF w
 \section{move\_base}
 
 As described in the concept the navigation stack will be used in this thesis. Therefore the action move\_base will be used to get the robot to a given goal.\\
- Move\_base incorporates nav\_core and costmap\_2d and their internal nodes which need to be selected according to the requirements of the navigation.\\ 
-The selection of these nodes will be separated into global and local since the individual nodes are highly interconnected and the wanted behavior affects both.
+ move\_base incorporates nav\_core and costmap\_2d and their internal nodes which need to be selected according to the requirements of the navigation.\\ 
+The selection of these nodes will be separated into a global and local stage, since the individual nodes are highly interconnected and the wanted behavior affects both.
 
 \subsection{Global stage}
-
 
 \subsubsection{Planner}
 
@@ -51,14 +50,14 @@ Carrot planner isn't suited for this use-case since it doesn't fullfil the requi
 \subsubsection{Costmap}
 Since costmap\_2d is embedded in move\_base the package doesn't need to be selected itself. Instead of the package the layers of the individual costmap need to be selected.\\
 
-Judging from the required behavior of the global planner the global costmap needs to have information about lethal obstacles, road markings as well as a defined preference for the right lane.\\
+As defined in the concept, the global costmap needs to have information about lethal obstacles, road markings as well as a defined preference for the right lane.\\
 
 For the road markings and the obstacles, a combination of an obstacle layer and an inflation layer will be needed.\\
-This results in lethal cells in the costmap for each point of the road detection and the lidar. These points will still have gaps in between each other, which will be filled by using the inflation layer that inflates every point with a defined cost distribution.\\
+This results in lethal cells in the costmap for each point of the roadDetection and the lidar. These points will still have gaps in between each other, which will be filled by using the inflation layer that inflates every point with a defined cost distribution.\\
 
 Unfortunately there is no costmap plugin that can be used to make certain areas more expensive than others without marking them as lethal. This leads to the following concept of a custom costmap layer.
 
-The only information about where the lane is comes from the road detection, which outputs polynomials that approximate the road markings. The aim is to make a gradually increasing cost from the middle of the right lane to the left road marking. Therefore the left road marking needs to be inflated using dynamically adjustable parameters for the cost distribution.\\
+The only information about where the lane is, comes from the roadDetection, which outputs polynomials that approximate the road markings. The aim is to make a gradually increasing cost from the middle of the right lane to the left road marking. Therefore the left road marking needs to be inflated using dynamically adjustable parameters for the cost distribution.\\
 To guarantee that the right lane still has space without cost, the right road marking needs to be inflated too. To simplify lane changes in the case of obstacle avoidance these obstacle need to have a cost free zone around them.
 The plugin should also feature a reset option as a recovery behavior.
 
@@ -70,6 +69,15 @@ All of this results in a layer with the following abilities:
 	\item Rasterization of the individual cost distribution
 	\item Service to reset the cost in the layer
 \end{itemize}
+
+The cost distribution over the road is picture in Figure \ref{navigation stack setup}. It is noticeable, that the  cost overlaps to the right lane which is necessary, since the global planner only considers cost greater than 50 by default resulting in a ``clear'' right lane.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.5\textwidth]{Pictures/global stage cost distro}
+	\caption{global stage road cost distribution}
+	\label{globalcostdistre}
+\end{figure}
 
 \subsection{Local stage}
 \subsubsection{Planner}
@@ -105,7 +113,7 @@ The local planner is only supposed to generate velocity commands that lead to no
 
 
 \section{PoseFinder}
-As described in the concept the purpose of this node is to determine the pose of the next goal and send it to the move\_base action client. Therefore it will need to process the data from the road\_detection and if available from the SLAM map and determine a feasible goal.\\
+As described in the concept the purpose of this node is to determine the pose of the next goal and send it to the move\_base action client. Therefore it will need to process the data from the roadDetection and if available from the SLAM map and determine a feasible goal.\\
 Since the robot should never reach a goal, the PoseFinder needs to determine new goals at a configurable frequency. Furthermore it needs to predict the path of the road so the robot has a goal to drive to, even if the road detection does not detect any part of the road.
 
 
@@ -172,6 +180,8 @@ Since as described every, even straight sections can be expressed by a circle se
 Finally the line approximation will be checked last and only if the circle approximation generated circles with radii, that exceed a threshold for their trustworthiness.
 
 The result of the chosen algorithm can be used to determine a goal that will be sent as an input to move\_base.
+
+The goal found by the approximation unfortunately is not certainly on the road. It could as well be in an obstacle or of the road, which would make complete navigation to the goal impossible. Hence this procedure will be repeated at a configurable frequency, the robot will never reach its finish. 
 
 The node is configurable using rqt\_reconfigure and the following parameters.
 

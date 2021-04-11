@@ -221,7 +221,7 @@ This chapter defines requirements for parts of this work, based on the scope of 
 
 \section{Robot and environment}
 
-The robot itself is very restricted in the Carolo-Cup in size and steering technique. In this thesis this these restrictions will be ignored, in order to use the default mobile robotic platform Arlo from the manufacturer Parallax, pictured in Figure \ref{arlore}.\\
+The robot itself is very restricted in the Carolo-Cup in size and steering technique. In this thesis these restrictions will be ignored, in order to use the mobile robotic platform Arlo from the manufacturer Parallax, pictured in Figure \ref{arlore}. This platform is the default platform of the laboratory for mobile robotics at Aalen University\\
 
 This decision is based on a potential comparisons after this thesis between real and simulated environments. This could give insight on problems in the navigation that have not yet been addressed.\\
 
@@ -248,7 +248,7 @@ Therefore the robot is equipped with the following sensors:
 
 As the navigation might require additional sensors this is not a fixed requirement but the default configuration.
 
-The robot needs to control the wheels with a motor controller. Since the navigation is supposed to be flexible in regards to the steering the input of this is configured as linear and angular velocities.
+The robot needs to control the wheels with a motor controller. Since the navigation is supposed to be flexible in regards to steering type, the input of this is configured as linear and angular velocities.
 
 \section{Software}
 As mentioned in the introduction the navigation is developed for ROS-Noetic, furthermore roscpp is prefered over rospy to keep the source code of developed ROS nodes as uniform as possible.
@@ -256,14 +256,14 @@ As mentioned in the introduction the navigation is developed for ROS-Noetic, fur
 \section{Simulation}
 Since the environment is simulated the simulator has to have the following features.
 \begin{itemize}
-	\item Realistic sensor plugins Sensor plugins with ROS interfaces
+	\item Realistic sensor plugins with ROS interfaces
 	\item Differential drive plugin
-	\item Custom models integration
-	\item URDF conversion
+	\item Custom models integration for the environment
+	\item URDF conversion for the robot
 	\item Not too computationally heavy
 \end{itemize}
 
-The simulation is mostly focus on sensor data. That is why sensor plugins with configurable error and a ROS interfaces are needed. Like this the data will be as representative as possible of the real world.\\
+The simulation is mostly focused on sensor data. Hence sensor plugins with configurable error and a ROS interfaces are needed. Like this the data will be as representative as possible to the real world.\\
 
 In addition to the sensor plugins the simulator needs to provide a plugin for differential drive steering. This is the replacement for the motor controller of the Arlo platform.\\
 

@@ -12,9 +12,9 @@ It incorporates the latest advances in motion planning, manipulation, 3D percept
 
 The software is an evolution of the arm\_navigation ros packages that are designed for the manipulation of robot arms mounted on the PR2 robot from Willow Garage\cite{chitta2012moveit}\cite{willow}.
 
-The actual evolution of arm\_navigation was an effort to separate the software from ROS, since a large part of ROS is not needed for the movement of the robot. 
+The evolution of arm\_navigation was an effort to separate the software from ROS, since a large part of ROS is not needed for the movement of the robot. 
 
-Using URDF makes MoveIt! highly flexible to robot configurations, but the core task of manipulating ``arm-like'' robots is still one of the core tasks of the software.
+Using URDF makes MoveIt! highly flexible to robot configurations, but the manipulation of ``arm-like'' robots is still one of the core tasks of the software.
 
 \section{navigation}
 In contrast to MoveIt! the navigation project of ROS-Planning is a software stack, that is developed to move a robot from Point A to Point B.
@@ -33,23 +33,23 @@ As pictured in the recommended navigation stack setup in Figure \ref{navigation 
 	\label{navigation stack setup}
 \end{figure}
 
-The navigation stack has the option to navigate in an existing map by using the combination of the map\_server and amcl. The map\_server publishes a pre recorded slam map as an occupancy grid. amcl (adaptive monte carlo localization) then uses that map for localization of the robot by matching the incoming scan result to the map published by the map server. With a good and detail rich map his allows for a pretty accurate estimate of the robots position.\\
+The navigation stack has the option to navigate in an existing map by using the combination of the map\_server and amcl. The map\_server publishes a pre recorded slam map as an occupancy grid. amcl (adaptive monte carlo localization) then uses that map for localization of the robot by matching the incoming scan result to the map published by the map server. With a good and detail rich map this allows for a pretty accurate estimate of the robots position.\\
 
 For the navigation of a robot all of the blue squares in the setup need to be supplied, as well as a source for the next goal. In addition every white node needs to be configured according to the wanted behavior and the robot itself.\\
 
 move\_base has been build very flexible, since it relies on planner plugins and the costmap\_2d package developed by David V. Lu.
 
-This costmap is build in layers, where every layer has a different task and/or inputs. These layers are then combined into the ``master grid'', which is the costmap the planners use to determine the path\cite{costmappaper}. By adding additional layers the navigation considers for example new sensor data or avoids certain sections of the robots environment.
+This costmap is build in layers, where every layer has a different task and/or inputs. These layers are then combined into the ``master grid'', which is the costmap the planners use to determine their paths\cite{costmappaper}. By adding additional layers, the navigation considers for example new sensor data or avoids certain sections of the robots environment.
 
 Commonly used data is such produced by range finding sensors like lidars or stereo cameras.\\
 
-The layers provided in the costmap\_2d package are able to mark costs according to the range sensor data, an existing map and inflate those by a fixed value radially\cite{costmap} to make a section around obstacles lethal.
+The layers provided in the costmap\_2d package are able to mark costs according to the range sensor data and an existing map and inflate those by a fixed value radially\cite{costmap} to make a section around obstacles lethal.
 
 \subsection{Planners}
 
 The path finding has been split into two parts, the global and the local planner.\\
 
-The global planner is supposed to find a rough path that does not collide with any lethal cells. In case of the global\_planner of the navigation stack this is either done using dijkstra or A* algorithms.\\
+The global planner is supposed to find a rough path that does not collide with any lethal cells. In case of the default package global\_planner of the navigation stack this is either done using dijkstra or A* algorithms.\\
 
 Since the global planner does not consider the robot directly the local planner is supposed to find a path that is feasible for the dynamics and the steering type of the robot. It also considers the shape of the robot directly\cite{movebase}.\\
 
@@ -62,7 +62,7 @@ The ``best'' trajectory is then chosen based on the evaluation. Since the trajec
 
 Since the planners of move\_base are implemented in the form of a plugin, not only the plugins of the navigation\_stack are available, but additional ones developed by the ROS comunity.
 
-A popular choice is teb\_local\_planner, which uses the timed elastic band approach which is introduced by Christop Rösmann in his paper about ``Trajectory modification considering dynamic constraints of autonomous robots``.\\
+A popular choice is teb\_local\_planner, which uses the timed elastic band approach which is introduced by Christoph Rösmann in his paper about ``Trajectory modification considering dynamic constraints of autonomous robots``.\\
 This approach uses the global path as an elastic band, that is repelled by obstacles located next to it and contracted by internal forces like the time constrain.\\
 This time constrain is the main difference to the classic elastic band that tries to find the shortest path. At first this seems to be equivalent, since the shortest path should be the fastest but this does not consider the dynamics of the robot itself. 
 The dynamic of the robot might prevent it from following the shortest path\cite{Rsmann2012TrajectoryMC}. 
@@ -73,12 +73,12 @@ The consideration of thy dynamics lets the planner find the ``best'' combination
 \section{navigation2}
 
 navigation2 is the successor of navigation, but is build for ROS2.
-Since this thesis aims for a ROS-Noetic solution, navigation2 will not be explored intensively.
+Since this thesis aims for a ROS-Noetic solution, navigation2 will not be explored.
 
 \section{ArloBot}
 chrisl8 (Christen Lofland) is a Full Stack Web developer, who spends his free time with robotics. His project regarding a Parallax Arlo platform provides a set of ROS packages that allow the robot to navigate and generate a map of a room\cite{chrisl8}.
 
-His navigation is controlled via a web interface, that allows the user to place goals for the robot to drive to using the navigation stack.
+The navigation of this robot platform is controlled via a web interface, that allows the user to place goals for the robot to drive to, using the navigation stack.
 
 \section{Work of other Carolo-Cup Teams}
 In the field of autonomous navigation, a lot of work has been done by all teams that compete in the Carolo-Cup.\\
@@ -92,8 +92,12 @@ The analysis suggest, that the navigation stack is a reasonable choice as a flex
 
 Unfortunately the costmap does not have functionality to define less preferred zones like it would be the case with the left road lane in this use case. This suggest the introduction of a custom costmap layer.\\
 
+At the start of the Carolo-Cup the map is totally unknown. This makes the usage of the map\_server in combination with amcl redundant.
 
-While the project ArloBot of chrisl8 does not share the same use case, it shares the same robot platform. The project is licensed under the definitions of the MIT License allowing unrestricted usage to any person. Therefore the URDF file of the robot is all ready existent and can be used in this project.
+While the project ArloBot of chrisl8 does not share the same use case, it shares the same robot platform. The project is licensed under the definitions of the MIT License allowing unrestricted usage to any person. Therefore the URDF file of the robot is all ready existent and can be used as a starting point in this project, although it might need modifications.
+
+
+
 
 
 

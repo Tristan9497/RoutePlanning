@@ -1,92 +1,70 @@
 \chapter{Concept}
 \label{Concept}
-\todo{related work}
-This chapter covers the development of a concept, usable for the navigation of a mobile platform. 
 
+This chapter covers the conceptual design of the navigation and defines requirements for some its parts.\\
 
-\todo{only based on live sensor data and why}
-The selection of navigation stacks is quite sparse. Especially considering the defined requirements. In general when it comes to navigation there are only two well documented stacks based on ROS to choose from.
+Based on the analysis in chapter \ref{relatedwork} the navigation stack seems to be a well fitting core structure for the navigation. The use case leads to modifications to the recommended setup pictured in Figure \ref{navigation stack setup}.
 
-\begin{itemize}
-	\item navigation\_stack
-	\item MoveIt
-\end{itemize}
+Afterwards the tasks of the nodes in move\_base need to be defined. These will be categorized into the global and local stage, each consisting out of a planner and a costmap.
+Additionally the setup requires a nodes, that autonomously find new goals for the navigation and transform the sensor data into a usable format. 
 
-In contrast to the navigation\_stack, MoveIt is largely used for the path planning and navigation of industrial robot arms and therefore not suited for this application.
+\section{Sensor transforms}
+To know the position of every sensor relative to the robot and its odometry the tf\_tree has to be build. While this can be realized using static transform publishers, there is also a cleaner way using the ROS package robot\_state\_publisher. This requires a robot description in URDF format that specifies the relations between everything mounted on the robot.\\
 
-The navigation\_stack provides a general setup proposal which seems to be a good starting point for robot navigation, but it has multiple parts that need be modified to adhere to the defined requirements.
-
-
-
-\section{Platform specific nodes}
-Since the platform specific nodes are unique to each robot these will need to be adjusted.\\
-\subsection{Sensor sources}
-
-The following sensors will be predefined for this concept:
-
-\begin{itemize}
-	\item Lidar
-	\item Wheel encoder
-	\item Camera
-\end{itemize}
-
-
-\subsection{Odometry source}
-The odometry is always a result of sensor data. Therefore we can make a direct connection between the sensor filters and the odometry input. These filters will also feature nodes that transform the incoming sensor data into a useable format.
-
-\subsection{Sensor transforms}
-To know the position of every sensor relative to the robot and his odometry the tf\_tree has to be build. While this can be realized using static transform publishers, there is also a cleaner way using the ROS package robot\_state\_publisher. It then requires a robot description in URDF format that specifies the relations between everything mounted on the robot.
-The transformation between the base of the robot and the odom will be build by the filtered odometry.
-
-The remaining platform specific nodes are all available since the simulated robot will be used and provides a motor controller, as well as all of the sensors and data sources.
+The required odom frame is build by using the position derived from the wheel encoder data.
 
 \section{Map}
 
 The map is a representation of the robots environment. If this is known from the start it is clear, where the robot can go and where not.\\
- In this scenario the robot will always start blind, meaning it will not know anything about its surrounding other than that it can expect a road to be somewhere, which makes the map\_server of the navigation\_stack and its functionality to convert prerecorded maps redundant.\\
-Adding to that amcl (the localization package of the navigation\_stack) will no longer work since it tries to find a position in a predefined map based on the current sensor signals.\\
-Knowing the environment and the position of the robot in it is an important part in robot navigation since it allows to send goals that are relative to the environment and not to the robot. That is why the usage of a SLAM algorithm becomes highly useful. This node supplies both the current map and the position of the robot in it.\\
-The big improvement this concept gets from using SLAM is, that goals could be extracted from the map, instead of being estimated after the first round on the track.
 
-This node will publish the transform between the map and the odom frame, so the position of the robot and every sensor signal can be determined relative to the map frame.\\
+Like described amcl and the map—server are not suited for this use case.
 
-Unfortunately the data that can be fed to the SLAM node is very limited, since it is not guaranteed, that the lidar all ways sees static obstacles. Another data source for the SLAM algorithm could be the points extracted from the road detection. The problem with these is, that they don't have a lot of features in them.\\
+A SLAM (simultaneous localization and mapping) algorithm becomes highly useful since the robot might drive multiple rounds, allowing the robot to build its own map. This potentially allows a goal extraction from the map instead of estimating it by using the sensor data stream.
+
+This node will publish the transform between the map and the odom frame, so the position of the robot and every sensor signal can be determined relative to the environment.\\
+
+Unfortunately the data that can be fed to the SLAM algorithm is very limited, since it is not guaranteed, that the lidar all ways sees static obstacles. Another data source for the SLAM algorithm could be the points extracted from the roadDetection. Unfortunately the road markings are similar to a corridor and do not have a lot of features, other than their curvature.\\
 
 This significantly decreases the reliability of the map which therefore will highly depend on good odometry.
 
 To get the best map, both of the data inputs have to be used, which results in the need of a SLAM algorithm with multiple inputs.\\
 
-\section{Provided nodes}
 
-The provided nodes do not have to be reordered but the recovery behaviors will be removed. These will be incorporated in the incoming goals instead.
-
-To define the tasks of the nodes of move\_base they will be separated into two sections a global and a local stage, each of the stages consists out of a planner and a costmap.\\
 \subsection{Global stage}
-The general task of the global planner is like described in the theoretical knowledge to plan a rough path through the grid that will not collide with any obstacle.\\
+The general task of the global planner is like described in the theoretical background to plan a rough path through the grid of the costmap, that does not collide with any lethal cell.\\
 
-In this scenario the global planner will be required to guide the robot on the correct lane as well. This results in two additional requirements:
+In this scenario the global planner will be required to guide the robot on the correct lane as well. This results in the following requirements:
 
 \begin{itemize}
-	\item The global costmap needs to incorporate cost that generates a preference for the right lane, but allows the global path to go to the left in case of a blockage
+	\item The global costmap needs information about the road markings and the obstacles detected by the lidar scan
+	\item The global costmap needs to incorporate cost that generate a preference for the right lane, but allow the global path to go to the left in case of an obstacle
 	\item The global planner has to respect not only lethal but every cost
 \end{itemize}
 
 \subsection{Local stage}
-The local stage on the other hand has the task of finding a path, that is feasible for the kinematic of the robot, that does not collide with objects.\\
-This path needs to be close to the global path and follows the lane changes dictated by the global stage, but it needs to be able to separate itself from the global path if necessary.
+The local stage on the other hand has the task of finding a path, that is feasible for the dynamics of the robot, that does not collide with objects.\\
+This path is supposed to be close to the global path and follow its lane changes, but it needs to be able to separate itself from it, if necessary.
+
+Therefore the local costmap needs to have information about the road markings and the obstacles detected by the lidar scan.
 
 \section{PoseFinder}
-The job of this node is to extract the pose of a goal from the sensor data or the map (if available).\\
+The job of this node is to extract a goal from the sensor data or the map (if available).\\
 
-The requirements of this node will be defined in the "Configuration and testing" section
+The roadDetection is only able to detect the road to a certain distance, further away the course of the road is unknown.\\
+To allow the planners to generate smooth paths the distance, at which goals need to be found should be relatively far away. Therefore this node needs to estimate the upcoming course and repeatably send new goals, since it is uncertain, if the goal is actually on the road or not.
+
+If a map is available the estimation is redundant, since the map is likely to be more precise.
 \section{Sensor filter}
-Here the entire data processing takes place, which converts the sensor data into a usable format. This block in the concept consists out of the following nodes:
+
+This block incorporates the nodes that process the sensor data into a usable format, that is usable for the navigation\_stack. 
+Therefore it consists out of the following nodes:
 
 \begin{itemize}
 	\item \textbf{roadDetection} will extract approximated polynomials for the road markings and the lanes from the camera data
-	\item \textbf{markfreespace} needs to publish points that need to be inflated to generate restricted areas in the costmap. Also produces combined data of the road\_detection and the lidar for SLAM
+	\item \textbf{markfreespace} needs to publish point clouds to the costmaps and the SLAM algorithm consisting out of the roadDetection data and the lidar scan.
 \end{itemize}
 
+Like described in the requirement the simulator is supposed to produce realistic sensor data, which might needs filtering, these filters are additionally located in this block.
 
 \section{Resulting concept}
 The following simplified schematic is the concept of the navigation stack setup. Not all of the connections between the nodes will be highlighted, to keep the schematic simple.\\
@@ -100,9 +78,8 @@ The following simplified schematic is the concept of the navigation stack setup.
 
 
 
-The PoseFinder will first find a goal based on the current state of the map and the sensor data and sends it to the navigation stack. This uses the filtered sensor data to determine, where the robot is, where it is allowed to go and where not. The cascading planners then determine first a rough, collision free, path on the correct lane and then a path that is possible for the kinematics of the robot. This path then gets converted to velocity commands and sent to the differential drive controller.\\
+The PoseFinder will find repeatedly find goals based on the current state of the map and the sensor data and sends it to the navigation stack. This uses the filtered sensor data to determine, where the robot is, where it is allowed to go and where not. The cascading planners then produce first a rough, collision free, path on the correct lane and then a path that is possible for the dynamics of the robot. This path then gets converted to velocity commands and sent to the differential drive controller.\\
 
-The goal found by the approximation unfortunately is not certainly on the road. It could as well be in an obstacle or of the road, which would make complete navigation to the goal impossible. Hence this procedure will be repeated at a configurable frequency, the robot will never reach its finish. 
 
 
 
