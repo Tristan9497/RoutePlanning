@@ -88,11 +88,13 @@ Unfortunately, this work is often not released to the public, since it would all
 \section{Summary}
 As mentioned, work of other teams in the Carolo-Cup is rarely published. Furthermore it would defeat the purpose of the competition to take the concept of other teams as a reference.\\
 
-The analysis suggest, that the navigation stack is a reasonable choice as a flexible base structure. Since MoveIt! is more distanced from ROS and rather focused on industrial arm-like robots it does not seem to be fitting for the scope of this work.\\
+The analysis suggest, that the navigation stack is a reasonable choice as a flexible base structure. MoveIt! is more distanced from ROS and rather focused on industrial arm-like robots it does not seem to be fitting for the scope of this work.\\
 
 Unfortunately the costmap does not have functionality to define less preferred zones like it would be the case with the left road lane in this use case. This suggest the introduction of a custom costmap layer.\\
 
-At the start of the Carolo-Cup the map is totally unknown. This makes the usage of the map\_server in combination with amcl redundant.
+All of this covers only the navigation related nodes, and ignores those, that are used for filtering and pro\todo{gogogo}
+
+At the start of the Carolo-Cup the map is totally unknown. This makes the usage of the map\_server in combination with amcl redundant.\todo{concept}
 
 While the project ArloBot of chrisl8 does not share the same use case, it shares the same robot platform. The project is licensed under the definitions of the MIT License allowing unrestricted usage to any person. Therefore the URDF file of the robot is all ready existent and can be used as a starting point in this project, although it might need modifications.
 
