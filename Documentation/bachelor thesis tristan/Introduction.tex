@@ -3,27 +3,29 @@
 
 
 \section{Motivation}
-When looking at the recent trends in the car industry, autonomous driving is probably one of the most important topics. As Elon Musk founder of Tesla said ``I think that all cars will go fully autonomous in long-term. I think it will be quite unusual to see cars that don’t have full autonomy,'' autonomous driving will be the future of the car industry\cite{musk}.\\
+When looking at the recent trends in the car industry, autonomous driving is probably one of the most important topics. As Elon Musk founder of Tesla said ``I think that all cars will go fully autonomous in long-term. I think it will be quite unusual to see cars that don’t have full autonomy'' autonomous driving will be the future of the car industry\cite{musk}.\\
 
-This trend can also be seen in other industries  in which autonomous robots are used to simplify and accelerate production steps. 
+This trend can also be seen in other industries in which autonomous robots are used to simplify and accelerate production. 
 
-The event ``Carolo-Cup'' hosted by the Technical University of Braunschweig offers a place for teams to compete against each other with their autonomous 1:10 model cars and therefore supports the development of the research field itself. This creates an incentive to participate to a lot of universities in Germany and beyond.\\
+The event ``Carolo-Cup'' hosted by the Technical University of Braunschweig offers a place for teams to compete against each other with their autonomous 1:10 scale model cars. Therefore the event is an important part of the research field of autonomous driving. This creates an incentive to participate on an international level.
 
 \section{Scope}
+\todo{roadDeteection -> road detection}
 
-At the moment of the start of this work the existing part of the software for the Carolo-Cup vehicle is solely the ROS-Noetic based roadDetection. Using this a navigation will be developed that is supposed to guide the robot on the road. Here the robot has a preference for the right road side, while avoiding potentially upcoming obstacles by changing the lane.\\
+This thesis is based on the existing road detection package developed for ROS-Noetic. Within the boundaries of the existing road detection package, a navigation shall be developed to guide the robot on the detected road. The robot hast to use the right lane except to avoid obstacles.
 
 Navigation of a robot is a difficult procedure since it covers many different topics and problems, while dealing with noisy sensor data. The development of an entire navigation exceeds the scope of the thesis since e.g. tasks like pathfinding are very complex.\\
 
-To be compatible with the existing roadDetection a ROS-Noetic based navigation environment has to be chosen, that then can be tuned to handle the previously mentioned tasks.\\
+To be compatible with the existing roadDetection, the development of the navigation algorithm has to be continued in the ROS-Noetic environment. This can then be tuned in order to handle the previously mentioned tasks.\\
 
-These tasks are part of the defined dynamic events of the Carolo-Cup described in the regulations\cite{carolocup}. A modular navigation software is highly preferred, since this work only covers a part of the dynamic events and not intersections, parking, road signs and dynamic obstacles. This modular design would allow to integrate the remaining tasks, without modifying the core structure.\\
+These tasks are part of the defined dynamic events of the Carolo-Cup, as described in its regulations\cite{carolocup}. A modular navigation software is highly preferred, since this work only covers a part of the dynamic events and not intersections, parking, road signs and dynamic obstacles. This modular design would allow to integrate the remaining tasks, without modifying the core structure.\\
 
-Overall the goal is to establish a working navigation, that allows for future improvements.\\
+Overall, the goal is to establish a working navigation, that allows for future improvements and modifications.\\
 
-Testing of the system is difficult, since the system is highly interconnected resulting in unwanted influence of the different parts of the navigation. The results of these tests might require hardware changes and modifications, which are time consuming, especially with limited hardware access, during the current pandemic.\\
+Testing of the system has to be performed in a simulated environment. This has multiple advantages, but first and foremost it removes the need to buy hardware. This allows for fast development iterations, especially with the limited hardware access during the current pandemic.
 
-Therefore the entire system needs to be simulated, where the focus lies upon realistic sensor data regarding noise and errors, in contrast to a mechanical completely accurate model, that for example considers every inertia.
+
+The focus of the simulation lies upon realistic sensor data regarding noise and errors. In contrast to a mechanical accurate model, this does not consider physical quantities accurately, such as inertia.
 
 
 \section{Structure}
@@ -33,13 +35,13 @@ Chapter \ref{theoretical_background} provides information about the needed theor
 
 Using the requirements the existing work in this research field can be discussed in chapter \cite{relatedwork}.
 
-Chapter \ref{Concept} covers the initial planning of the navigation in form of a concept. It incorporates the previously gained insights on the topic and the necessary modifications to the related work resulting in a stack.
+Chapter \ref{Concept} covers the initial theoretical work for the navigation software. It incorporates the previously gained insights on the topic and the necessary modifications to the related work resulting in a final concept.
 
 In chapter \ref{Selection} the selection of the subsystems of the concept is addressed. Furthermore the development of tools needed for the wanted behavior is documented.
 
-The configuration and test setup of the nodes in the stack is covered in chapter \ref{configurationandtesting}.
+The configuration and test setup of the subsystems in the stack is covered in chapter \ref{configurationandtesting}.
 
 
-The results of the tests are discussed in chapter \ref{resultanddiscussion}, which leads to potentially needed optimizations and a conclusion of the performance of the navigation.
+The results of the tests are shown and discussed in chapter \ref{resultanddiscussion}, this leads to the potentially needed optimizations and the conclusion about the performance of the navigation software.
 
-Finally an outlook on the future work on the navigation is given in chapter \ref{outlook}.
+Finally an outlook is given in chapter \ref{outlook}.

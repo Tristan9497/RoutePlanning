@@ -214,6 +214,16 @@ Track restrictions relevant in this thesis:
 	\item \textbf{sharpest turn radius} 1000mm
 \end{itemize}
 
+
+
+
+
+
+
+
+
+
+
 \chapter{Requirements}
 \label{requirements}
 
@@ -221,7 +231,7 @@ This chapter defines requirements for parts of this work, based on the scope of 
 
 \section{Robot and environment}
 
-The robot itself is very restricted in the Carolo-Cup in size and steering technique. In this thesis these restrictions will be ignored, in order to use the mobile robotic platform Arlo from the manufacturer Parallax, pictured in Figure \ref{arlore}. This platform is the default platform of the laboratory for mobile robotics at Aalen University\\
+The regulations of the Carolo-Cup strongly restrict the size and the steering type of the used robot. In this thesis these restrictions will be ignored, in order to use the mobile robotic platform Arlo from the manufacturer Parallax pictured in Figure \ref{arlore}. This platform is the default platform of the laboratory for mobile robotics at Aalen University\\
 
 This decision is based on a potential comparisons after this thesis between real and simulated environments. This could give insight on problems in the navigation that have not yet been addressed.\\
 
@@ -234,7 +244,7 @@ This decision is based on a potential comparisons after this thesis between real
 	\label{arlore}
 \end{figure}\todo{primare source parallax}
 
-As a consequence to the previous choice regarding the robot the road has to be altered, so the proportions between robot size and road dimensions remain the same. Since the Arlo robot has a diameter of 450mm the track width is set to 900mm to keep the 1:2 scale.
+As a consequence to the previous choice regarding the robot, the road has to be altered, so the proportions between robot size and road dimensions remain the same. Since the Arlo robot has a diameter of 450mm the track width is set to 900mm to keep the 1:2 scale.
 
 The sensor setup of the robot is inspired by the current setup of the Arlo robot platform in the mobile robotic platforms lab.
 
@@ -242,16 +252,16 @@ Therefore the robot is equipped with the following sensors:
 
 \begin{itemize}
 	\item Lidar
-	\item Wheel encoder
+	\item Wheel encoders
 	\item Camera
 \end{itemize}
 
-As the navigation might require additional sensors this is not a fixed requirement but the default configuration.
+As the navigation might require additional input this is not a fixed requirement, but the initial configuration.
 
-The robot needs to control the wheels with a motor controller. Since the navigation is supposed to be flexible in regards to steering type, the input of this is configured as linear and angular velocities.
+To keep the navigation software flexible, its output is defined as a vector of linear and angular velocity. This output is applicable for any type of steering.
 
 \section{Software}
-As mentioned in the introduction the navigation is developed for ROS-Noetic, furthermore roscpp is prefered over rospy to keep the source code of developed ROS nodes as uniform as possible.
+As mentioned in the introduction the navigation is developed for ROS-Noetic, furthermore roscpp (C++ library) is prefered over rospy (Python library) to keep the source code of developed ROS nodes as uniform as possible.
 
 \section{Simulation}
 Since the environment is simulated the simulator has to have the following features.
@@ -263,13 +273,13 @@ Since the environment is simulated the simulator has to have the following featu
 	\item Not too computationally heavy
 \end{itemize}
 
-The simulation is mostly focused on sensor data. Hence sensor plugins with configurable error and a ROS interfaces are needed. Like this the data will be as representative as possible to the real world.\\
+The simulation is mostly focused on sensor data. Hence sensor plugins with configurable error and a ROS interfaces are needed. Like this the data will be as close as possible to the realistic sensor data.\\
 
-In addition to the sensor plugins the simulator needs to provide a plugin for differential drive steering. This is the replacement for the motor controller of the Arlo platform.\\
+In addition to the sensor plugins the simulator needs to provide a plugin for differential drive steering. This is the digital replacement for the motor controller of the Arlo platform.\\
 
 Custom models is a strict requirement since this thesis focuses on a very specific robot. Furthermore the integration of custom models is necessary to put the robot in different road scenarios.\\
 
-A URDF conversion plugin is very important like this differences between the simulated robot and the tf-tree in ROS can be avoided and the robot will be defined in one file only.\\
+A URDF conversion plugin is very important. Like this differences between the simulated robot and the tf-tree in ROS can be avoided and the robot will be defined in one file only.\\
 
 To get the best correlation between simulation and real world, the simulator should be able to run close to real time. This will make the simulated sensor data way more reliable and puts the nodes of the navigation\_stack under a realistic load.
 
@@ -277,8 +287,7 @@ To get the best correlation between simulation and real world, the simulator sho
 The navigation is supposed to cover free driving without obstacles, as well as with static obstacles avoidance. It will not cover dynamic obstacles, road sign detection or driving situations like intersections and parking.\\
 
 
-The robot navigates in a totally unknown environment, while the navigation needs to be flexible to the kinematics of the robot, the development of an entire stack that satisfies this exceeds the content of this thesis, so an open source navigation project will be used which needs to satisfy the following requirements. 
-
+The robot navigates in a for itself totally unknown environment, while the navigation needs to be adaptable to the dynamics of the used and similar robots. Because the development of an entire stack that would satisfies the previously mentioned requirements exceeds the content of this thesis, an open source navigation project will be used which needs to cover the following points:
 \begin{itemize}
 	\item Goal pose input
 	\item 2D mobile platform support usage of the conventional drive systems like ackermann and differential
