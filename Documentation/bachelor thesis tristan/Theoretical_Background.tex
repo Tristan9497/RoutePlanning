@@ -257,7 +257,7 @@ This decision is based on a potential comparisons after this thesis between real
 As a consequence to the previous choice regarding the robot, the road has to be altered, so the proportions between robot size and road dimensions remain the same. Since the Arlo robot has a diameter of 450mm the track width is set to 900mm to keep the 1:2 scale.
 
 The sensor setup of the robot is based on the anticipated tasks in the Carolo-Cup. 
-
+\todo{all requirements of the carolo cup}
 Therefore the robot is equipped with the following sensors:
 
 \begin{itemize}
@@ -296,8 +296,34 @@ To get the best correlation between simulation and real world, the simulator sho
 \section{Navigation}
 The navigation is supposed to cover free driving without obstacles, as well as with static obstacles avoidance. It will not cover dynamic obstacles, road sign detection or driving situations like intersections and parking.\\
 
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{.3\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/lane following draw}
+		\caption{lane following}
+		\end{subfigure}	
+	%\hskip2em
+	\begin{subfigure}{.3\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/passing obstacle}
+		\caption{passing obstacle}
+	\end{subfigure}
+	%\hskip2em
+	\begin{subfigure}{.3\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/obstaclee avoidance draw}
+		\caption{obstacle avoidance}
+	\end{subfigure}
 
-The robot navigates in a for itself totally unknown environment, while the navigation needs to be adaptable to the dynamics of the used and similar robots. Because the development of an entire stack that would satisfies the previously mentioned requirements exceeds the content of this thesis, an open source navigation project will be used which needs to cover the following points:
+	\caption{required driving behavior}
+	\label{driving behavior}
+
+\end{figure}
+
+The wanted driving behavior is pictured in figure \ref{driving behavior}. The red arcs show the road markings, detected by the road detection. These can only be detected in the semi circle, since the road detection is restricted by the FOV (field of view) of the camera. In addition to that the road detection can only detect the road markings to a certain distance.
+
+The green lines at the edge of the black square represent the obstacles detected by the lidar sensor.\\
+Like described in the scope of this thesis the goal is, that the navigation avoids obstacles, if they block the right lane. Else the navigation is supposed to follow the right lane.
+
+The robot navigates in a for itself totally unknown environment, while the navigation needs to be adaptable to the dynamics of the used and similar robots. Because the development of an entire stack, that would satisfies the previously mentioned requirements, exceeds the content of this thesis, an open source navigation project will be used which needs to cover the following points:
 \begin{itemize}
 	\item Goal pose input
 	\item 2D mobile platform support usage of the conventional drive systems like ackermann and differential
@@ -306,7 +332,29 @@ The robot navigates in a for itself totally unknown environment, while the navig
 	\item Velocity output as linear and angular velocities
 \end{itemize}
 
-\todo{add pictures of wanted driving behavior}
+During navigation the robot will get into edge cases, that make simply following the lanes of the road detection impossible. 
+
+Subfigure (a) of figure \ref{nav edge case} pictures two locations of the robot during obstacle avoidance, at which the camera can not see the road. Therefore the road detection can not see the road markings and will not be able to publish any data. If the robot would navigate only with the latest data of the road detection it would not be able to pass any obstacles.\\
+This introduces the requirement for the navigation to find goals by estimating the course of the road. By doing that the navigation bridges the gap, in which the camera cannot see the road.\\
+
+Another problem is pictured in subfigure (b) of figure \ref{nav edge case}. Here the goal of the navigation is within an obstacle. This would make path finding to the goal impossible. To solve this issue the navigation has to consider obstacles, only if they are significantly closer to the robot than the goal. Therefore, the navigation treats the lane as being free until the obstacle is close to the robot. At this moment the predicted goal is way behind the obstacle leading to an avoidance as pictured in subfigure (c) of figure \ref{driving behavior}. 
+\begin{figure}
+	\centering
+	\begin{subfigure}{.3\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/road detection blind}
+		
+		\caption{camera angle during road detection}
+	\end{subfigure}
+	%\hskip2em
+	\begin{subfigure}{.3\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/finding goal in obstacle}
+		\caption{goal is located in an obstacle}
+	\end{subfigure}
+
+	\caption{required driving behavior}
+	\label{nav edge case}
+\end{figure}
+
 
 
 
