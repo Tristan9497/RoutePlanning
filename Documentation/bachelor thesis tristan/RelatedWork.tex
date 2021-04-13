@@ -2,11 +2,11 @@
 \label{relatedwork}
 
 This chapter contains an analysis, of existing work in the field of ROS based robot navigation, especially with focus on a road like environment. The result of this analysis, can be used to outline the work that is necessary to satisfy the scope of this thesis.
-
+\section{Path Planning}
 Regarding the planning of the robot motion the GitHub Project ``ROS Planning'' provides basic implementations for motion planning and navigation\cite{rosplanning}.
 
 This project includes the software stacks MoveIt!, navigation and navigation2, which are all implementations for the manipulation of robots.\\
-\section{MoveIt!}
+\subsection{MoveIt!}
 MoveIt! is the most widely used software for manipulation of robots. It is released under the Terms of the BSD license, which means it can freely be used in commercial, industrial and research\cite{moveit}.\\
 It incorporates the latest advances in motion planning, manipulation, 3D perception, kinematics and navigation.\\
 
@@ -16,7 +16,7 @@ The evolution of arm\_navigation was an effort to separate the software from ROS
 
 Using URDF makes MoveIt! highly flexible to robot configurations, but the manipulation of ``arm-like'' robots is still one of the core tasks of the software.
 
-\section{navigation}
+\subsection{navigation}
 In contrast to MoveIt! the navigation project of ROS-Planning is a software stack, that is developed to move a robot from Point A to Point B.
 
 At first this seems like a fairly simple concept. The navigation takes in a goal, as well as odometry data in combination with sensor streams, resulting in the output of the translational and rotational velocity of the robot.
@@ -43,28 +43,28 @@ This costmap is build in layers, where every layer has a different task and/or i
 
 Commonly used data is such produced by range finding sensors like lidar sensors or stereo cameras.\\
 
-The layers provided in the costmap\_2d package are able to mark costs according to the range sensor data and an existing map. These cost can then be inflated by a fixed value radially\cite{costmap} to make a section around obstacles lethal.
-\section{navigation2}
+The layers provided in the costmap\_2d package are able to mark costs according to the range sensor data and an existing map. These cost can then be inflated by a fixed value radially\cite{costmap} to make an area around obstacles lethal.
+\subsection{navigation2}
 
 navigation2 is the successor of navigation, but is build for ROS2.
 Since this thesis aims for a ROS-Noetic solution, the navigation2 stack will not be explored.
 
-\section{Path Planning}
+\subsection{Planners}
 
 A lot of work has been done regarding path finding. In the navigation\_stack this task has been split into two parts, the global and the local planner.
 
 The global planner is supposed to find a rough path that does not collide with any lethal cells in the costmap. In case of the default package global\_planner of the navigation stack, this is either done using dijkstra or A* algorithms.\\
 
-Since the global planner does not consider the robot directly the local planner is supposed to find a path that is feasible for the dynamics and the steering type of the robot. It also considers the shape of the robot\cite{movebase}.\\
+Since the global planner does not consider the robot directly, the local planner is supposed to find a path that is feasible for the dynamics and the steering type of the robot\cite{movebase}.\\
 
 
 
 dwa\_local\_planner is according to Kaiyu Zheng the recommended choice for the local planner\cite{navtuningguide}. This planner uses a dynamic window approach, which means the limits of translational and rotational velocities of the robot create a space of feasible trajectories.\\ 
 From these possible trajectories a configurable amount will be forward simulated over a given amount of time. These trajectories can be evaluated using configurable weights in combination with the local costmap and the global path.
 
-The ``best'' trajectory is then chosen based on the evaluation. Since the trajectory consist of a combination from translational and rotational velocities these can be used as the input for the motor controller\cite{dwaplanner}.\\
+The ``best'' trajectory is then chosen based on the evaluation. Since the trajectory consist of a combination from translational and rotational velocities, these can be used as the input for the motor controller\cite{dwaplanner}.\\
 
-Since the planners of move\_base are implemented in the form of a plugin, not only the plugins of the navigation stack are available, but additional ones developed by the ROS community.\\
+The planners of move\_base are implemented in the form of a plugin. Therefore, not only the planners of the navigation stack are available, but additional ones developed by the ROS community.\\
 
 A popular choice is teb\_local\_planner, which uses the timed elastic band approach, introduced by Christoph Rösmann in his paper about ``Trajectory modification considering dynamic constraints of autonomous robots``.\\
 This approach uses the global path as an elastic band, that is repelled by obstacles located next to it and contracted by internal forces like the time constrain.\\
@@ -77,15 +77,16 @@ The consideration of thy dynamics lets the planner find the ``best'' combination
 
 
 \section{ArloBot}
-ArloBot is a project of Christen Lofland regarding a Parallax Arlo platform. It consist of a set of ROS packages that allow the robot to navigate and generate a map of a room\cite{chrisl8}.
+ArloBot is a project of Christen Lofland regarding a Parallax Arlo platform. It consists of a set of ROS packages that allow the robot to navigate and generate a map of a room\cite{chrisl8}.
 
 The navigation of this robot platform is controlled via a web interface, that allows the user to place goals for the robot to drive to, using the navigation stack.
 
 \section{Work of other Carolo-Cup Teams}
 In the field of autonomous navigation, a lot of work has been done by all teams that compete in the Carolo-Cup.\\
 
+\todo{no ros based navigation stack solution yet}
 Unfortunately, this work is often not released to the public, since it would allow other teams to copy an approach giving them an advantage.\\
-
+\todo{what to do?}
 \section{Summary}
 As mentioned, work of other teams in the Carolo-Cup is rarely published. Furthermore it would defeat the purpose of the competition to take the concept of other teams as a reference.\\
 

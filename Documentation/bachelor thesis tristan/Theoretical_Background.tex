@@ -189,7 +189,9 @@ Furthermore the plugins Social ``Costmap Layer'' and ``Range Sensor Layer'' are 
 
 Using the pluginlib interface and the costmap libraries custom layers for the costmap can be developed to achieve special behavior of the robot.
 
+\section{SLAM}
 
+SLAM (simultaneous localization and mapping) is a problem, where a map of the environment has to be build based on sensor data. During this the observer has to be continuously localized within the map.
 
 \section{Google Cartographer}
 Google Cartographer is a lidar based SLAM algorithm developed by Google. In contrast to gmapping it is based on loop closure to ensure real time mapping even in relatively big environments.\\
@@ -289,7 +291,7 @@ In addition to the sensor plugins the simulator needs to provide a plugin for di
 
 Custom models is a strict requirement since this thesis focuses on a very specific robot. Furthermore the integration of custom models is necessary to put the robot in different road scenarios.\\
 
-A URDF conversion plugin is very important. Like this differences between the simulated robot and the tf-tree in ROS can be avoided and the robot will be defined in one file only.\\
+A URDF conversion plugin is very important. Considering this differences between the simulated robot and the tf-tree in ROS can be avoided and the robot will be defined in one file only.\\
 
 To get the best correlation between simulation and real world, the simulator should be able to run close to real time. This will make the simulated sensor data way more reliable and puts the nodes of the navigation\_stack under a realistic load.
 
@@ -326,7 +328,7 @@ Like described in the scope of this thesis the goal is, that the navigation avoi
 The robot navigates in a for itself totally unknown environment, while the navigation needs to be adaptable to the dynamics of the used and similar robots. Because the development of an entire stack, that would satisfies the previously mentioned requirements, exceeds the content of this thesis, an open source navigation project will be used which needs to cover the following points:
 \begin{itemize}
 	\item Goal pose input
-	\item 2D mobile platform support usage of the conventional drive systems like ackermann and differential
+	\item 2D mobile platform supporting conventional drive systems like ackermann and differential
 	\item Path planning in respect to the robots kinematic and shape, as well as the environment detected by the sensors.
 	\item Path planning and navigation in totally unknown environments
 	\item Velocity output as linear and angular velocities

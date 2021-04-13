@@ -6,15 +6,14 @@ This chapter is structured into three parts. The first two address the individua
 The third section covers the test setup.
 
 \section{Simulation}
-The entire testing is performed by using Gazebo as the simulation environment. The following sections cover the configuration and the generation of the models used in the simulation together with all simulated sensors and the motor controller.
+The entire testing is performed by using Gazebo as the simulation environment. The following sections cover the configuration and the generation of the models used in the simulation, together with all simulated sensors and the motor controller.
 
 \subsection{URDF and robot\_state\_publisher}
 
 The URDF model is based on the model of Christen Lofland, who created this for his own open source project\cite{chrisl8}.\\
 
-Unfortunately, this model has been created to generate the fixed transforms of a real model only, so it does not have moveable joints for the wheels or any plugins for sensors and the differential steering. In addition to that it uses .stl files for both visual and collision volumes which results in unpredictable collision distances.\\
-
-To keep the model as simple as possible one common xacro file is used, that loads the individual files for the following parts:
+Unfortunately, this model has been created to generate the fixed transforms of a real model only, so it does not have moveable joints for the wheels or any plugins for sensors and the differential steering. In addition to that it uses .stl files for both visual and collision volumes. ``.stl'' files consist of connected triangles, that approximate the shape. The approximation has always a slight error to the original shape, creating unpredictable collision points.
+To keep the model as simple as possible one common Xacro file is used, that loads the individual files for the following parts:
 \begin{itemize}
 	\item Arlo body
 	\item Camera

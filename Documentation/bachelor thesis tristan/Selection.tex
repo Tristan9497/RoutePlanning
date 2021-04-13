@@ -17,12 +17,12 @@ Gazebo is included in the default packages of ROS Noetic since it is developed b
 V-REP, as well as Gazebo, offers plugins and URDF conversion for custom models, but an even bigger selection of mobile robot models. Unfortunately, they can only be used as examples since the required models are very specific.\\
 In contrast to V-REP, Gazebo does not contain an integrated model editor.
 
-The comparison in the paper of L. Pitonakova et al. regarding computational load shows, that V-Rep is the most resource hungry environment, when compared to ARGoS and Gazebo\cite{Pitonakova}. Real time simulation is highly wanted in this thesis, so the results can be compared to real results in the future.
+The comparison in the paper of L. Pitonakova et al. regarding computational load shows, that V-Rep is the most resource hungry environment, when compared to  Gazebo\cite{Pitonakova}. Real time simulation is highly wanted in this thesis, so the results can be compared to real results in the future.
 
 Based on the fact, that Gazebo is included in the ROS-Noetic package list and has a smaller computational load compared to V-Rep, it will be the simulation environment in this project.
 
 \subsection{Model}
-Since Gazebo doesn't have an integrated model editor the freeware ``blender'' will be used for the generation of the model of the environment, since it has options for exporting collada files (.dae) usable in Gazebo.
+Since Gazebo doesn't have an integrated model editor the freeware ``Blender'' will be used for the generation of the model of the environment, since it has options for exporting collada files (.dae) usable in Gazebo.
 
 As described in the requirements the robot models will be generated using URDF which will be covered later.
 
@@ -112,11 +112,14 @@ During all of this the local planner needs to use the information of lethal obst
 
 Base and DWA are two planners that are included in the navigation stack. Similar to the global planner selection, the successor and therefore DWA is chosen seems like a good option. According to Kaiyu Zeng, this is the general recommendation for mobile robotics platforms\cite{navtuningguide}. As described in the theoretical background, dwa struggles with navigation in narrow corridors and therefore can not be used.
 
-In contrast to the method of the dwa planner, the elastic band approach is better suited for narrow corridors. The two planner, that use this approach are eband\_local\_planner and teb\_local\_planner. Choosing between these two is difficult, since they both share the same base principle. Because it supports carlike robots teb\_local\_planner is selected.
+In contrast to the method of the dwa planner, the elastic band approach is better suited for narrow corridors. The two planner, that use this approach are eband\_local\_planner and teb\_local\_planner. Choosing between these two is difficult, since they both share the same base principle. teb\_local\_planner is better suited for this use case, since it supports both car like and differential robots.
+
+mpc\_local\_planner is build using the popular model predictive control approach. According to Christoph Rösmann (the developer of both planners), teb is preferred when dealing with simple differential or car like robots\cite{mpcvsteb}. 
+
+According to the previous analysis teb\_local\_planner has the best fit to the use case and therefore selected for the navigation.
 
 
-
-\subsection{Costmap}
+\subsubsection{Costmap}
 The local planner is only supposed to generate velocity commands that lead to no lethal collision. Therefore, the local costmap will have the same layers as the global one without the dynamic inflation layer that is used to guide the robot to the right lane.
 
 
