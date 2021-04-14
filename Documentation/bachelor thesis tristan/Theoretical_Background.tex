@@ -334,29 +334,6 @@ The robot navigates in a for itself totally unknown environment, while the navig
 	\item Velocity output as linear and angular velocities
 \end{itemize}
 
-During navigation the robot will get into edge cases, that make simply following the lanes of the road detection impossible. 
-
-Subfigure (a) of figure \ref{nav edge case} pictures two locations of the robot during obstacle avoidance, at which the camera can not see the road. Therefore the road detection can not see the road markings and will not be able to publish any data. If the robot would navigate only with the latest data of the road detection it would not be able to pass any obstacles.\\
-This introduces the requirement for the navigation to find goals by estimating the course of the road. By doing that the navigation bridges the gap, in which the camera cannot see the road.\\
-
-Another problem is pictured in subfigure (b) of figure \ref{nav edge case}. Here the goal of the navigation is within an obstacle. This would make path finding to the goal impossible. To solve this issue the navigation has to consider obstacles, only if they are significantly closer to the robot than the goal. Therefore, the navigation treats the lane as being free until the obstacle is close to the robot. At this moment the predicted goal is way behind the obstacle leading to an avoidance as pictured in subfigure (c) of figure \ref{driving behavior}. 
-\begin{figure}
-	\centering
-	\begin{subfigure}{.3\linewidth}
-		\includegraphics[width=\textwidth]{Pictures/road detection blind}
-		
-		\caption{camera angle during road detection}
-	\end{subfigure}
-	%\hskip2em
-	\begin{subfigure}{.3\linewidth}
-		\includegraphics[width=\textwidth]{Pictures/finding goal in obstacle}
-		\caption{goal is located in an obstacle}
-	\end{subfigure}
-
-	\caption{required driving behavior}
-	\label{nav edge case}
-\end{figure}
-
 
 
 

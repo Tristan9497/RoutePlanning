@@ -175,7 +175,7 @@ As described in the theoretical knowledge of this thesis the costmap are structu
 
 It makes sense to first take a look at the general behaviour, that both planners share. In this case it is obstacle avoidance. This means that the lethal obstacles need to be marked in both costmaps.\\
 
-To implement this the provided plugin obstacle\_layer can be used. It will take incoming sensor data (sensor\_msgs::PointCloud or sensor\_msgs::LaserScan) and mark the points in the costmap.\\
+To implement this the provided plugin obstacle\_layer can be used. It will take incoming sensor data (sensor\_msgs::PointCloud or sensor\_msgs::LaserScan) and mark the points in the costmap. To prevent the edge case explained in section \ref{aprox}, obstacles will only be marked, if they are closer than the goal. Therefore the obstacle\_range of the obstacle layer is set to 3.5m.
 
 Since the data here comes form the road detection and a lidar and both have a certain resolution it is unsure, if the result of a scanned obstacle in the costmap is actually a closed line or just points, since this highly relies on the resolution of the sensors and the costmap.\\
 
@@ -200,7 +200,7 @@ The final layer plugin setup of the costmaps results in the following:\\
 	\item inflation\_layer
 \end{itemize}
 
-The costmaps will both have the same size that should always be larger than the distance, at which the goalfinder searches for goals.
+The costmaps will both have the same size that should always be larger than the distance, at which the PoseFinder searches for goals.
 
 Since both costmaps are rolling window costmaps they will reference the continuos frame ``odom'' and move with the frame ``base\_footprint''.
 

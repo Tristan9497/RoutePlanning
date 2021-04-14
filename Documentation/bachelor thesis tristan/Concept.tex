@@ -31,11 +31,14 @@ The highlighted problems will be discussed in the following sections.
 
 
 \subsection{PoseFinder}
-For autonomous navigation this node needs to extract a goal from the sensor data or from a map.
-The road detection is only able to detect the road to a certain distance. Everything beyond is unknown.\\
-To allow the planners to generate smooth paths, the distance at which goals need to be found should be relatively far away from the robot. Therefore, this node needs to estimate the upcoming course and continuously send new goals.\\
 
-Since this approach uses estimations, it is uncertain if the goal is actually on the road or not. If a map is available the estimation is redundant, since the map is likely to be more precise.
+This node has the task of constructing a goal for the navigation, based on the sensor data or a map.
+
+The road detection is only able to detect the road to a certain distance. Everything beyond is unknown. 
+To allow the planners to generate smooth paths the distance, at which goals need to be found should be relatively far away from the robot.
+For uninterrupted navigation, this node needs to continuously find new goals and send them to move\_base
+
+Finding a goal based on sensor data is redundant, if a map including the road is available. This allows larger distances, at which goals can be found. Based on sensor noise, this is likely to be more precise as well.
 
 \subsection{Map}
 As described amcl and the map\_server can not be used in this scenario.
@@ -82,7 +85,7 @@ In this scenario the global planner will also be used to guide the robot on the 
 	\item The global planner has to respect all cost values.
 \end{itemize}
 
-\subsection{Local Stage}
+\subsubsection{Local Stage}
 The local stage on the other hand has the task of finding a path, that is feasible for the dynamics of the robot and does not collide with objects.\\
 This path is supposed to be close to the global path and follow its lane changes, but it needs to be able to separate itself from it, if necessary.
 

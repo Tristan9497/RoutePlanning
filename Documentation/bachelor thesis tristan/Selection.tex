@@ -22,15 +22,15 @@ The comparison in the paper of L. Pitonakova et al. regarding computational load
 Based on the fact, that Gazebo is included in the ROS-Noetic package list and has a smaller computational load compared to V-Rep, it will be the simulation environment in this project.
 
 \subsection{Model}
-Since Gazebo doesn't have an integrated model editor the freeware ``Blender'' will be used for the generation of the model of the environment, since it has options for exporting collada files (.dae) usable in Gazebo.
+Since Gazebo doesn't have an integrated model editor the freeware ``Blender'' will be used for the generation of the model of the environment, since it has options for exporting COLLADA files (.dae) usable in Gazebo.
 
 As described in the requirements the robot models will be generated using URDF which will be covered later.
 
 \section{move\_base}
 
 As described in the concept, the navigation stack will be used in this thesis. Therefore, the action move\_base will be used to get the robot to a given goal.\\
- move\_base incorporates nav\_core and costmap\_2d and their internal nodes, which need to be selected according to the requirements of the navigation.\\ 
-The selection of these nodes will be separated into a global and local stage, since the individual nodes are highly interconnected and the wanted behavior affects both.
+ move\_base incorporates nav\_core and costmap\_2d and their internal nodes, which need to be selected according to the requirements of the navigation.\\
+Similar to the separation described in the concept (chapter \ref{concept})the nodes will be categorized into a global and local stage and discussed individually.
 
 \subsection{Global stage}
 
@@ -55,8 +55,13 @@ Since costmap\_2d is embedded in move\_base the package does not need to be sele
 
 As defined in the concept, the global costmap needs to have information about lethal obstacles, road markings, as well as a defined preference for the right lane.\\
 
-For the road markings and the obstacles, a combination of an obstacle layer and an inflation layer will be used.\\
-This results in lethal cells in the costmap for each point of the lidar sensor and the left and right lane of the road detection. These points will still have gaps in between each other, which will be filled by using the inflation layer that inflates every point with a defined cost distribution as pictured in figure \ref{costinfl}.\\
+
+The data, supplied by the lidar and the road detection, can be marked as lethal obstacles in the costmap using the obstacle layer. This data consist solely from points, meaning there are gaps between the individual measurements. In the case of the lidar, these size of these gaps increase with the measurement distance.\\
+
+As soon as these gaps are larger than the resolution of the costmap, free cells will start to appear between the measurements, that allow the planner to generate paths through obstacles or the road markings.\\
+
+To solve this issue the default layer ``inflation\_layer'' can be used. This layer inflates every lethal cell in the costmap by a fixed radius, closing the previously discussed gaps like pictured in figure \ref{costinfl}.\\
+
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=.7\textwidth]{Pictures/costmap inflation}
@@ -64,13 +69,27 @@ This results in lethal cells in the costmap for each point of the lidar sensor a
 	\label{costinfl}
 \end{figure}
 
-Unfortunately, there is no costmap plugin that can be used to make certain areas more expensive than others without marking them as lethal. This leads to the following concept of a custom costmap layer.
+This configuration allows the navigation to plan around obstacles, without leaving the road, but there is no preference for the right lane yet. To generate this preference the left lane has to have higher cost than the right lane, without being lethal.
+
+Unfortunately, this can not be solved using the provided layers. Therefore a custom layer has to be developed.
 
 The only information about where the lane is, comes from the road detection, which outputs polynomials that approximate the road markings. The aim is to make a gradually increasing cost from the middle of the right lane to the left road marking. Therefore, the left road marking needs to be inflated using dynamically adjustable parameters for the cost distribution.\\
-To guarantee that the right lane still has space without cost, the right road marking needs to be inflated too. To simplify lane changes in the case of obstacle avoidance these obstacle need to have a cost free zone around them.
+
+
+To guarantee, that driving on the right lane, the right road marking will be inflated, but with a different cost distribution. Here only the road marking is lethal, whereas the lane should be free resulting in the cross section pictured in \ref{globalcostdistro}. To simplify lane changes in the case of obstacle avoidance these obstacles need to have a cost free zone around them.\\
+
 The layer should also feature a reset option as a recovery behavior.
 
-All of this results in a layer with the following abilities:
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.8\textwidth]{Pictures/global stage cost distro}
+	\caption{global costmap cross section of the road}
+	\label{globalcostdistro}
+\end{figure}
+
+
+
+The previously discussed tasks for the layer can be summarized in the following requirements:
 
 \begin{itemize}
 	\item Input for points
@@ -79,14 +98,7 @@ All of this results in a layer with the following abilities:
 	\item Service to reset the cost in the layer
 \end{itemize}
 
-The cost distribution over the road is pictured in figure \ref{navigation stack setup}. It is noticeable, that the cost of the left road marking overlaps to the right lane. This is necessary, since the global planner only considers cost greater than 50 by default resulting in a ``clear'' right lane.
 
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=.5\textwidth]{Pictures/global stage cost distro}
-	\caption{global stage road cost distribution}
-	\label{globalcostdistre}
-\end{figure}
 
 \subsection{Local stage}
 \subsubsection{Planner}
@@ -125,28 +137,54 @@ The local planner is only supposed to generate velocity commands that lead to no
 
 \section{PoseFinder}
 As described in the concept the purpose of this node is to determine the pose of the next goal and send it to the move\_base action client. Therefore, it will need to process the data from the road detection and if available from the SLAM map to determine a feasible goal.\\
-Since the robot should never reach a goal, the PoseFinder needs to determine new goals at a configurable frequency. Furthermore it needs to predict the path of the road so the robot has a goal to drive to, even if the road detection does not detect any part of the road.
 
-
+Since the robot should never reach a goal, the PoseFinder needs to determine new goals at a configurable frequency. 
 
 \subsection{Usage of Current Camera Data}
+
+
 The easiest way to get new goals, is to take the last point of the polynomial provided by the road detection as the position and calculate the yaw angle of the new goal with the gradient of the last two points.\\
 
-While this is a logical approach in an ideal scenario, it certainly will not work in a realistic one since a continuous data stream from the road detection can not be guaranteed.\\
+While this is a logical approach in an ideal scenario, it certainly will not work in a realistic one, since a continuous data stream from the road detection can not be guaranteed, as shown in the edge cases pictured in figure \ref{nav edge case}.\\
 
-This is mostly caused by the camera not always seeing enough of the road, which can for example be caused by the following reasons:
+In all examples pictured in figure \ref{nav edge case}, the road detection is not able to detect the road. If the robot would only follow the lanes detected by the road detection, it would not be able navigate in these situations, leading to stop of the robot.\\
 
-\begin{itemize}
-	\item Obstacle covering the markings
-	\item While driving a corner the camera isn't always pointed tangential to the curvature of the road
-	\item Steering during obstacle avoidance
-	\item Noise in camera data
-\end{itemize}
+This introduces the requirement for the PoseFinder, to find goals by estimating the course of the road, based on the latest data of the road detection. Therefore the navigation bridges the gap, in which the camera can not see the road.\\
+
+\begin{figure}
+	\centering
+	\begin{subfigure}{.24\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/road detection obstacle}
+		
+		\caption{lane markings blocked by obstacle}
+	\end{subfigure}
+	%\hskip2em
+	\begin{subfigure}{.24\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/road detection angle}
+		\caption{driving in a corner}
+	\end{subfigure}	
+	%\hskip2em
+	\begin{subfigure}{.24\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/road detection blind}
+		\caption{camera angle during avoidance}
+	\end{subfigure}
+		%\hskip2em
+	\begin{subfigure}{.24\linewidth}
+		\includegraphics[width=\textwidth]{Pictures/road detection noise}
+		
+		\caption{camera noise or bad road markings}
+	\end{subfigure}
 
 
-This suggest that a prediction for the possible upcoming road is needed. To a small extend this is provided by the polynomials of the road detection, but they have a restricted domain, after which the error will rapidly increase.
+	\caption{edge cases that prevent simple lane following}
+	\label{nav edge case}
+\end{figure}
+
+
 
 \subsection{Approximations}
+\label{aprox}
+The approximation provided by the road detection is in the form of a polynomial. These describe the real road very accurately, but only in a very restricted domain. Outside of this domain, these polynomials diverge rapidly from the real road, making them unusable for any estmates.
 
 Since the road mostly consists of circles of varying radii and origins, it is self evident, that using the polynomials in their restricted domain to represent a section of a circle will give a better estimate.\\
 This circle can be calculated using the least square approach presented in Randy Bullocks paper on least square circle fitting \cite{leastsquarecircle}.\\
@@ -183,9 +221,24 @@ It shows the robot, its current goal, as well as the estimated road outlined by 
 
 Based on this figure the necessity of the angle of trustworthiness of the road detection becomes apparent. Assuming a larger goal distance the estimated goal would not be located on the road anymore and would point in the wrong direction as well. This makes pathfinding impossible without leaving the road.
 
+
+While these approximations allow the robot to bridge the edge cases pictured in \ref{nav edge case}, this approach introduces new problems. Since the goal is now determined by using estimations, it is uncertain if the goal is located off the road, or even in an obstacle. This problem is pictured in figure \ref{goaluncertainty}. Here the goal of the navigation is located within an obstacle. This would make path finding to the goal impossible.\\
+
+To solve this issue the navigation has to consider obstacles, only if they are significantly closer to the robot than the goal. Therefore, the navigation treats the road as ``free'' until the obstacle is close to the robot. At this moment the predicted goal is way behind the obstacle, leading to an avoidance as described in the requirements of the navigation.
+
+This does not only affect the distance, at which the PoseFinder estimates goals, but also the distance at which obstacles are treated as such and marked in the costmap, which has to be considered during the configuration.
+
+\begin{figure}
+\centering
+	\includegraphics[width=0.33\textwidth]{Pictures/finding goal in obstacle}
+	\caption{uncertainty of predicted goals }
+	\label{goaluncertainty}
+\end{figure}
+
+
 \subsection{Goal from map}
 
-If the robot is running a SLAM algorithm during the first round, the goal can be extracted directly from the SLAM map afterwards.This is more efficient and provides goals that will always be on the road. Furthermore the distance, at which goals will be found can be increased, this results in higher speeds of the robot and/or lower planner frequencies.\\
+If the robot is running a SLAM algorithm during the first round, the goal can be extracted directly from the SLAM map afterwards. This is more efficient and provides goals that will always be on the road. Furthermore the distance, at which goals will be found can be increased, this results in higher speeds of the robot and/or lower planner frequencies.\\
 
 To find a goal in the SLAM map a circle rasterization algorithm will be used, based on Bresenham rasterization \cite{ComputerGraphics}.\\
 
@@ -308,6 +361,11 @@ The goal here is to use a function that contains only the squared distance and n
 	\caption{cost distribution comparison with maxcost=250 mincost=100 radius=1}
 	\end{center}
 \end{figure}
+
+When adding the inflation around points, the maximum of the calculated cost value and the current value of the cell in the costmap is set.
+This leads to a problem, when trying to clear zones in the costmap, since then the minimum cost of the two needs to be set. Therefore setting zero as the cost value has the privileges for overwriting high cost values in the costmap.
+ To prevent the cleared cells from being overwritten by the inflation of the next point, the clearing points have to be the last points in the input point cloud.
+
 
 The layer can be configured individually for the costmap using rqt\_reconfigure and the following parameters.
 
