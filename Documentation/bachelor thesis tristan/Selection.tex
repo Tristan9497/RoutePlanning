@@ -257,11 +257,11 @@ Based on the previously proposed ways to determine goals, the concept pictured i
 	\label{posefinder structure}
 \end{figure}
 
-The goalfinding algorithms are ordered in a hierarchic structure based on their expected accuracy.
+The goalfinding algorithms are ordered based on their expected accuracy.
 
-A accurate map of the surrounding offers the best potential to find feasible goals on the upcoming road, hence it has to be checked first, if a goal can or should be extracted from the map.
+An accurate map of the surrounding offers the best potential to find feasible goals on the upcoming road. Hence, it has to be checked first, if a goal can or should be extracted from the map.
 
-As described, every sections can be expressed by a circle segment. This approximation will have a higher priority than the line approximation.
+As described, every section can be expressed by a circle segment. This approximation will have a higher priority than the line approximation.
 
 Finally the line approximation will be checked and only, if the circle approximation generated circles with radii, that exceed a threshold for their trustworthiness.
 
@@ -277,11 +277,11 @@ The node is configurable using rqt\_reconfigure and the following parameters.
 \begin{tabular}{ l l l }
 	
  \textbf{Parameter} & \textbf{Description} & \textbf{Range}\\
- CRadThresh & The Threshold for the radius of the circle approximation & 0.5-20 [m]\\ 
- GoalDist & The maximum distance at which a goal should be found & 0.5-20 [m]\\  
- GoalAngle & The maximum angle for the circle approximation higher priority than distance & 0.1-2 [$\pi$]\\  
- reductionradius & Max Distance at which points from the map will still be combined & 0.25-2.5 [m]\\  
- MapCostThresh & Threshold Cost Value for Map Data Extraction & 0-100\\  
+ cRadThresh & The Threshold for the radius of the circle approximation & 0.5-20 [m]\\ 
+ goalDist & The maximum distance at which a goal should be found & 0.5-20 [m]\\  
+ goalAngle & The maximum angle for the circle approximation higher priority than distance & 0.1-2 [$\pi$]\\  
+ reductionRadius & Max distance at which points from the map will still be combined & 0.25-2.5 [m]\\  
+ mapCostThresh & Threshold Cost Value for Map Data Extraction & 0-100\\  
 
 \end{tabular}
 }
@@ -291,40 +291,9 @@ The node is configurable using rqt\_reconfigure and the following parameters.
 
 \end{table}
 
-\section{MarkFreeSpace}
-
-Like described in the concept, the purpose of this node is to provide data to the SLAM algorithm as well as to the costmaps. This data consists from the points on the polynomials of the road detection in combination with the filtered points of the lidar scan.\\
-Based on the possibility of the obstacle\_layer of the costmap to raytrace marked obstacles, it needs to receive a PointCloud2 that contains points from the polynomials of the road detection. If this pointcloud would contain the points of the lidar as well, the obstacle layer would remove the points of the road marking, if an obstacle is behind it.\\
-
-
-For the SLAM algorithm both data sources need to be fused into one point cloud. Therefore, the points need to be transformed into the same frame and time, before being published.\\
-
-The data of the dynamic cost layer has to contain more information. It is in the form of a point cloud and contains channel values for point individual inflation radius, min-cost and max-cost. By giving the layer point individual inflation parameters the node provides information about the cells on the left road marking that need to have inflated cost values and information about the points on the right road marking that should have a clear zone around them. Furthermore, the node provides points of obstacles that are on the road and clears the inflated cost around it. This cleared zone makes the generation of a path past the obstacle easier for the global planner.\\
-
-The following parameters are offered for further configuration:
-
-\begin{table}[H]
-\centering
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{ l l l }
-	
- \textbf{Parameter} & \textbf{Description} & \textbf{Range}\\
- MaxCost & Maximum cost of the left lane inflation & 0-254\\ 
- MinCost & Minimum cost of the left lane inflation & 0-254\\  
- LeftInflation & How far the inflation of the left lane overlaps the right lane & 0-1\\  
- RightRemoval & How much of the right lane will be cleared from cost & 0-1\\  
- ObstacleRemoval & Distance around obstacles on the road where no cost gets placed & 0-2 [m]\\  
- InflPointDistance & min Distance between inflated points 0 for only last & 0-5 [m]\\ 
- ClearPointDistance & min Distance between points that clear cost 0 for only last & 0-2 [m]\\   
-\end{tabular}
-}
-
-\caption{MarkeFreeSpace parameters}
-\label{markfreespaceparams}
-\end{table}
 
 \section{dynamic\_cost\_layer}
-Enhancing to the plugins provided in the navigation stack this layer handles inflation of cells with a configurable cost decay and radius. While this seems to be similar to the provided inflation layer, this offers way more flexibility since it will inflate specific points by their individual radius and cost distribution and not just every lethal one by one fixed distribution.\\
+In addition to the layers provided in the navigation stack this layer handles inflation of cells with a configurable cost decay and radius. While this seems to be similar to the provided inflation layer, this offers way more flexibility since it will inflate specific points by their individual radius and cost distribution and not just every lethal one by one fixed distribution.\\
 
 This behavior can be used to inflate the left road marking in the global costmap to force the global plan on the right side of the road, which is the behavior defined in the concept. The plugin can also be used to inflate cells with zero cost, which is useful to guarantee a cost free right lane or to give some free space around obstacles located on the road.\\
 
@@ -383,6 +352,84 @@ The layer can be configured individually for the costmap using rqt\_reconfigure 
 \label{dynlayerparams}
 \caption{dynamic\_cost\_layer parameters}
 \end{table}
+
+
+
+
+\section{MarkFreeSpace}
+
+Like described in the concept, the purpose of this node is to provide data to the SLAM algorithm as well as to the costmaps. This data consists from the points on the polynomials of the road detection in combination with the filtered points of the lidar scan.\\
+Based on the option of the obstacle\_layer of the costmap to raytrace marked obstacles, it needs to receive a PointCloud2 that contains points from the polynomials of the road detection. Raytracing the data removes the artifacts of previous measurements, as pictured in \ref{raytracing road}. 
+This displays two measurements, that are slightly rotated based on noise. Like pictured, without raytracing this would lead to a restricted road width in the costmap.
+
+When looking at the ray-traced version, it is noticeable, that the old left road marking has been removed, since the newest measurement is behind it. The right road marking has not been removed, since the old measurement is behind the new one.
+
+This allows to handle the noise of the camera and the road detection, which otherwise could significantly hinder the navigation, especially in the very limited room on the road.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.9\textwidth]{Pictures/raytracing road}
+	\caption{raytracing of the road data}
+	\label{raytracing}
+\end{figure}
+
+If this pointcloud would contain the points of the lidar as well, the obstacle layer would remove the points of the road marking, if an obstacle is behind it, as pictured in figure \ref{raytracing}.\\
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.9\textwidth]{Pictures/raytracing}
+	\caption{combined vs. separate point clouds during raytracing}
+	\label{raytracing}
+\end{figure}
+
+For the SLAM algorithm both data sources need to be fused into one point cloud. Therefore, the points need to be transformed into the same frame and time, before being published.\\
+
+The data for the developed dynamic\_cost\_layer has to contain more information. It is in the form of a point cloud and contains channel values for point individual inflation radius, min-cost and max-cost.\\ 
+
+This pointcloud contains points of three types, left lane, right lane and obstacle.
+The individual parameters for these points are pictured in \ref{markparams}. Using these parameters the cost distribution generated by the dynamic\_inflation\_layer can be modified.\\
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.7\textwidth]{Pictures/markfreespace parameter erklaerung}
+	\caption{top view of road with parameter}
+	\label{markparams}
+\end{figure}
+
+The red points in the sketch represent the points of the left road marking. The distance between these points can be configured, in order to reduce the computational load on the dynamic\_cost\_layer. The same is possible for the blue points on the right road marking. Both points have a configurable radius, that is relative to the coverage of the right lane.\\
+In addition to that the points of the left road marking receive max-cost and min-cost values for the required cost distribution. The points of the right road marking will only be used for the removal of costs.\\
+
+The green point represents one of the measurements of the lidar sensor. Around this, the dynamic\_cost\_layer is supposed to generate a cost free zone, to improve path finding around obstacles.
+
+The numbers in figure \ref{markparams} correspond to those of the following parameter list, that shows the specific names of all configurable parameters:
+
+\begin{table}[H]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{ l l l }
+	
+ \textbf{Parameter} & \textbf{Description} & \textbf{Range}\\
+ maxCost & Maximum cost of the left lane inflation & 0-254\\ 
+ minCost & Minimum cost of the left lane inflation & 0-254\\  
+ leftInflation & How far the inflation of the left lane overlaps the right lane (3) & 0-1\\  
+ rightRemoval & How much of the right lane will be cleared from cost (4) & 0-1\\  
+ obstacleRemoval & Distance around obstacles on the road where no cost gets placed (5) & 0-2 [m]\\  
+ inflPointDistance & min Distance between inflated points 0 for only last (6) & 0-5 [m]\\ 
+ clearPointDistance & min Distance between points that clear cost 0 for only last (7) & 0-2 [m]\\   
+\end{tabular}
+}
+\caption{MarkeFreeSpace parameters}
+\label{markfreespaceparams}
+\end{table}
+
+
+
+
+
+
+
+
+
 
 
 
