@@ -19,7 +19,7 @@ inflation_layer:
 obstacle_layer:
    enabled: true
 
-   obstacle_range: 4.0
+   obstacle_range: 3.5
    raytrace_range: 4.5
    combination_method: 1
    
