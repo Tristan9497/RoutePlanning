@@ -84,12 +84,10 @@ The navigation of this robot platform is controlled via a web interface, that al
 \section{Work of other Carolo-Cup Teams}
 In the field of autonomous navigation, a lot of work has been done by all teams that compete in the Carolo-Cup.\\
 
-\todo{no ros based navigation stack solution yet}
-Unfortunately, this work is often not released to the public, since it would allow other teams to copy an approach giving them an advantage.\\
-\todo{what to do?}
-\section{Summary}
-As mentioned, work of other teams in the Carolo-Cup is rarely published. Furthermore it would defeat the purpose of the competition to take the concept of other teams as a reference.\\
+Unfortunately, there are only very few publications about the navigation software of other teams. Among these publications even less are ROS based and none is using a software stack proposed in ROS Planning.
 
+
+\section{Summary}
 The analysis suggest, that the navigation stack is a reasonable choice as a flexible base structure. MoveIt! is more distanced from ROS and rather focused on industrial arm-like robots. It does not seem to be fitting for the scope of this work.\\
 
 Unfortunately, the navigation stack does not provide functionality to handle zones that are less preferred. This would be a useful feature to prioritize the right lane of the road. Therefore, modifications to the stack are necessary.\\
@@ -100,6 +98,7 @@ This thesis mainly focusses on the setup of a working navigation, therefore thes
 
 All of this covers only the navigation related nodes, but the navigation stack asks for inputs of certain types. The sensor setup is obviously specific to each robot platform. Additionally, to achieve the required navigation behavior, custom data filtering and processing is necessary.\\
 
+As mentioned, work of other teams in the Carolo-Cup is rarely published and there are not yet any publications using the ros navigation stack. Furthermore it would defeat the purpose of the competition to take the concept of other teams as a reference.\\
 
 While the project ArloBot of Christen Lofland does not share the same use case, it shares the same robot platform. The project is licensed under the definitions of the MIT License allowing unrestricted usage to any person. Therefore, the URDF file of the robot is already existent and will be used as a starting point in this project, although it might need modifications.
 
