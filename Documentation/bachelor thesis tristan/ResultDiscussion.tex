@@ -1,9 +1,19 @@
-\chapter{Results and Discussion}
+\chapter{Testing and Discussion of the Results}
 \label{resultanddiscussion}
 
+The nodes of the system are highly interconnected, therefore it is hard to test the nodes separately and with out influence on each other. This chapter includes the test setup for various nodes, as well as the test results and their discussion. Some of the test results introduce necessary optimizations to the system, which will be covered too. These optimizations will be tested by repeating the original test and comparing the results.
 
-This chapter covers the results and the discussion of all tests formulated in Chapter \ref{configurationandtesting}. If a test produces unsatisfactory results, optimizations followed by another test iteration will be performed to improve the behavior.
 \section{Odometry Test}
+
+The odometry is a key component in the navigation concept, since it will be used by multiple nodes and is the representation of the robots position in its environment.\\
+
+Especially differential robots tend to have rotational error, when using the wheel-encoders to generate the odometry, since the wheels are forced to slip when the robot is turning.\\
+
+To test the quality of the odometry the robot will be placed in the world pictured in Figure \ref{simworld}. Now the robot is supposed to drive one round, during which the odometry of the robot will be tracked.\\
+
+In theory the trace of the odometry should be closed perfectly, after the robot performed its first round.\\
+
+\subsection{Results}
 
 When looking at the odometry published by the differential drive plugin during the test in Figure \ref{wheel odom} it is noticeable, that the measurement has a huge rotational error, which is expected since the wheels always slip slightly when turning a differential drive robot.
 \begin{figure}[H]
@@ -124,8 +134,17 @@ The comparison in Figure \ref{trueodom} shows, that the filtered odometry has a 
 When comparing the pictured traces, with those pictured in \ref{Odom comparison multiple rounds} it is noticeable, that the oscillations of the red trace have increased. The setup of the test and the system in both tests are the same, which shows how difficult testing with the entire system is.
 
 \section{Lidar Test}
+The lidar is the only sensor, which detects static obstacles in the surrounding of the robot. Hence the quality of the data has to be checked.
 
+To test the performance of the simulated lidar the robot will simply navigate in the world pictured in Figure \ref{simworld} and detect obstacles along the road.\\
 
+The quality of the data will be observed by looking at the raw data, as well as the costmap, that receives the measurements of the lidar.\\
+
+The evaluation of the costmap is necesarry, since it will mark measurements of the lidar as lethal. With increasing noise the marked obstacles will be less precise, therefore the lidar has direct influence on the performance of the navigation even when obstacles are not on the road.
+
+The main focus of this test is sensor noise, since the Gazebo sensor plugin is configured based on the data sheet of the real lidar (Appendix \ref{AppendixDataSheets}).
+
+\subsection{Results}
 The lidar sensor is simulated with realistic noise and errors. This also introduces the well known edge error in laser distance measurement \cite{edgeeffect}. 
 
 When using a ``realistic'' lidar to project obstacles into the costmap this error produces a lot of lethal point like obstacles that significately hinder navigation as visible in Figure \ref{unfiltered lidar}.
@@ -150,6 +169,13 @@ Figure \ref{lasercomp} shows a comparison between the filtered and unfiltered la
 
 \section{Road Detection Test}
 
+As the road\_detection is the only data source providing informations about the road it is crucial for successful navigation.
+
+To check if the road detection offers good enough results a long duration test will be performed, during which the output of the roadRecordEvaluation node will be monitored, which outputs the relation between the amount of recognized road and overall attempts to find a road.\\
+
+The robot will navigate on the course pictured in Figure \ref{simworld} until the output of the roadRecordEvaluation settles to a reliable result.
+
+\subsection{Results}
 As pictured in figure \ref{longdurroad} the performance of the road detection converges to ca. 98.8\%. At the beginning the graph is not as reliable since there have not yet been enough measurements.\\
 
 The duration of the test was roughly 1.5 hours of continuous navigation without obstacles in the simulation.
@@ -161,7 +187,38 @@ The duration of the test was roughly 1.5 hours of continuous navigation without 
 \end{figure}
 
 \section{SLAM Test}
-\textbf{Data purely from road detection:}\\
+The SLAM algorithm chosen for the the concept is used in a very uncommon way, since it is not only receiving input from a real range finding sensor, but as well from the road detection.
+
+The data from the road detection is very self similar, meaning that for example a straight section of road will always look very similar independent of its position like shown in figure \ref{selfsimilar}. The lack of details in the data from the road detection might complicate Cartographers scan matching.\\
+
+\subsection{Test Scenarios}
+The SLAM algorithm will be tested by limiting the data input and observing the resulting map. During this the navigation will solely work with the predicted goals, since it is yet unsure if the SLAM map is even usable. Cartographer will be tested in the following conditions:
+
+\subsubsection{Data purely from road detection:}
+The reason for this test is to check if the SLAM algorithm can handle mapping with as least information as possible. This will make loop-closure difficult and cartographer has to work with the self similar data only.\\
+The aim is, that the robot can drive multiple rounds, on the track and cartographer produces an optimized map with little unmatched submaps and well connected road markings.\\
+
+\subsubsection{Data purely from road detection and lidar scan with obstacles at the side of the road}
+The used lidar (specified in Appendix \ref{AppendixDataSheets}) has a range of 4 m. Therefore it is likely, that the sensor sees obstacles that are next to the circuit of the Carolo-Cup, but are not on the track itself. These might be provide sufficient features for loop closure. Therefore the map could be very reliable after the first round. 
+In this test the robot will be placed in the testing environment with obstacles next to the road as pictured in \ref{2slamtestenv}.
+
+\begin{figure}[H]
+	\includegraphics[width=.4\textwidth]{Pictures/2slamtest}
+	\caption{Test environment with obstacles at the side of the road}
+	\label{2slamtestenv}
+\end{figure}
+
+\subsubsection{Long duration test with both road detection and lidar scan with obstacles at the side of the road:}
+Cartographer seems to not merge old submaps but process all of them always, which will progressively increase computational load. Since the SLAM is supposed to be used during mapping, this can become important with a lot of sensor inputs that offer constraint potential and long runtime.
+The same setup as in the \nth{2} test will be used but the focus is on the moment, at which cartographer cannot optimize in real time caused by too many submaps and constraints.\\
+
+
+\subsubsection{Data purely from localization and lidar scan with obstacles on the road:}
+This test is meant to be the worst case for the SLAM algorithm during navigation. The purpose is to check how cartographer handles data loss during obstacle avoidance and lane swapping.
+The obstacles will be placed in two corners and therefore in the edge case where the camera has the worst chance of seeing the road because of the steering angle, as well as on the straight section of the road to cover the case where the camera can not see the road during merging on an other lane. Furthermore the obstacles will be placed far enough apart so the lidar has only vision on one at the same time.\\
+
+\subsection{Results}
+\subsubsection{Data purely from road detection:}
 
 The following pictures contain the SLAM map after the \nth{1},\nth{2} and \nth{3} round.\\
 
@@ -289,6 +346,32 @@ Based on these test results it is not feasible to use the SLAM map for navigatio
 
 
 \section{Complete System Test}
+
+After the previous tests the entire concept has to be tested in order to check, if the concept in its entirety works as anticipated.
+
+Autonomous navigation in the following test scenarios will be performed:
+
+\begin{itemize}
+	\item no obstacles
+	\item obstacles on left lane
+	\item obstacles on right lane
+\end{itemize}
+
+During all test the following criteria will be monitored as well as any unexpected problems during the test:
+
+\begin{itemize}
+	\item distance to the right lane when no obstacle is close
+	\item obstacle avoidance distance to object
+\end{itemize}
+
+For these tests the exact position of the obstacles and the robot will be used for evaluation. This allows to determine the exact distance between the robot and obstacles, as well as if the robot is still on the road.\\
+The distance to the right lane will be determined by using the polynomial provided by the road detection. A so called ``avoidance'' starts when the robot is just slightly over the middle line, without any hysteresis.
+
+As defined in the rules of the Carolo-Cup the merging onto the right lane during the obstacle avoidance is supposed to take place within the next two meters after an obstacle \cite{carolocup}.
+
+In all tests the robot will drive multiple rounds if possible to produce reliable results. The tests will be performed in the environment pictured in Figure \ref{simworld}.\\
+
+\subsection{Results}
 The following subsections cover the discussion of the complete system tests.\\\\
 \textbf{No obstacles}\\
 The reason for this test is, to check how good the robot stays on the right lane. Therefore, the robot drives in the described test environment, while the difference between the right lane and the robot center is monitored.
