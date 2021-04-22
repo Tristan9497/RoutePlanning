@@ -62,8 +62,9 @@ Looking at the linear velocities of both the ekf and the wheel odometry in Figur
 \end{figure}
 
 
-To fix this a logical approach is to include more data about the robots movement. Fortunately robot\_localization has an input for command velocities such as velocities produced by move base. While the command velocity does not provide any measurement in the real world the ekf filter can profit from knowing what the velocity actually should be.\\
-It is very important to set the control timeout to a value that is larger than the cycle time of move\_base. Otherwise this will lead to translational offsets caused by too low estimate for the velocities like shown in Figure \ref{velocity offset}.
+To fix this, more data about the robots movement is required. Fortunately robot\_localization has an input for command velocities such as velocities produced by move base. While the command velocity does not provide any measurement in the real world the ekf filter can profit from knowing what the velocity actually should be.\\
+
+robot\_localization has a parameter for the timeout of the command velocity messages. Setting this lower than the cycle time of move\_base results in the offset pictured in figure \ref{velocity offset}. Therefore it is really important to configure this parameter to the current settings of move\_base.
 
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/velocity comp}
@@ -102,7 +103,6 @@ Even after four rounds the odometry has not gained a large error in both transla
 After the rotational and translational errors are marginal the scale of the odometry needs to be checked.
 To isolate the different errors from the scaling error a circular track is build with a radius of 10 meter. Since the turning radius is constant this isolates the rotational error which can be seen at the graph of the wheel odometry in Figure \ref{circular track}.\\
 The radius was chosen that high so potential errors are amplified and easier detectable.\\
-
 Since the robot is driving on the lane and not on the middle road marking the expected radius is 10,45 meter. When evaluating the EKF odom in Figure \ref{circular track} we see that the scale is very precise.
  
 \begin{figure}[H]
@@ -120,8 +120,8 @@ As a final test the odometry from the robot\_localization node is compared to th
 	\label{trueodom}
 \end{figure}
 
-The comparison in Figure \ref{trueodom} shows, that the filtered odometry has a slight translational offset, but is very similar to the true odometry extracted from the simulation, hence it will be considered as sufficient for the navigation.
-
+The comparison in Figure \ref{trueodom} shows, that the filtered odometry has a slight translational offset, but is very similar to the true odometry extracted from the simulation, hence it will be considered as sufficient for the navigation.\\
+When comparing the pictured traces, with those pictured in \ref{Odom comparison multiple rounds} it is noticeable, that the oscillations of the red trace have increased. The setup of the test and the system in both tests are the same, which shows how difficult testing with the entire system is.
 
 \section{Lidar Test}
 
@@ -140,7 +140,7 @@ When using a ``realistic'' lidar to project obstacles into the costmap this erro
 To remove these error measurements the ROS package ``laser\_filters'' can be used. Among many different filter plugins it features the ``ScanShadowFilter'' that is developed to remove the veiling effect around obstacles cause by the edge effect \cite{laserfilters}.
 
 
-Figure \ref{lasercomp} shows a comparison between the filtered and not filtered laser scan, while keeping the data for 10 seconds. This allows to see the quickly jumping outliers caused by the edge effect. The filter seems well configured since the filtered points have no single outlier but still featuring a very good representation of the measured obstacle.
+Figure \ref{lasercomp} shows a comparison between the filtered and unfiltered laser scan, while keeping the data for 10 seconds. This allows to see the quickly jumping outliers caused by the edge effect. The filter seems well configured since the filtered points have no single outlier but still featuring a very good representation of the measured obstacle.
 
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/LASERFILTER COMP}	
@@ -191,7 +191,7 @@ In the first round the map is not yet optimized. Like pictured in  figure \ref{1
 In the second round the road is closed, but some submaps are slightly misaligned which can be seen by the blurry road markings.\\
 This is well corrected in the third round and will improve from here on with every round, until the computational effort is too high.\\
 
-\textbf{Data purely from localization and lidar scan with obstacles on the side of the road:}\\
+\textbf{Data purely from road detection and lidar scan with obstacles on the side of the road:}\\
 
 
 As pictured in figure \ref{2slamtest} Cartographer manages to close the road already after the first round. After the second round the road borders are slightly blurry, therefore the submaps are not yet perfectly matched. This blurriness slightly improves after the third round, but the submaps are not yet perfectly matched with each other.
@@ -222,7 +222,7 @@ As pictured in figure \ref{2slamtest} Cartographer manages to close the road alr
 
 \textbf{Long duration test with both road detection and lidar scan with obstacles on the side of the road:}\\
 
-The map build by Cartographer during this test shows, that it is a very good representation of the real environment over the first four rounds as pictured in Figure \ref{3slamtest}.\\
+The map built by Cartographer during this test shows, that it is a very good representation of the real environment over the first four rounds as pictured in Figure \ref{3slamtest}.\\
 
 After the \nth{7} round it is noticeable, that the matching of submaps seems to take more and more time, which is visible by a trace of unmatched submaps, that are slightly shifted. This is caused by the computational burden caused by the amount of submaps. In this round the Cartographer node already takes up 20\% of the cpu resources and increases continuously. At this point realtime scan and submap matching is not possible anymore, resulting in enormous processing delays.
 
@@ -276,7 +276,7 @@ After the \nth{7} round it is noticeable, that the matching of submaps seems to 
 As pictured in Figure \ref{4slamtest} Cartographer struggles with aligning the submaps during obstacle avoidance and suffers from rotational error.\\
 Fortunately these errors are mostly corrected over the period of the next few rounds.\\ In the \nth{10} round however Cartographer suffers from the same issue highlighted by the long duration test. Here it is clearly visible, that the queue of unmatched submaps is more than one entire round.\\
 
-\textbf{Discussion of the test results}\\
+\textbf{Discussion of the SLAM test results}\\
 As proven by the first two tests, Cartographer is well tuned and the map would be useable for goal extraction. The submaps are well alligned and the map has no huge translational or rotational offset.\\
 
 The \nth{3} and \nth{4} test on the other hand display the limitations of the slam algorithm in this use case.\\
@@ -291,7 +291,7 @@ Based on these test results it is not feasible to use the SLAM map for navigatio
 \section{Complete System Test}
 The following subsections cover the discussion of the complete system tests.\\\\
 \textbf{No obstacles}\\
-The reasoning for this test is, to check how good the robot stays on the right lane. Therefore, the robot drives in the described test environment, while the difference between the right lane and the robot center is monitored.
+The reason for this test is, to check how good the robot stays on the right lane. Therefore, the robot drives in the described test environment, while the difference between the right lane and the robot center is monitored.
 
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/final analysis no obstacle}
@@ -316,17 +316,17 @@ As pictured in Figure \ref{noobserr} the robot has left the road markings once, 
 
 \end{figure}
 \textbf{Obstacles on left lane}\\
-This test is supposed to test the behavior of the navigation when obstacles block the view of the camera but the robot has to drive on the right side. In this test the robot will not drive as many rounds, since the goal is to observe the behavior when passing goals. In contrast to figure \ref{noobserr} the distance to the nearest obstacle will be included in the graph, thus it can be determined, if the robot left the lane because it is near an obstacle or not, for this the true positions from the simulation will be used. The obstacle distance will only be tracked, if it is below 3 meters.
+This test is supposed to test the behavior of the navigation when obstacles block the view of the camera but the robot has to drive on the right side as pictured in \ref{obstaclefinaltest} (a). In this test the robot will not drive as many rounds, since the goal is to observe the behavior when passing goals. In contrast to figure \ref{noobserr} the distance to the nearest obstacle will be included in the graph, thus it can be determined, if the robot left the lane because it is near an obstacle or not, for this the true positions from the simulation will be used. The obstacle distance will only be tracked, if it is below 3 meters.
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/left obs final obs2}
 	\caption{graph of left lane obstacle test}
 	\label{leftobsfinal}
 \end{figure}
-As visible in figure \ref{leftobsfinal} the robot left the right lane way more often compared to Figure \ref{noobserr}.\\
+As visible in figure \ref{leftobsfinal} the robot left the right lane way more often compared to Figure \ref{noobserr}. This suggests, that the robot is leaving the right lane, right after passing an obstacle. At this moment, the costmap does not yet contain any data about the road, since the road detection does not detect the road, after getting close to the obstacle. Therfore, the navigation drives starts to drive a straight line towards the goal, leading to the robot driving off the right lane.\\
 
 \textbf{Obstacles on right lane}\\
 
-To cover the possible scenarios of the Carolo-Cup this test is supposed to be a realistic application with a few obstacle scattered over the entire environment on the right lane. Like in the last test the obstacles will be located as well in corners, as on straight sections of the road.
+To cover the possible scenarios of the Carolo-Cup this test is supposed to be a realistic application with a few obstacle scattered over the entire environment on the right lane like pirctured in \ref{obstaclefinaltest} (b). Like in the last test the obstacles will be located as well in corners, as on straight sections of the road.
 
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/right obs final obs}
@@ -335,9 +335,9 @@ To cover the possible scenarios of the Carolo-Cup this test is supposed to be a 
 \end{figure}
 
 
-As pictured in Figure \ref{obstaclefinaltest}, there are five obstacles on the right lane. These can be seen, when inspecting the graphe in Figure \ref{rightobsfinal}, which shows two rounds of the robot.
+As pictured in Figure \ref{obstaclefinaltest} (b), there are five obstacles on the right lane. These can be seen, when inspecting the graph in Figure \ref{rightobsfinal}, which shows two rounds of the robot.
 
-Furthermore the graph shows, that the robot successfully avoided all obstacles in both rounds. Unfortunately the robot left the lane three times, when no obstacle in the proximity of it.\\
+Furthermore the graph shows, that the robot successfully avoided all obstacles in both rounds. Unfortunately the robot left the right lane three times, when no obstacle in the proximity of it.\\
 
 In the middle of the graph the robot took particularly long for the avoidance.
 
@@ -347,12 +347,10 @@ The graph also shows, that the avoidance is always finished before the robot is 
 
 The results of the complete system tests show, that the navigation performs really well during simple lane following, since the road detection recognizes the road almost always as shown in the road\_detection test.
 
-While observing the robot during driving past obstacles on the left lane it was noticeable, that the robot mostly left the lane, directly after it passed an obstacle in or directly after a corner.\\ 
-In this case the predicted goal pulls the robot into the middle of the road since the costmap does not have information about the road and therefore will not force the global plan to the right lane. The approximated goal is still constructed with the circle approximation since the upcoming straight section has not been seen.\\
+While observing the robot when it drives past obstacles on the left lane it was noticeable, that the robot mostly left the lane directly after it passed an obstacle in or directly after a corner.\\ 
+In this case the predicted goal pulls the robot into the middle of the road since the costmap does not have information about the road and therefore will not force the global plan to the right lane. The approximated goal is still constructed with the circle approximation since the upcoming straight section has not been seen, which places the goal next to the lanes but not certainly on the right one.\\
 
-Obstacle avoidance suffers from a similar problem. As shown in the \nth{3} test. Here it is visible, that the robot passes the obstacle nicely, but afterwards drives along the center of the road, which causes the spikes of the rectified signal visible in Figure \ref{rightobsfinal} after the avoidance. As soon as the robot has passed an obstacle fully, it drives straight to the predicted goal while waiting on new data from the road detection, which often causes unnecessary long avoidance periods.
-
-
+Obstacle avoidance suffers from a similar problem. As shown in the ``Obstacle on the right lane'' test. Here it is visible, that the robot passes the obstacle nicely, but afterwards drives along the center of the road, which causes the spikes of the rectified signal visible in Figure \ref{rightobsfinal} after the avoidance. As soon as the robot has passed an obstacle fully, it drives straight to the latest predicted goal while waiting on new data from the road detection. Only, when the road detection supplies new information about the environment, the navigation is able to generate a plan to the right lane.
 
 
 
