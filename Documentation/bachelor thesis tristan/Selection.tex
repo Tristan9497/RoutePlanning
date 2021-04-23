@@ -3,6 +3,7 @@
 
 This chapter covers the package selection and the setup of all nodes in the concept. In addition to that the development of the custom nodes will be discussed. This results in nodes assigned to each block in the schematic pictured in Figure \ref{navconcept}.
 
+These nodes are then configured in order to fulfill the requirements.
 
 \section{Simulation}
 There are many options, when it comes to robot simulation environments, which makes a proper selection mandatory. The chosen simulator then needs to be configured and equipped with models, sensors and a drive system.
@@ -11,7 +12,7 @@ There are many options, when it comes to robot simulation environments, which ma
 To begin of the selection process a group of reasonable simulators needs to be collected. The two selected options are Gazebo and V-REP since they are the two most used robotics 3D simulators \cite{SimComp}.\\
 The newest version of V-Rep is now called CoppeliaSim. Unfortunately, there are no comparisons between it and Gazebo yet. Performing a thorough comparison between both would exceed the scope of this thesis. Therefore, its predecessor V-Rep will be compared. \\
 
-Both simulators seem to fulfill most of the defined requirements to a certain extend, while Gazebo seems to have a easier installation process and integration into ROS.\\
+Both simulators seem to fulfill most of the defined requirements to a certain extend, while Gazebo seems to have an easier installation process and integration into ROS.\\
 Gazebo is included in the default packages of ROS Noetic since it is developed by the Open Source Robotics Foundation as the default simulator for ROS\cite{ROSPkg}.
 
 V-REP, as well as Gazebo, offers plugins and URDF conversion for custom models, but an even bigger selection of mobile robot models. Unfortunately, they can only be used as examples since the required models are very specific.\\
@@ -24,7 +25,6 @@ Based on the fact, that Gazebo is included in the ROS-Noetic package list and ha
 \subsection{Model}
 Since Gazebo doesn't have an integrated model editor the freeware ``Blender'' will be used for the generation of the model of the environment, since it has options for exporting COLLADA files (.dae) usable in Gazebo.
 
-As described in the requirements the robot models will be generated using URDF which will be covered later.
 \subsection{Configuration}
 The following sections cover the configuration and the generation of the models used in the simulation, together with all simulated sensors and the motor controller.
 
@@ -58,7 +58,7 @@ The resulting robot then looks like pictured in Figure \ref{arlourdf}.
 
 Using rqt\_tf\_tree the tf tree can be checked for conformity to ``REP 105'' and the concept.\\ 
 
-A simplified version of the tf\_tree is picture in ref{tfsimp}, whereas the complete one is picture in Appendix \ref{config}.\\
+A simplified version of the tf\_tree is picture in \ref{tfsimp}, whereas the complete one is picture in Appendix \ref{config}.\\
 
 \begin{figure}[H]
 	\centering
@@ -67,7 +67,7 @@ A simplified version of the tf\_tree is picture in ref{tfsimp}, whereas the comp
 	\label{tfsimp}
 \end{figure}
 
-As visible the fixed frame of the setup is ``map'' the following transform to the ``odom'' frame is published by cartographer. The transformation between the ``odom'' frame and ``base\_footprint'' then gets published by robot\_localization.\\
+As visible the fixed frame of the setup is ``map'' the following transform to the ``odom'' frame is published by Cartographer. The transformation between the ``odom'' frame and ``base\_footprint'' then gets published by robot\_localization.\\
 The remaining transformations and frames are published by ``robot\_state\_publisher'' according to the URDF of the robot.
 
 \subsubsection{Gazebo}
@@ -116,7 +116,7 @@ Overall it does not seem to be possible to mimic the original camera, hence the 
 
 As described in the concept, the navigation stack will be used in this thesis. Therefore, the action move\_base will be used to get the robot to a given goal.\\
  move\_base incorporates nav\_core and costmap\_2d and their internal nodes, which need to be selected according to the requirements of the navigation.\\
-Similar to the separation described in the concept (chapter \ref{concept})the nodes will be categorized into a global and local stage and discussed individually.
+Similar to the separation described in the concept (chapter \ref{Concept})the nodes will be categorized into a global and local stage and discussed individually.
 
 \subsection{Global stage}
 \label{globalconfig}
@@ -145,7 +145,7 @@ Since costmap\_2d is embedded in move\_base the package does not need to be sele
 As defined in the concept, the global costmap needs to have information about lethal obstacles, road markings, as well as a defined preference for the right lane.\\
 
 
-The data, supplied by the lidar and the road detection, can be marked as lethal obstacles in the costmap using the obstacle layer. This data consist solely from points, meaning there are gaps between the individual measurements. In the case of the lidar, these size of these gaps increase with the measurement distance.\\
+The data, supplied by the lidar and the road detection, can be marked as lethal obstacles in the costmap using the obstacle layer. This data consist solely from points, meaning there are gaps between the individual measurements. In the case of the lidar, the size of these gaps increases with the measurement distance.\\
 
 As soon as these gaps are larger than the resolution of the costmap, free cells will start to appear between the measurements, that allow the planner to generate paths through obstacles or the road markings.\\
 
@@ -160,12 +160,12 @@ To solve this issue the default layer ``inflation\_layer'' can be used. This lay
 
 This configuration allows the navigation to plan around obstacles, without leaving the road, but there is no preference for the right lane yet. To generate this preference the left lane has to have higher cost than the right lane, without being lethal.
 
-Unfortunately, this can not be solved using the provided layers. Therefore a custom layer has to be developed.
+Unfortunately, this can not be solved using the provided layers. Therefore a custom layer has to be developed, that will be named dynamic\_cost\_layer.
 
 The only information about where the lane is, comes from the road detection, which outputs polynomials that approximate the road markings. The aim is to make a gradually increasing cost from the middle of the right lane to the left road marking. Therefore, the left road marking needs to be inflated using dynamically adjustable parameters for the cost distribution.\\
 
 
-To guarantee, that driving on the right lane, the right road marking will be inflated, but with a different cost distribution. Here only the road marking is lethal, whereas the lane should be free resulting in the cross section pictured in \ref{globalcostdistro}. To simplify lane changes in the case of obstacle avoidance these obstacles need to have a cost free zone around them.\\
+To guarantee, that the robot is driving on the right lane, the right road marking will be inflated, but with a different cost distribution. Here only the road marking is lethal, whereas the lane should be free resulting in the cross section pictured in \ref{globalcostdistro}. To simplify lane changes in the case of obstacle avoidance, these obstacles need to have a cost free zone around them.\\
 
 The layer should also feature a reset option as a recovery behavior.
 
@@ -191,7 +191,7 @@ The previously discussed tasks for the layer can be summarized in the following 
 
 \subsection{Local stage}
 \subsubsection{Planner}
-In contrast to the global planner there are way more options for the local planner node to choose from. Like the global planners the local planners will be selected using the options offered in the following description of nav\_core\cite{navcore}.
+In contrast to the global planner there are more options for the local planner node to choose from. Like the global planners the local planners will be selected using the options offered in the description of nav\_core\cite{navcore}.
 
 \begin{itemize}
 	\item base\_local\_planner
@@ -211,23 +211,23 @@ Furthermore the local planner needs to have a good performance in tight corridor
 During all of this the local planner needs to use the information of lethal obstacles to prevent crashes in its optimized path.\\
 
 
-Base and DWA are two planners that are included in the navigation stack. Similar to the global planner selection, the successor and therefore DWA is chosen seems like a good option. According to Kaiyu Zeng, this is the general recommendation for mobile robotics platforms\cite{navtuningguide}. As described in the theoretical background, dwa struggles with navigation in narrow corridors and therefore can not be used.
+Base and DWA are two planners that are included in the navigation stack. Similar to the global planner selection, the successor and therefore DWA seems like a good option. According to Kaiyu Zeng, this is the general recommendation for mobile robotics platforms\cite{navtuningguide}. As described in the theoretical background, DWA struggles with navigation in narrow corridors and therefore can not be used.
 
 In contrast to the method of the dwa planner, the elastic band approach is better suited for narrow corridors. The two planner, that use this approach are eband\_local\_planner and teb\_local\_planner. Choosing between these two is difficult, since they both share the same base principle. teb\_local\_planner is better suited for this use case, since it supports both car like and differential robots.
 
 mpc\_local\_planner is build using the popular model predictive control approach. According to Christoph Rösmann (the developer of both planners), teb is preferred when dealing with simple differential or car like robots\cite{mpcvsteb}. 
 
-According to the previous analysis teb\_local\_planner has the best fit to the use case and therefore selected for the navigation.
+According to the previous analysis teb\_local\_planner has the best fit to the use case and is therefore selected for the navigation.
 
 
 \subsubsection{Costmap}
-The local planner is only supposed to generate velocity commands that lead to no lethal collision. Therefore, the local costmap will have the same layers as the global one without the dynamic inflation layer that is used to guide the robot to the right lane.
+The local planner is only supposed to generate velocity commands that lead to no lethal collision. Therefore, the local costmap will have the same layers as the global one without the dynamic\_cost\_layer that is used to guide the robot to the right lane.
 
 \subsection{Configuration}
 \subsubsection{base\_global\_planner}
 \label{globalplannertest}
 There is not much room for configuration, when it comes to the global\_planner of the navigation\_stack. Probably the most important step for computation load is the choice of a planning algorithm.\\
-The two algorithms that are offered by the global\_planner node are Dijkstra and A*.\\
+The two algorithms that are offered by the global\_planner are Dijkstra and A*.\\
 
 \begin{figure}[H]
 	\begin{subfigure}{.5\linewidth}
@@ -246,9 +246,9 @@ The two algorithms that are offered by the global\_planner node are Dijkstra and
 \end{figure}
 
 
-When looking at the observed cells, it is obvious, that A* is much more efficient in this use case since the robot will go straight or in a slight curve. Therefore, A* will be chosen for the global planner.\\
+When looking at the observed cells, it is obvious, that A* is much more efficient in this use case, since the robot will go straight or in a slight curve. Therefore, A* will be chosen for the global planner.\\
 
-Another important setting is necessary since the global costmap is used as a rolling window costmap. The global\_planner will by default outline the global costmap with lethal cost to prevent the global planner to plan outside of a fixed costmap. This behaviour results in artifacts, after the map has moved together with the robot which hinder the planners from finding a path.
+Another important setting is necessary since the global costmap is used as a rolling window costmap. The global\_planner will by default outline the global costmap with lethal cells, to prevent the global planner to plan outside of a fixed costmap. This behaviour results in artifacts, after the map has moved together with the robot which hinder the planners from finding a path as pictured in \ref{boardererror}.
 
 \begin{figure}[H]
 	\centering
@@ -291,40 +291,12 @@ During testing teb\_local\_planner produced good and feasible paths, but sometim
 To suppress this behavior the weighting of the time component has been increased so the internal forces that contract the elastic band increase. This reduced the occurrence of this scenario significantly, but the local path takes longer, until it is on the right lane again, since the distance to the global path is now weighted less relative to the weight of the time component.
 
 \subsubsection{Costmaps}
-Based on the fact that both planners are responsible for different tasks, the configuration of the individual costmaps need to fulfill different tasks aswell. The requirements of the two planners will be compared in order to determine the configuration of their individual costmap.\\
 
-As described in the theoretical knowledge of this thesis the costmap are structured in layers. This means that the data can be evaluated by different plugins before it will be combined into the real costmap.\\
-
-It makes sense to first take a look at the general behavior, that both planners share. In this case it is obstacle avoidance. This means that the lethal obstacles need to be marked in both costmaps.\\
-
-To implement this the provided plugin obstacle\_layer can be used. It will take incoming sensor data (sensor\_msgs::PointCloud or sensor\_msgs::LaserScan) and mark the points in the costmap. To prevent the edge case explained in section \ref{aprox}, obstacles will only be marked, if they are closer than the goal. Therefore the obstacle\_range of the obstacle layer is set to 3.5m.
-
-Since the data here comes from the road detection and a lidar and both have a certain resolution it is unsure, if the result of a scanned obstacle in the costmap is actually a closed line or just points, since this highly relies on the resolution of the sensors and the costmap.\\
-
-To fill theses gaps in the costmap the provided plugin inflation\_layer can be used. It will inflate only the lethal obstacles in the costmap with a configurable cost distribution.\\
-
-This setup is already enough for the local costmap, where as the global planner needs to fulfill the quest of changing lanes if necessary but always preferring the right lane. For this a custom plugin will be needed that makes the transition to the left lane more expensive but still possible.
-
-
-The final layer plugin setup of the costmaps results in the following:\\
-
-\textbf{Global costmap:}
-\begin{itemize}
-	\item obstacle\_layer
-	\item inflation\_layer
-	\item dynamic\_cost\_layer
-\end{itemize}
-
-
-\textbf{Local costmap:}
-\begin{itemize}
-	\item obstacle\_layer
-	\item inflation\_layer
-\end{itemize}
+As mentioned, both costmaps share the same layers, but the global costmap has the dynamic\_cost\_layer in addition. Therefore, the configuration is large the same and will be covered only once.
 
 The costmaps will both have the same size that should always be larger than the distance, at which the PoseFinder searches for goals.
 
-Since both costmaps are rolling window costmaps they will reference the continuos frame ``odom'' and move with the frame ``base\_footprint''.
+Since both costmaps are rolling window costmaps they will reference the continuous frame ``odom'' and move with the frame ``base\_footprint''.
 
 The obstacles seem to move slightly based on sensor noise. To prevent the representation of these obstacles to collide with the robot, the robot radius is set smaller than the robot actually is. Otherwise these obstacles can collide with the footprint of the robot and the global planner can not produce a valid path that the local planner can follow.\\
 
@@ -381,7 +353,6 @@ This introduces the requirement for the PoseFinder, to find goals by estimating 
 
 
 \subsection{Approximations}
-\label{aprox}
 The approximation provided by the road detection is in the form of a polynomial. These describe the real road very accurately, but only in a very restricted domain. Outside of this domain, these polynomials diverge rapidly from the real road, making them unusable for any estmates.
 
 Since the road mostly consists of circles of varying radii and origins, it is self evident, that using the polynomials in their restricted domain to represent a section of a circle will give a better estimate.\\
@@ -511,7 +482,7 @@ To keep this layer flexible for other use cases, the generalized task of custom 
 This behavior can be used to inflate the left road marking in the global costmap to force the global plan on the right side of the road, which is the behavior defined in the concept. The pluginis also supposed to be used to inflate cells with zero cost, which can be useful to guarantee a cost free right lane, or to give some free space around obstacles located on the road.\\
 
 
-Figure \ref{dynnav} shows the cost zones generated by the dynamic\_inflation\_layer, and how the path finding algorithms could profit from this. The red sections are the ones with the actual cost distribution, whereas the blue and green sections are the zones, that are removed by the right road marking and the obstacle.\\
+Figure \ref{dynnav} shows the cost zones generated by the dynamic\_cost\_layer, and how the path finding algorithms could profit from this. The red sections are the ones with the actual cost distribution, whereas the blue and green sections are the zones, that are removed by the right road marking and the obstacle.\\
 
 \begin{figure}
 	\centering
@@ -572,7 +543,7 @@ Figure \ref{dyncost} shows an avoidance of a simulated obstacle and the cost dis
 	%\hskip2em
 	\begin{subfigure}{.45\linewidth}
 		\includegraphics[width=\textwidth]{Pictures/avoid cost}
-		\caption{costmap filled by the dynamic\_inflation\_layer}
+		\caption{costmap filled by the dynamic\_cost\_layer}
 	\end{subfigure}
 	\caption{resulting cost during avoidance}
 	\label{dyncost}
@@ -633,7 +604,7 @@ For the SLAM algorithm both data sources need to be fused into one point cloud. 
 The data for the developed dynamic\_cost\_layer has to contain more information. It is in the form of a point cloud and contains channel values for point individual inflation radius, min-cost and max-cost.\\ 
 
 This pointcloud contains points of three types, left lane, right lane and obstacle.
-The individual parameters for these points are pictured in \ref{markparams}. Using these parameters the cost distribution generated by the dynamic\_inflation\_layer can be modified.\\
+The individual parameters for these points are pictured in \ref{markparams}. Using these parameters the cost distribution generated by the dynamic\_cost\_layer can be modified.\\
 
 \begin{figure}[H]
 	\centering
