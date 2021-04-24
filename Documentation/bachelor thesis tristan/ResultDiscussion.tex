@@ -15,14 +15,15 @@ In theory the trace of the odometry should be closed perfectly, after the robot 
 
 \subsection{Results}
 
-When looking at the odometry published by the differential drive plugin during the test in Figure \ref{wheel odom} it is noticeable, that the measurement has a huge rotational error, which is expected since the wheels always slip slightly when turning a differential drive robot.
+When looking at the odometry published by the differential drive plugin during the test in Figure \ref{wheel odom} it is noticeable, that the measurement has a huge rotational error, which is expected, since the robot has a differential steering type.
+The quality of the odometry obviously is not sufficient and has to be improved.
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/rot error}
-	\caption{odometry test result}
+	\caption{Odometry test result}
 	\label{wheel odom}
 
 \end{figure}
-The quality of the odometry obviously is not sufficient and has to be improved.
+
 
 \subsection{Optimization}
 Since the odometry is found to not being sufficient for the navigation the following optimization approach will be tried and further testing will be performed. The test scenario will remain the same.
@@ -59,43 +60,43 @@ Looking at the linear velocities of both the ekf and the wheel odometry in Figur
 
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/odom pose comp}
-	\caption{pose comparison wheel odom + IMU}
+	\caption{Pose comparison wheel odom + IMU}
 	\label{pose comparison wheel odom + IMU}
 
 \end{figure}
 
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/comparison odom}
-	\caption{velocity comparison wheel odom + IMU}
+	\caption{Velocity comparison wheel odom + IMU}
 	\label{velocity comparison wheel odom + IMU}
 
 \end{figure}
 
 
-To fix this, more data about the robots movement is required. Fortunately robot\_localization has an input for command velocities such as velocities produced by move base. While the command velocity does not provide any measurement in the real world the ekf filter can profit from knowing what the velocity actually should be.\\
+To fix this, more data about the robots movement is required. Fortunately, robot\_localization has an input for command velocities such as velocities produced by move base. While the command velocity does not provide any measurement in the real world the ekf filter can profit from knowing what the velocity actually should be.\\
 
 robot\_localization has a parameter for the timeout of the command velocity messages. Setting this lower than the cycle time of move\_base results in the offset pictured in figure \ref{velocity offset}. Therefore it is really important to configure this parameter to the current settings of move\_base.
 
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/velocity comp}
-	\caption{velocity offset caused by too low control timout}
+	\caption{Velocity offset caused by too low control timout}
 	\label{velocity offset}
 
 \end{figure}
 
-After the inclusion of the command velocity the acceleration limits in the configuration file of robot\_localization can be set equal to the limits in the local planner configuration.
+After the inclusion of the command velocity, the acceleration limits in the configuration file of robot\_localization can be set equal to the limits in the local planner configuration.
 
 When observing the results again it is noticeable, that the odometry has drastically improved as pictured in Figure \ref{Odometry comparison wheel odomIMUcmdvel}, equally the velocities stay closer together as pictured in \ref{velwithcmd}.
 
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/odom after one round}
-	\caption{odometry comparison wheel odom + IMU + cmd\_vel}
+	\caption{Odometry comparison wheel odom + IMU + cmd\_vel}
 	\label{Odometry comparison wheel odomIMUcmdvel}
 
 \end{figure}
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/circle vel}
-	\caption{velocity comparison with cmd\_vel}
+	\caption{Velocity comparison with cmd\_vel}
 	\label{velwithcmd}
 \end{figure}
 
@@ -103,7 +104,7 @@ When observing the results again it is noticeable, that the odometry has drastic
 
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/odom comp multiple rounds}
-	\caption{odom comparison multiple rounds}
+	\caption{Odom comparison multiple rounds}
 	\label{Odom comparison multiple rounds}
 
 \end{figure}
@@ -117,7 +118,7 @@ Since the robot is driving on the lane and not on the middle road marking the ex
  
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/circle odom}
-	\caption{odom comparison circular track}
+	\caption{Odom comparison circular track}
 	\label{circular track}
 
 \end{figure}
@@ -126,7 +127,7 @@ As a final test the odometry from the robot\_localization node is compared to th
 
  \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/odom with true}
-	\caption{comparison with true position}
+	\caption{Comparison with true position}
 	\label{trueodom}
 \end{figure}
 
@@ -151,7 +152,7 @@ When using a ``realistic'' lidar to project obstacles into the costmap this erro
 
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/Needs filtering of Laser}
-	\caption{lidar Test result}
+	\caption{Lidar Test result}
 	\label{unfiltered lidar}
 \end{figure}
 
@@ -163,7 +164,7 @@ Figure \ref{lasercomp} shows a comparison between the filtered and unfiltered la
 
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/LASERFILTER COMP}	
-	\caption{comparison between filtered and not filtered laser scan (red - filtered, turquoise - raw)}
+	\caption{Comparison between filtered and not filtered laser scan (red - filtered, turquoise - raw)}
 	\label{lasercomp}
 \end{figure}
 
@@ -182,7 +183,7 @@ The duration of the test was roughly 1.5 hours of continuous navigation without 
 
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/long duration road detection test}
-	\caption{roadRecordEvaluation during long duration test}
+	\caption{RoadRecordEvaluation during long duration test}
 	\label{longdurroad}
 \end{figure}
 
@@ -300,7 +301,7 @@ After the \nth{7} round it is noticeable, that the matching of submaps seems to 
 		\caption{\nth{7} round}
 	\end{subfigure}
 
-	\caption{slam map rounds during long duration test}
+	\caption{SLAM map rounds during long duration test}
 	\label{3slamtest}
 
 \end{figure}
@@ -325,7 +326,7 @@ After the \nth{7} round it is noticeable, that the matching of submaps seems to 
 		\caption{\nth{10} round}
 	\end{subfigure}
 
-	\caption{slam map rounds during long duration test}
+	\caption{SLAM map rounds during long duration test}
 	\label{4slamtest}
 
 \end{figure}
@@ -378,7 +379,7 @@ The reason for this test is, to check how good the robot stays on the right lane
 
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/final analysis no obstacle}
-	\caption{absolute error of the robot trajectory and rectified signal of the avoidance duration}
+	\caption{Absolute error of the robot trajectory and rectified signal of the avoidance duration}
 	\label{noobserr}
 \end{figure}
 
@@ -386,15 +387,15 @@ As pictured in Figure \ref{noobserr} the robot has left the road markings once, 
 \begin{figure}[H]
 	\begin{subfigure}{.5\linewidth}
 		\includegraphics[width=\textwidth]{Pictures/obstacle left final 2}
-		\caption{obstacles on left lane}
+		\caption{Obstacles on left lane}
 	\end{subfigure}	
 	%\hskip2em
 	\begin{subfigure}{.5\linewidth}
 		\includegraphics[width=\textwidth]{Pictures/right final obs}
-		\caption{obstacles on right lane}
+		\caption{Obstacles on right lane}
 	\end{subfigure}
 
-	\caption{obstacle placement for both final tests}
+	\caption{Obstacle placement for both final tests}
 	\label{obstaclefinaltest}
 
 \end{figure}
@@ -402,7 +403,7 @@ As pictured in Figure \ref{noobserr} the robot has left the road markings once, 
 This test is supposed to test the behavior of the navigation when obstacles block the view of the camera but the robot has to drive on the right side as pictured in \ref{obstaclefinaltest} (a). In this test the robot will not drive as many rounds, since the goal is to observe the behavior when passing goals. In contrast to figure \ref{noobserr} the distance to the nearest obstacle will be included in the graph, thus it can be determined, if the robot left the lane because it is near an obstacle or not, for this the true positions from the simulation will be used. The obstacle distance will only be tracked, if it is below 3 meters.
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/left obs final obs2}
-	\caption{graph of left lane obstacle test}
+	\caption{Graph of left lane obstacle test}
 	\label{leftobsfinal}
 \end{figure}
 As visible in figure \ref{leftobsfinal} the robot left the right lane way more often compared to Figure \ref{noobserr}. This suggests, that the robot is leaving the right lane, right after passing an obstacle. At this moment, the costmap does not yet contain any data about the road, since the road detection does not detect the road, after getting close to the obstacle. Therfore, the navigation drives starts to drive a straight line towards the goal, leading to the robot driving off the right lane.\\
@@ -413,7 +414,7 @@ To cover the possible scenarios of the Carolo-Cup this test is supposed to be a 
 
 \begin{figure}[H]
 	\includegraphics[width=\textwidth]{Pictures/right obs final obs}
-	\caption{graph of right lane obstacle test}
+	\caption{Graph of right lane obstacle test}
 	\label{rightobsfinal}
 \end{figure}
 
