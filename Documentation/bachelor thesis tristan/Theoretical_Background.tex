@@ -85,7 +85,7 @@ In most cases robots that are controlled by ROS have a tf\_tree. This tree is th
  The structure in most trees of mobile platforms is quite similar which is due to the REP105 (ROS enhanced proposals). This contains a definition of recommended names for the robot frames and their order in the tf tree. But it should be noted that not every frame that is defined in the norm has to be in every tree. The basic structure starts with a fixed frame. This frame will be the not changing frame in the environment. For moving robots this is often earth, map or odom, while in stationary robots this can even be base\_link.\\
  
 
-The tree is normally build up like in Figure \ref{stdtftree}.
+The tree is normally build up like pictured in Figure \ref{stdtftree}.
 
 
 \begin{figure}[H]
@@ -141,7 +141,7 @@ A costmap is a grid stile map and its purpose is to store information about obst
 There are two different costmaps, the global costmap and the local costmap.
 The global costmap is by the global planner to find a collision free path, whereas the local costmap is used by the local planner for local planning.\cite{navsetup}\\
 
-\begin{figure}[H]
+\begin{figure}[H] 
 \centering
 	\includegraphics[width=.5\textwidth]{Pictures/inflationref}
 	\caption{Costmap with obstacles and inflation \cite{infl}}
@@ -165,7 +165,7 @@ In this application, this is done by casting rays from the robot to the current 
 Inflation is a process where a occupied cell is inflated by over the distance decreasing cost values for a configurable radius, as pictured in Figure \ref{costmap}.\\
 This process is used by the default plugin inflation\_layer with the cost distribution pictured in Figure \ref{costdistribution}\cite{costmap}.
 
-\begin{figure}[H]
+\begin{figure} 
 	\centering
 	\includegraphics[width=\linewidth]{Pictures/costmapinflation}
 	\caption{Cost distribution and classification \cite{costmap}}
@@ -248,7 +248,7 @@ The regulations of the Carolo-Cup strongly restrict the size and the steering ty
 This decision is based on a potential comparisons after this thesis between real and simulated environments. This could give insight on problems in the navigation that have not yet been addressed.\\
 
 
-\begin{figure}[H]
+\begin{figure} 
 	\centering
 	\includegraphics[width=.7\textwidth]{arlo real}
 	
@@ -298,7 +298,7 @@ To get the best correlation between simulation and real world, the simulator sho
 \section{Navigation}
 The navigation is supposed to cover free driving without obstacles, as well as with static obstacles avoidance. It will not cover dynamic obstacles, road sign detection or driving situations like intersections and parking.\\
 
-\begin{figure}[H]
+\begin{figure}
 	\centering
 	\begin{subfigure}{.3\linewidth}
 		\includegraphics[width=\textwidth]{Pictures/lane following draw}

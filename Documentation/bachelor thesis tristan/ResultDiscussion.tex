@@ -17,7 +17,7 @@ In theory the trace of the odometry should be closed perfectly, after the robot 
 
 When looking at the odometry published by the differential drive plugin during the test in Figure \ref{wheel odom} it is noticeable, that the measurement has a huge rotational error, which is expected, since the robot has a differential steering type.
 The quality of the odometry obviously is not sufficient and has to be improved.
-\begin{figure}[H]
+\begin{figure} 
 	\includegraphics[width=\textwidth]{Pictures/rot error}
 	\caption{Odometry test result}
 	\label{wheel odom}
@@ -58,14 +58,14 @@ Looking at the linear velocities of both the ekf and the wheel odometry in Figur
 
 
 
-\begin{figure}[H]
+\begin{figure} 
 	\includegraphics[width=\textwidth]{Pictures/odom pose comp}
 	\caption{Pose comparison wheel odom + IMU}
 	\label{pose comparison wheel odom + IMU}
 
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure} 
 	\includegraphics[width=\textwidth]{Pictures/comparison odom}
 	\caption{Velocity comparison wheel odom + IMU}
 	\label{velocity comparison wheel odom + IMU}
@@ -77,7 +77,7 @@ To fix this, more data about the robots movement is required. Fortunately, robot
 
 robot\_localization has a parameter for the timeout of the command velocity messages. Setting this lower than the cycle time of move\_base results in the offset pictured in figure \ref{velocity offset}. Therefore it is really important to configure this parameter to the current settings of move\_base.
 
-\begin{figure}[H]
+\begin{figure} 
 	\includegraphics[width=\textwidth]{Pictures/velocity comp}
 	\caption{Velocity offset caused by too low control timout}
 	\label{velocity offset}
@@ -88,13 +88,13 @@ After the inclusion of the command velocity, the acceleration limits in the conf
 
 When observing the results again it is noticeable, that the odometry has drastically improved as pictured in Figure \ref{Odometry comparison wheel odomIMUcmdvel}, equally the velocities stay closer together as pictured in \ref{velwithcmd}.
 
-\begin{figure}[H]
+\begin{figure} 
 	\includegraphics[width=\textwidth]{Pictures/odom after one round}
 	\caption{Odometry comparison wheel odom + IMU + cmd\_vel}
 	\label{Odometry comparison wheel odomIMUcmdvel}
 
 \end{figure}
-\begin{figure}[H]
+\begin{figure} 
 	\includegraphics[width=\textwidth]{Pictures/circle vel}
 	\caption{Velocity comparison with cmd\_vel}
 	\label{velwithcmd}
@@ -102,7 +102,7 @@ When observing the results again it is noticeable, that the odometry has drastic
 
 
 
-\begin{figure}[H]
+\begin{figure} 
 	\includegraphics[width=\textwidth]{Pictures/odom comp multiple rounds}
 	\caption{Odom comparison multiple rounds}
 	\label{Odom comparison multiple rounds}
@@ -116,7 +116,7 @@ To isolate the different errors from the scaling error a circular track is build
 The radius was chosen that high so potential errors are amplified and easier detectable.\\
 Since the robot is driving on the lane and not on the middle road marking the expected radius is 10,45 meter. When evaluating the EKF odom in Figure \ref{circular track} we see that the scale is very precise.
  
-\begin{figure}[H]
+\begin{figure} 
 	\includegraphics[width=\textwidth]{Pictures/circle odom}
 	\caption{Odom comparison circular track}
 	\label{circular track}
@@ -125,7 +125,7 @@ Since the robot is driving on the lane and not on the middle road marking the ex
 
 As a final test the odometry from the robot\_localization node is compared to the true position from the simulation.
 
- \begin{figure}[H]
+ \begin{figure} 
 	\includegraphics[width=\textwidth]{Pictures/odom with true}
 	\caption{Comparison with true position}
 	\label{trueodom}
@@ -150,7 +150,7 @@ The lidar sensor is simulated with realistic noise and errors. This also introdu
 
 When using a ``realistic'' lidar to project obstacles into the costmap this error produces a lot of lethal point like obstacles that significately hinder navigation as visible in Figure \ref{unfiltered lidar}.
 
-\begin{figure}[H]
+\begin{figure} 
 	\includegraphics[width=\textwidth]{Pictures/Needs filtering of Laser}
 	\caption{Lidar Test result}
 	\label{unfiltered lidar}
@@ -162,7 +162,7 @@ To remove these error measurements the ROS package ``laser\_filters'' can be use
 
 Figure \ref{lasercomp} shows a comparison between the filtered and unfiltered laser scan, while keeping the data for 10 seconds. This allows to see the quickly jumping outliers caused by the edge effect. The filter seems well configured since the filtered points have no single outlier but still featuring a very good representation of the measured obstacle.
 
-\begin{figure}[H]
+\begin{figure} [H]
 	\includegraphics[width=\textwidth]{Pictures/LASERFILTER COMP}	
 	\caption{Comparison between filtered and not filtered laser scan (red - filtered, turquoise - raw)}
 	\label{lasercomp}
@@ -181,7 +181,7 @@ As pictured in figure \ref{longdurroad} the performance of the road detection co
 
 The duration of the test was roughly 1.5 hours of continuous navigation without obstacles in the simulation.
 
-\begin{figure}[H]
+\begin{figure} 
 	\includegraphics[width=\textwidth]{Pictures/long duration road detection test}
 	\caption{RoadRecordEvaluation during long duration test}
 	\label{longdurroad}
@@ -203,7 +203,8 @@ The aim is, that the robot can drive multiple rounds, on the track and cartograp
 The used lidar (specified in Appendix \ref{AppendixDataSheets}) has a range of 4 m. Therefore it is likely, that the sensor sees obstacles that are next to the circuit of the Carolo-Cup, but are not on the track itself. These might be provide sufficient features for loop closure. Therefore the map could be very reliable after the first round. 
 In this test the robot will be placed in the testing environment with obstacles next to the road as pictured in \ref{2slamtestenv}.
 
-\begin{figure}[H]
+\begin{figure} 
+\centering
 	\includegraphics[width=.4\textwidth]{Pictures/2slamtest}
 	\caption{Test environment with obstacles at the side of the road}
 	\label{2slamtestenv}
@@ -223,7 +224,7 @@ The obstacles will be placed in two corners and therefore in the edge case where
 
 The following pictures contain the SLAM map after the \nth{1},\nth{2} and \nth{3} round.\\
 
-\begin{figure}[H]
+\begin{figure} 
 	\centering
 	\begin{subfigure}{.3\linewidth}
 		\includegraphics[width=\textwidth]{Pictures/1slamtest1}
@@ -254,7 +255,7 @@ This is well corrected in the third round and will improve from here on with eve
 
 As pictured in figure \ref{2slamtest} Cartographer manages to close the road already after the first round. After the second round the road borders are slightly blurry, therefore the submaps are not yet perfectly matched. This blurriness slightly improves after the third round, but the submaps are not yet perfectly matched with each other.
 
-\begin{figure}[H]
+\begin{figure} 
 	\centering
 	\begin{subfigure}{.3\linewidth}
 		\includegraphics[width=\textwidth]{Pictures/2slamtest1}
@@ -284,7 +285,7 @@ The map built by Cartographer during this test shows, that it is a very good rep
 
 After the \nth{7} round it is noticeable, that the matching of submaps seems to take more and more time, which is visible by a trace of unmatched submaps, that are slightly shifted. This is caused by the computational burden caused by the amount of submaps. In this round the Cartographer node already takes up 20\% of the cpu resources and increases continuously. At this point realtime scan and submap matching is not possible anymore, resulting in enormous processing delays.
 
-\begin{figure}[H]
+\begin{figure} 
 	\centering
 	\begin{subfigure}{.3\linewidth}
 		\includegraphics[width=\textwidth]{Pictures/2slamtest}
@@ -309,7 +310,7 @@ After the \nth{7} round it is noticeable, that the matching of submaps seems to 
 
 \textbf{Data purely from localization and lidar scan with obstacles on the road:}\\
 
-\begin{figure}[H]
+\begin{figure} 
 	\centering
 	\begin{subfigure}{.3\linewidth}
 		\includegraphics[width=\textwidth]{Pictures/3slamtest1}
@@ -377,14 +378,14 @@ The following subsections cover the discussion of the complete system tests.\\\\
 \textbf{No obstacles}\\
 The reason for this test is, to check how good the robot stays on the right lane. Therefore, the robot drives in the described test environment, while the difference between the right lane and the robot center is monitored.
 
-\begin{figure}[H]
+\begin{figure} 
 	\includegraphics[width=\textwidth]{Pictures/final analysis no obstacle}
 	\caption{Absolute error of the robot trajectory and rectified signal of the avoidance duration}
 	\label{noobserr}
 \end{figure}
 
 As pictured in Figure \ref{noobserr} the robot has left the road markings once, caused by the bug of the global planner described in Section \ref{globalplannertest}. During all other rounds the robot stayed on the right lane while having slight oscillations.\\
-\begin{figure}[H]
+\begin{figure} 
 	\begin{subfigure}{.5\linewidth}
 		\includegraphics[width=\textwidth]{Pictures/obstacle left final 2}
 		\caption{Obstacles on left lane}
@@ -401,7 +402,7 @@ As pictured in Figure \ref{noobserr} the robot has left the road markings once, 
 \end{figure}
 \textbf{Obstacles on left lane}\\
 This test is supposed to test the behavior of the navigation when obstacles block the view of the camera but the robot has to drive on the right side as pictured in \ref{obstaclefinaltest} (a). In this test the robot will not drive as many rounds, since the goal is to observe the behavior when passing goals. In contrast to figure \ref{noobserr} the distance to the nearest obstacle will be included in the graph, thus it can be determined, if the robot left the lane because it is near an obstacle or not, for this the true positions from the simulation will be used. The obstacle distance will only be tracked, if it is below 3 meters.
-\begin{figure}[H]
+\begin{figure} 
 	\includegraphics[width=\textwidth]{Pictures/left obs final obs2}
 	\caption{Graph of left lane obstacle test}
 	\label{leftobsfinal}
@@ -412,7 +413,7 @@ As visible in figure \ref{leftobsfinal} the robot left the right lane way more o
 
 To cover the possible scenarios of the Carolo-Cup this test is supposed to be a realistic application with a few obstacle scattered over the entire environment on the right lane like pirctured in \ref{obstaclefinaltest} (b). Like in the last test the obstacles will be located as well in corners, as on straight sections of the road.
 
-\begin{figure}[H]
+\begin{figure} 
 	\includegraphics[width=\textwidth]{Pictures/right obs final obs}
 	\caption{Graph of right lane obstacle test}
 	\label{rightobsfinal}

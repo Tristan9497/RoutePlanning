@@ -5,11 +5,11 @@
 Based on the analysis in chapter \ref{relatedwork} the navigation stack seems to be a well fitting core structure for the navigation. As mentioned, there have not yet been any publications of using it for the navigation of a Carolo-Cup vehicle, making the following analysis mandatory. 
 
 This analysis of the recommended navigation stack setup and potentially needed modifications are covered in this chapter, aswell as a resulting concept.
-T
+
 \section{Analysis of the Recommended Setup}
 The recommended setup shown in figure \ref{recnavsetup} needs to be checked for compatibility with the specific use case.
 
-\begin{figure}[H]
+\begin{figure} 
 	\includegraphics[width=\textwidth]{Pictures/navigation stack setup}
 	\caption{Recommended navigation stack setup}
 	\label{recnavsetup}
@@ -50,7 +50,7 @@ The SLAM algorithm can be used to determine the robots position relative to the 
 
 Unfortunately, the data that can be fed to the SLAM algorithm is very limited, since it is not guaranteed, that the lidar sensor always sees static obstacles. Another data source for the SLAM algorithm could be the points extracted from the road detection. Unfortunately, the road markings are similar to a corridor and do not have a lot of features, other than the curvature of the road.\\
 
-\begin{figure}[H]
+\begin{figure} 
 	\centering
 	\includegraphics[width=.5\textwidth]{Pictures/selfsimillar}
 	\caption{Visualization of self similar data}
@@ -107,7 +107,7 @@ As described in the requirements, the simulator is supposed to produce realistic
 \section{Resulting Concept}
 The schematic in figure \ref{navconcept} shows the concept of the navigation.  To keep the schematic as simple as possible, not every connections between the nodes are highlighted (Appendix \ref{config} shows the finalized schematic).\\
 
-\begin{figure}[H]
+\begin{figure} 
 	\begin{center}
 		\includegraphics[width=140mm]{Pictures/Updated navigation concept}
 		\caption[Updated navigation concept]{Updated navigation concept (Blue - platform specific nodes, Grey - optional nodes, White - move\_base nodes)}

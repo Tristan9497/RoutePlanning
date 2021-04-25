@@ -49,7 +49,7 @@ The plugins for Gazebo have not been included in the individual files so the rob
 
 The resulting robot then looks like pictured in Figure \ref{arlourdf}.
 
-\begin{figure}[H]
+\begin{figure} 
 	\includegraphics[width=\textwidth]{Pictures/arlourdf}
 	\caption{Arlo URDF with sensors and Gazebo plugins}
 	\label{arlourdf}
@@ -60,7 +60,7 @@ Using rqt\_tf\_tree the tf tree can be checked for conformity to ``REP 105'' and
 
 A simplified version of the tf\_tree is picture in \ref{tfsimp}, whereas the complete one is picture in Appendix \ref{config}.\\
 
-\begin{figure}[H]
+\begin{figure} 
 	\centering
 	\includegraphics[width=.5\textwidth]{Pictures/tf tree simplified}
 	\caption{Simplified tf\_tree}
@@ -151,7 +151,7 @@ As soon as these gaps are larger than the resolution of the costmap, free cells 
 
 To solve this issue the default layer ``inflation\_layer'' can be used. This layer inflates every lethal cell in the costmap by a fixed radius, closing the previously discussed gaps like pictured in figure \ref{costinfl}.\\
 
-\begin{figure}[H]
+\begin{figure} 
 	\centering
 	\includegraphics[width=.7\textwidth]{Pictures/costmap inflation}
 	\caption{Visualization of the inflated sensor data in the costmap (red - road detection, green - lidar scan, blue - inflation)}
@@ -169,7 +169,7 @@ To guarantee, that the robot is driving on the right lane, the right road markin
 
 The layer should also feature a reset option as a recovery behavior.
 
-\begin{figure}[H]
+\begin{figure} 
 	\centering
 	\includegraphics[width=.8\textwidth]{Pictures/global stage cost distro}
 	\caption{Global costmap cross section of the road}
@@ -229,7 +229,7 @@ The local planner is only supposed to generate velocity commands that lead to no
 There is not much room for configuration, when it comes to the global\_planner of the navigation\_stack. Probably the most important step for computation load is the choice of a planning algorithm.\\
 The two algorithms that are offered by the global\_planner are Dijkstra and A*.\\
 
-\begin{figure}[H]
+\begin{figure} 
 	\begin{subfigure}{.5\linewidth}
 		\includegraphics[width=\textwidth]{Pictures/Dijkstra}
 		\caption{Dijkstra}
@@ -250,7 +250,7 @@ When looking at the observed cells, it is obvious, that A* is much more efficien
 
 Another important setting is necessary since the global costmap is used as a rolling window costmap. The global\_planner will by default outline the global costmap with lethal cells, to prevent the global planner to plan outside of a fixed costmap. This behaviour results in artifacts, after the map has moved together with the robot which hinder the planners from finding a path as pictured in \ref{boardererror}.
 
-\begin{figure}[H]
+\begin{figure} [H]
 	\centering
 	\includegraphics[width=\textwidth]{Pictures/borders}
 	
@@ -267,7 +267,7 @@ To make planning easier the parameter ``cost\_factor'' can be reduced. This para
  While using the global\_planner plugin a bug during the potential field calculation has been observed as pictured in \ref{potentialfield}. This bug causes an error of the planner, since it is not able to resolve a path, even though the potential field exists. Which therefore leads to the robot continuing to drive with the same velocities,  until the planner manages to construct a valid potential field again. In this moment the robot often leaves the right lane even though there is no obstacle in front of it.\\
  
  This bug has been reported to the developer of the plugin. 
- \begin{figure}[H]
+ \begin{figure} [H]
  	\centering
  	\includegraphics[width=.7\textwidth]{Pictures/out of bounds}	
  	
@@ -364,11 +364,26 @@ Similar to the least square approach for circles, an approach for the lines can 
 
 Switching between the result of the two approximations will produce the best result for both scenarios. This switching will be triggered by the radii of the approximated circles exceeding a configurable threshold.\\
 
-The next step is a goal extraction from the chosen approximation. This goal will be calculated at a given distance from the robot origin on the approximated route. In contrast to the approximated lines, the circles have a defined angle of trustworthiness. Otherwise small circles would cause the goal to be way of the prediction. The orientation of the goal will then be determined using the derivative of either, the approximated circles or lines.\\
+The next step is a goal extraction from the chosen approximation. This goal will be calculated at a given distance from the robot origin on the approximated route.
+ 
+\begin{figure} 
+	\centering
+	\includegraphics[width=\textwidth]{Pictures/goal finding}
+	\caption{Goal extraction from circle approximation}
+	\label{goalfinding}
+\end{figure}
+
+Figure \ref{goalfinding} shows the necessity to limit the angle and the distance, at which goals are extracted from the circles. With small circles, a fixed distance would result in not feasible goals. These would not be on the road and in addition to that would point in the wrong direction.
+
+With large circles a fixed angle would cause very large distances. With increasing circle radii these get more and more unlikely to be on the road.\\
+
+Therefore the goal on large circles needs to be extracted at a given arc length, whereas the goal on small circles needs to be extracted at a fixed angle. This angle is called ``angle of trustwothiness'', since it represents the amount of the circle that is likely to be a good representation of the road. The algorithm first checks the angle, produced by a given arc length. If that exceeds the angle of trustworthiness the distance is shrunk accordingly.\\
+
+When extracting a goal from the lines only the distance limitation applies. The orientation of the goal will then be determined using the derivative of either, the approximated circles or lines.\\
 
 With the calculated points on both circles or on both lines the mean can be calculated and represents the new goal for the robot.
 
-\begin{figure}[H]
+\begin{figure} 
 	\centering
 	\begin{subfigure}{.45\linewidth}
 		\includegraphics[width=\textwidth]{Pictures/circle approx}
@@ -388,8 +403,6 @@ With the calculated points on both circles or on both lines the mean can be calc
 A visualization of the result is pictured in figure \ref{aproxvis}.
 It shows the robot, its current goal, as well as the estimated road outlined by the geometric shapes of the respective approximation.
 
-Based on this figure the necessity of the angle of trustworthiness of the road detection becomes apparent. Assuming a larger goal distance the estimated goal would not be located on the road anymore and would point in the wrong direction as well. This makes pathfinding impossible without leaving the road.
-
 
 While these approximations allow the robot to bridge the edge cases pictured in \ref{nav edge case}, this approach introduces new problems. Since the goal is now determined by using estimations, it is uncertain if the goal is located off the road, or even in an obstacle. This problem is pictured in figure \ref{goaluncertainty}. Here the goal of the navigation is located within an obstacle. This would make path finding to the goal impossible.\\
 
@@ -397,7 +410,7 @@ To solve this issue the navigation has to consider obstacles, only if they are s
 
 This does not only affect the distance, at which the PoseFinder estimates goals, but also the distance at which obstacles are treated as such and marked in the costmap, which has to be considered during the configuration.
 
-\begin{figure}
+\begin{figure}[H]
 \centering
 	\includegraphics[width=0.33\textwidth]{Pictures/finding goal in obstacle}
 	\caption{Uncertainty of predicted goals}
@@ -419,7 +432,7 @@ The orientation of the goal is determined by using the previously explained appr
 
 Based on the previously proposed ways to determine goals, the concept pictured in figure \ref{posefinder structure} can be deduced.\\
 
-\begin{figure}[H]
+\begin{figure} 
 	\centering
 	\includegraphics[width=.9\textwidth]{Pictures/posefinder diagram}
 	\caption{PoseFinder internal structure}
@@ -440,7 +453,7 @@ The goal found by the approximation, unfortunately is not certainly on the road.
 
 The node is configurable using rqt\_reconfigure and the following parameters.
 
-\begin{table}[H]
+\begin{table} 
 \centering
 \resizebox{\columnwidth}{!}{%
 \begin{tabular}{ l l l }
@@ -448,7 +461,7 @@ The node is configurable using rqt\_reconfigure and the following parameters.
  \textbf{Parameter} & \textbf{Description} & \textbf{Range}\\
  cRadThresh & The Threshold for the radius of the circle approximation & 0.5-20 [m]\\ 
  goalDist & The maximum distance at which a goal should be found & 0.5-20 [m]\\  
- goalAngle & The maximum angle for the circle approximation higher priority than distance & 0.1-2 [$\pi$]\\  
+ goalAngle & The angle of trustworthiness for the circle approximation higher priority than distance & 0.1-2 [$\pi$]\\  
  reductionRadius & Max distance at which points from the map will still be combined & 0.25-2.5 [m]\\  
  mapCostThresh & Threshold Cost Value for Map Data Extraction & 0-100\\  
 
@@ -516,15 +529,16 @@ with: \[distance=\sqrt{cell.x^2+cell.y^2}\]
 
  Since this will still require the usage of a square root for each cell in the circle This will be optimized as well.\\
 
-The goal here is to use a function that contains only the squared distance and not many other mathematical operators, which still represents a decaying trend. This requirement rules out every function with an odd degree, all functions with an x offset and the normal distribution. This leaves all functions with an even degree from which the \nth{2} degree function is chosen to reduce square operators. The comparison between the two functions can be seen in the picture below.
+The goal here is to use a function that contains only the squared distance and not many other mathematical operators, which still represents a decaying trend. This requirement rules out every function with an odd degree, all functions with an x offset and the normal distribution. This leaves all functions with an even degree from which the \nth{2} degree function is chosen to reduce square operators. The comparison between the two functions can be seen in figure \ref{distrcomp}.
 
 \[cost(distance)=maxcost-distance^2*\frac{maxcost-mincost}{radius^2}\]\\
 
-\begin{figure}[H]
+\begin{figure} 
 	\begin{center}
 	\includegraphics[width=140mm]{Pictures/linear cost comparison}
 	\caption{Cost distribution comparison with maxcost=250 mincost=100 radius=1}
 	\end{center}
+	\label{distrcomp}
 \end{figure}
 
 When adding the inflation around points, the maximum of the calculated cost value and the current value of the cell in the costmap is set.
@@ -534,7 +548,7 @@ This leads to a problem, when trying to clear zones in the costmap, since then t
 Figure \ref{dyncost} shows an avoidance of a simulated obstacle and the cost distribution in the costmap, generated by this layer. It is noticeable, that the right lane (in driving direction) has a clear zone over the entire length. Furthermore the cost around the points detected by the lidar have been removed.
 
 
-\begin{figure}[H]
+\begin{figure} 
 	\centering
 	\begin{subfigure}{.45\linewidth}
 		\includegraphics[width=\textwidth]{Pictures/avoidance}
@@ -555,7 +569,7 @@ The layer can be configured individually for the costmap using rqt\_reconfigure 
 
 
 
-\begin{table}[H]
+\begin{table} 
 \centering
 \resizebox{\columnwidth}{!}{%
 	\begin{tabular}{ l l l }
@@ -576,23 +590,23 @@ The layer can be configured individually for the costmap using rqt\_reconfigure 
 \section{MarkFreeSpace}
 
 Like described in the concept, the purpose of this node is to provide data to the SLAM algorithm as well as to the costmaps. This data consists from the points on the polynomials of the road detection in combination with the filtered points of the lidar scan.\\
-Based on the option of the obstacle\_layer of the costmap to raytrace marked obstacles, it needs to receive a PointCloud2 that contains points from the polynomials of the road detection. Raytracing the data removes the artifacts of previous measurements, as pictured in \ref{raytracing road}. 
+Based on the option of the obstacle\_layer of the costmap to raytrace marked obstacles, it needs to receive a PointCloud2 that contains points from the polynomials of the road detection. Raytracing the data removes the artifacts of previous measurements, as pictured in \ref{raytracing}. 
 This displays two measurements, that are slightly rotated based on noise. Like pictured, without raytracing this would lead to a restricted road width in the costmap.
 
 When looking at the ray-traced version, it is noticeable, that the old left road marking has been removed, since the newest measurement is behind it. The right road marking has not been removed, since the old measurement is behind the new one.
 
 This allows to handle the noise of the camera and the road detection, which otherwise could significantly hinder the navigation, especially in the very limited room on the road.
 
-\begin{figure}[H]
+\begin{figure} 
 	\centering
 	\includegraphics[width=.9\textwidth]{Pictures/raytracing road}
 	\caption{Raytracing of the road data}
 	\label{raytracing}
 \end{figure}
 
-If this pointcloud would contain the points of the lidar as well, the obstacle layer would remove the points of the road marking, if an obstacle is behind it, as pictured in figure \ref{raytracing}.\\
+If this point cloud would contain the points of the lidar as well, the obstacle layer would remove the points of the road marking, if an obstacle is behind it, as pictured in figure \ref{raytracing}.\\
 
-\begin{figure}[H]
+\begin{figure} 
 	\centering
 	\includegraphics[width=.9\textwidth]{Pictures/raytracing}
 	\caption{Combined vs. separate point clouds during raytracing}
@@ -603,10 +617,10 @@ For the SLAM algorithm both data sources need to be fused into one point cloud. 
 
 The data for the developed dynamic\_cost\_layer has to contain more information. It is in the form of a point cloud and contains channel values for point individual inflation radius, min-cost and max-cost.\\ 
 
-This pointcloud contains points of three types, left lane, right lane and obstacle.
+This point cloud contains points of three types, left lane, right lane and obstacle.
 The individual parameters for these points are pictured in \ref{markparams}. Using these parameters the cost distribution generated by the dynamic\_cost\_layer can be modified.\\
 
-\begin{figure}[H]
+\begin{figure} 
 	\centering
 	\includegraphics[width=.7\textwidth]{Pictures/markfreespace parameter erklaerung}
 	\caption{Top view of road with parameter}
@@ -620,7 +634,7 @@ The green point represents one of the measurements of the lidar sensor. Around t
 
 The numbers in figure \ref{markparams} correspond to those of the following parameter list, that shows the specific names of all configurable parameters:
 
-\begin{table}[H]
+\begin{table} 
 \centering
 \resizebox{\columnwidth}{!}{%
 \begin{tabular}{ l l l }
