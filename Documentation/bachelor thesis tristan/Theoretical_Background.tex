@@ -94,17 +94,19 @@ The tree is normally build up like pictured in Figure \ref{stdtftree}.
 	\label{stdtftree}
 \end{figure}
 
-TF2 is the successor of TF and is a very powerful tool in the ROS environment. With this it is possible to transform sensor\_msgs and geometry\_msgs from one frame in another. Furthermore it offers the possibility to transform old data into the present or at any other point in the past.
+ROS offers the tools tf and tf2, with which for example sensor messages can be transformed from one tf frame in to another. Furthermore it offers the possibility to transform data back in time.
 
 \subsection{URDF and Xacro}
 The robot hardware description consists of one or more URDF(Unified Robot Description Format) based XML files. Their purpose is to define the geometric shape of every part of the robot. 
+
+Xacro is also based on XML, but offers functionality to use math expressions parameters and macros. This makes the files more flexible and easier to read.
 
 \subsection{robot\_state\_publisher}
 	This package uses the robot hardware description and builds up the tf\_tree using static\_transform\_publishers.
 
 
 \subsection{move\_base}
-Move\_base is an implementation of an action, that tries to control a mobile platform to get as close to a given goal as possible. It offers an implementation of the costmap\_2d package and supports any global and local planner, that adheres to the interface defined by the nav\_core package\cite{movebase}.
+move\_base is an implementation of an action, that tries to control a mobile platform to get as close to a given goal as possible. It offers an implementation of the costmap\_2d package and supports any global and local planner, that adheres to the interface defined by the nav\_core package\cite{movebase}.
 
 \subsection{nav\_core}
 This package include common interfaces for the global and local planners used in move\_base.

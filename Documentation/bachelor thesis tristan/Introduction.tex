@@ -12,13 +12,13 @@ The event ``Carolo-Cup'' hosted by the Technical University of Braunschweig offe
 \section{Scope}
 
 
-This thesis is based on the existing road detection package developed for ROS-Noetic. Within the boundaries of the existing road detection package, a navigation shall be developed to guide the robot on the detected road. The robot hast to use the right lane except to avoid obstacles.
+This thesis is based on the existing road detection package developed for ROS-Noetic. Within the boundaries of the existing road detection package, a navigation shall be developed to guide the robot on the detected road. The robot has to use the right lane except to avoid obstacles.
 
 Navigation of a robot is a difficult procedure since it covers many different topics and problems, while dealing with noisy sensor data. The development of an entire navigation exceeds the scope of the thesis since e.g. tasks like pathfinding are very complex.\\
 
 To be compatible with the existing road detection, the development of the navigation algorithm has to be continued in the ROS-Noetic environment. This can then be tuned in order to handle the previously mentioned tasks.\\
 
-These tasks are part of the defined dynamic events of the Carolo-Cup, as described in its regulations\cite{carolocup}. A modular navigation software is highly preferred, since this work only covers a part of the dynamic events and not intersections, parking, road signs and dynamic obstacles. This modular design would allow to integrate the remaining tasks, without modifying the core structure.\\
+These tasks are part of the defined dynamic events of the Carolo-Cup, as described in its regulations\cite{carolocup}. A modular navigation software is highly preferred, since this work only covers a part of the dynamic events and not intersections, parking, road signs and dynamic obstacles. A modular design would allow to integrate the remaining tasks, without modifying the core structure.\\
 
 Overall, the goal is to establish a working navigation, that allows for future improvements and modifications.\\
 
@@ -29,19 +29,16 @@ The focus of the simulation lies upon realistic sensor data regarding noise and 
 
 
 \section{Structure}
-The following section covers the structure of this thesis and gives insight over the discussed topics.
+The following section covers the structure of this thesis and gives insight over the discussed topics.\\
 
-Chapter \ref{theoretical_background} provides information about the needed theoretical knowledge. This knowledge and the tasks defined in the scope of this work results in the requirements discussed in chapter \ref{requirements}.
+Chapter \ref{theoretical_background} provides information about the needed theoretical knowledge. This knowledge and the tasks defined in the scope of this work results in the requirements discussed in chapter \ref{requirements}.\\
 
-Using the requirements the existing work in this research field can be discussed in chapter \ref{relatedwork}.
+Using the requirements the existing work in this research field can be discussed in chapter \ref{relatedwork}.\\
 
-Chapter \ref{Concept} covers the initial theoretical work for the navigation software. It incorporates the previously gained insights on the topic and the necessary modifications to the related work resulting in a final concept.
+Chapter \ref{Concept} covers the initial theoretical work for the navigation software. It incorporates the previously gained insights on the topic and the necessary modifications to the related work resulting in a final concept.\\
 
-In chapter \ref{Selection} the selection of the subsystems of the concept is addressed. Furthermore the development of tools needed for the wanted behavior is documented.
+In chapter \ref{Selection} the selection of the subsystems of the concept is addressed. Furthermore the development of tools needed for the wanted behavior and the configuration of all subsystems is documented.\\
 
-The configuration and test setup of the subsystems in the stack is covered in chapter \ref{configurationandtesting}.
-
-
-The results of the tests are shown and discussed in chapter \ref{resultanddiscussion}, this leads to the potentially needed optimizations and the conclusion about the performance of the navigation software.
+The test setup and their results are shown and discussed in chapter \ref{resultanddiscussion}, this leads to the potentially needed optimizations and the conclusion about the performance of the navigation software.\\
 
 Finally an outlook is given in chapter \ref{outlook}.

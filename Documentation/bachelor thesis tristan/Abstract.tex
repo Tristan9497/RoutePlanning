@@ -1,17 +1,16 @@
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
 \label{abstract}
-This thesis covers the conceptual design, setup, development and testing of a software stack used for the autonomous navigation in an environment defined by the rules of the Carolo-Cup.\\
 
- The aim of this stack is lane following and obstacle avoidance based on sensory environmental data. This thesis extends work of the existing roadDetection package and is supposed to be used by the Carolo-Cup team of Aalen Univeristy in the future.\\
- 
- The navigation is not supposed to be focussed only on Ackeramann steering, since the Carolo-Cup does not make restrictions to the steering type, other than at least one axle must be steerable, but ideally the stack should be as flexible as possible\cite{carolocup}.\\
- The laboratory for mobile robotic platforms at Aalen University owns multiple Parallax Arlo robots. To make future testing easier this type of robot is selected for this thesis.\\
+The team of Aalen university is looking for a navigation algorithm for their vehicle, to participate in the Carolo-Cup hosted by the technical university Braunschweig.\\
 
- The robot used in this work does not satisfy the rules of the Carolo-Cup since it is to big and uses the wrong steering technique. Therefore, the stack needs to be flexible in order to be adapted by the Carolo-Cup team.\\
+To extend the work of the existing road detection, this navigation is based on ROS (robot operating system) and is using the ROS navigation stack as a core structure. The default configuration of the navigation stack has been modified and newly developed features have been added, in order to achieve lane following, lane preference and obstacle avoidance.
+The goals required by the navigation stack are built, by estimating the future course of the road, based on the latest detected road.
+The given robot has been equipped with a camera, a lidar sensor, an IMU and wheel encoders, and uses differential drive steering.
 
-The robot is equipped with a lidar sensor, camera, wheel encoders and an IMU (Inertia Measurement Unit). The data of these sensors will be processed using existing ROS (Robot Operating System) packages as well as newly developed ones. The resulting data will be used by the navigation stack to determine a route to a goal supplied by a predictive algorithm.\\
+To test the navigation and its subsystems, a simulated environment has been set up, which allowed fast and efficient changes to the robot and its environment.\\
 
-For testing purposes and to make quick hardware changes possible, the robot and the entire system is simulated using the Gazebo simulation environment.\\
+The result of these tests suggests, that the navigation stack is a well suited structure for this use case.\\
 
-While maneuvering through the course the robot has to stay on the right lane of the road except when avoiding obstacles.
+The established navigation allows to refine the driving behaviors further  in the future, thanks to its flexible approach. Therefore, it is a promising basis for the Carolo-Cup Team.
+

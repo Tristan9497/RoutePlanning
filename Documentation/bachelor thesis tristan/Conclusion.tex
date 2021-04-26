@@ -1,13 +1,20 @@
 \chapter{Conclusion}
 \label{Conclusion}
-The goal of this thesis was the configuration and development of a software stack, that allows a mobile platform to drive autonomously in a road like environment, while avoiding obstacles and preferring the right lane.
-This has been achieved by formulating a concept and implementing it using the navigation stack of ROS and various open source plugins and packages.
-For the remaining tasks packages containing nodes have been developed using C++ which are configurable for different environments and robots. These packages are provided in a git repository hosted at the following url.\\
+The goal of this thesis was the development of a ROS based navigation for the Carolo-Cup. At the beginning only the road detection existed, which lead to an analysis of the work that has been done in the field of ROS based robot navigation.
 
+The result of this was, that there have not yet been any publications, regarding the navigation of a Carolo-Cup vehicle using the ROS navigation stack. Since the navigation stack is a popular solution for ROS based robot navigation, it is highly interesting to check, if it can be used for the defined use case.\\
+
+Unfortunately, the navigation stack, in its default structure, can not be used for the autonomous navigation on a road. Therefore new features have been developed, in order to achieve the required driving behaviors.\\
+
+Testing of the entire navigation is a very difficult process, since the individual nodes influence each other. This makes the identification of the potential cause of problems very difficult. To limit the amount of error sources, the robot and the environment have been simulated. This simplified not only testing, but made quick changes to the robot and the environment cost and time efficient.\\
+
+The simulation has been build with respect to the common sensor errors, in order to generate data, that is comparable with that of real sensors. Therefore the quality of the simulated data needed to be tested.
+During these tests, it was noticeable, that the raw sensor data did not provide precise enough results, which introduced the necessity of filtering and changes to the hardware of the robot. This improved the data significantly.
+
+After implementing the optimizations of these tests, the navigation in its entirety has been tested. The robot is now able to follow the road very well, but there are still cases, in which the robot leaves the intended lane based on lack of informations.\\
+
+This answers the question, whether the ROS navigation stack is a feasible option for the navigation of a vehicle in the Carolo-Cup. 
+As described, the navigation stack is not directly developed for a road like environment, but its flexible approach allowed to modify it in order to satisfies the required navigation behaviors.
+
+The developed navigation is provided in a git repository accessible using the following URL:\\
 \url{https://github.com/Tristan9497/RoutePlanning}\\
-
-The resulting navigation has been tested in a simulated environment as a complete stack, as well as the individual nodes them selves.\\
-
-Testing allowed to highlight the strengths and weaknesses of the concept, which can be used as the guideline for future work on the established structure. The developed concept was found to be working good, especially on empty road sections, but having a small delay after passing obstacles, in which the current situation of the road is unclear.\\
-
-With an increasing amount of obstacles the amount of times where the camera sees the road markings decreases, which therefore causes the navigation to fail.
