@@ -2,16 +2,14 @@
 \label{Conclusion}
 The goal of this thesis was the development of a ROS based navigation for the Carolo-Cup. At the beginning only the road detection existed, which lead to an analysis of the work that has been done in the field of ROS based robot navigation.
 
-The result of this was, that there have not yet been any publications, regarding the navigation of a Carolo-Cup vehicle using the ROS navigation stack. Since the navigation stack is a popular solution for ROS based robot navigation, it is highly interesting to check, if it can be used for the defined use case.\\
+The result of this was, that this navigation stack is the best fitting core structure for the ROS based navigation of robots. There have not yet been any publications, regarding the navigation of a Carolo-Cup vehicle using the ROS navigation stack. Therefore it is unsure, if it is usable in the specific conditions of the competition.
 
-Unfortunately, the navigation stack, in its default structure, can not be used for the autonomous navigation on a road. Therefore new features have been developed, in order to achieve the required driving behaviors.\\
+Unfortunately, the navigation stack, in its default structure, can not be used for the autonomous navigation on a road. In order to achieve the required driving behaviors, new components have been developed, that allow to preference certain areas over others and extract new goals by estimating the future course of the road.\\
 
-Testing of the entire navigation is a very difficult process, since the individual nodes influence each other. This makes the identification of the potential cause of problems very difficult. To limit the amount of error sources, the robot and the environment have been simulated. This simplified not only testing, but made quick changes to the robot and the environment cost and time efficient.\\
+To make quick changes cost and time efficient, the entire robot with its environment has been simulated. Here the main focus was realistic sensor data. This does not only help during changes on the robot or its environment, but simplifies testing as well, since the amount of potential error sources can be limited. Since the simulated sensor data includes common errors, the quality of these signals have been tested.
+During testing, it was noticeable, that the raw sensor data did not provide precise enough results, which introduced the necessity of filtering and changes to the hardware of the robot. This improved the data significantly.\\
 
-The simulation has been build with respect to the common sensor errors, in order to generate data, that is comparable with that of real sensors. Therefore the quality of the simulated data needed to be tested.
-During these tests, it was noticeable, that the raw sensor data did not provide precise enough results, which introduced the necessity of filtering and changes to the hardware of the robot. This improved the data significantly.
-
-After implementing the optimizations of these tests, the navigation in its entirety has been tested. The robot is now able to follow the road very well, but there are still cases, in which the robot leaves the intended lane based on lack of informations.\\
+After implementing the optimizations, the navigation in its entirety has been tested. The robot is now able to follow the road very well, but there are still cases, in which the robot leaves the intended lane based on lack of information.\\
 
 This answers the question, whether the ROS navigation stack is a feasible option for the navigation of a vehicle in the Carolo-Cup. 
 As described, the navigation stack is not directly developed for a road like environment, but its flexible approach allowed to modify it in order to satisfies the required navigation behaviors.

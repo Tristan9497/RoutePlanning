@@ -7,38 +7,38 @@ When looking at the recent trends in the car industry, autonomous driving is pro
 
 This trend can also be seen in other industries in which autonomous robots are used to simplify and accelerate production. 
 
-The event ``Carolo-Cup'' hosted by the Technical University of Braunschweig offers a place for teams to compete against each other with their autonomous 1:10 scale model cars. Therefore, the event is an important part of the research field of autonomous driving. This creates an incentive to participate on an international level.
+The event ``Carolo-Cup'' hosted by the Technical University of Braunschweig offers a contest for teams to compete against each other with their autonomous 1:10 scale model cars. Therefore, the event is an important part of the education in the field of autonomous driving. This creates an incentive to participate on an international level.
+
+Navigation of a robot is a difficult procedure since it covers many different topics and problems, while dealing with noisy sensor data. In the case of the Carolo-Cup, the vehicle is supposed to drive fully autonomous and has no information about the environment, which adds further complexity.
 
 \section{Scope}
 
+A navigation algorithm shall be developed to guide the robot on the road. The robot has to use the right lane except to avoid obstacles. This navigation is supposed to build on the existing road detection package developed for ROS-Noetic.
 
-This thesis is based on the existing road detection package developed for ROS-Noetic. Within the boundaries of the existing road detection package, a navigation shall be developed to guide the robot on the detected road. The robot has to use the right lane except to avoid obstacles.
+The development of an entire navigation exceeds the scope of the thesis since e.g. tasks like pathfinding are very complex. Therefore an existing structure might be used and modified.\\
 
-Navigation of a robot is a difficult procedure since it covers many different topics and problems, while dealing with noisy sensor data. The development of an entire navigation exceeds the scope of the thesis since e.g. tasks like pathfinding are very complex.\\
+To be compatible with the existing road detection, the development of the navigation algorithm has to be continued in the ROS-Noetic environment.\\
 
-To be compatible with the existing road detection, the development of the navigation algorithm has to be continued in the ROS-Noetic environment. This can then be tuned in order to handle the previously mentioned tasks.\\
-
-These tasks are part of the defined dynamic events of the Carolo-Cup, as described in its regulations\cite{carolocup}. A modular navigation software is highly preferred, since this work only covers a part of the dynamic events and not intersections, parking, road signs and dynamic obstacles. A modular design would allow to integrate the remaining tasks, without modifying the core structure.\\
+The tasks of lane preference, lane following and obstacle avoidance, are part of the defined dynamic events of the Carolo-Cup, as described in its regulations\cite{carolocup}. A modular navigation software is highly preferred, since this work only covers a part of the dynamic events and not intersections, parking, road signs and dynamic obstacles. A modular design would allow to integrate the remaining tasks, without modifying the core structure.\\
 
 Overall, the goal is to establish a working navigation, that allows for future improvements and modifications.\\
 
-Testing of the system has to be performed in a simulated environment. This has multiple advantages, but first and foremost it removes the need to buy hardware. This allows for fast development iterations, especially with the limited hardware access during the current pandemic.
-
+Testing of the system has to be performed in a simulated environment, in order to allow modification with the limited hardware access during the current pandemic.
 
 The focus of the simulation lies upon realistic sensor data regarding noise and errors. In contrast to a mechanical accurate model, this does not consider physical quantities accurately, such as inertia.
 
 
-\section{Structure}
-The following section covers the structure of this thesis and gives insight over the discussed topics.\\
+\section{Outline}
+This section outlines the structure of this thesis and gives insight over the discussed topics.\\
 
 Chapter \ref{theoretical_background} provides information about the needed theoretical knowledge. This knowledge and the tasks defined in the scope of this work results in the requirements discussed in chapter \ref{requirements}.\\
 
-Using the requirements the existing work in this research field can be discussed in chapter \ref{relatedwork}.\\
+Existing work is evaluated against the requirements of the navigation in chapter \ref{relatedwork}.\\
 
 Chapter \ref{Concept} covers the initial theoretical work for the navigation software. It incorporates the previously gained insights on the topic and the necessary modifications to the related work resulting in a final concept.\\
 
-In chapter \ref{Selection} the selection of the subsystems of the concept is addressed. Furthermore the development of tools needed for the wanted behavior and the configuration of all subsystems is documented.\\
+In chapter \ref{Selection} the implemetation of the subsystems of the concept is addressed. Furthermore the development of components needed for the wanted behavior and the configuration of all subsystems is documented.\\
 
 The test setup and their results are shown and discussed in chapter \ref{resultanddiscussion}, this leads to the potentially needed optimizations and the conclusion about the performance of the navigation software.\\
 
-Finally an outlook is given in chapter \ref{outlook}.
+Chapter \ref{Conclusion} summarizes the results and an outlook on future work is given in chapter \ref{outlook}.
