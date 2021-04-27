@@ -476,13 +476,13 @@ The node is configurable using rqt\_reconfigure and the following parameters.
 \subsection{Configuration}
 
 
-Starting with the goal extraction from the map, the parameter ``MapCostThresh'' will be set to 50, meaning the probability of being an obstacle has to be at least 50\%. The reduction radius has to be configured slightly larger than the road width, so the points extracted on both road markings can be combined, even if the road is slightly angled. With a road width of 1.8 meter, 2 meter will be chosen for this parameter.\\
+Starting with the goal extraction from the map, the parameter ``MapCostThresh'' will be set to 50, meaning the probability of being an obstacle has to be at least 50 \%. The reduction radius has to be configured slightly larger than the road width, so the points extracted on both road markings can be combined, even if the road is slightly angled. With a road width of 1.8 meter, 2 meter will be chosen for this parameter.\\
 
 The parameter ``GoalDist'' has to be configured smaller, than half of the costmap width so it can be guaranteed, that the goal is allways located inside the bounds of the costmap to prevent errors. With a costmap width and hight of 9 meter the parameter is set to 4 meter.\\
 
 To switch between the circle and line approximation the parameter ``CRadThresh'' is set to 6m. Setting this parameter higher will improve the performance in wide turns while the performance on straight sections will get worse and vice versa.\\
 
-Finally the GoalAngle for the circle approximation has to be configured. This is set to $0.3\pi$, meaning the window of trustworthiness of the circles is 60°.
+Finally the GoalAngle for the circle approximation has to be configured. This is set to $0.3 \pi$, meaning the window of trustworthiness of the circles is 60°.
 
 
 
@@ -654,7 +654,7 @@ The numbers in figure \ref{markparams} correspond to those of the following para
 
 \subsection{Configuration}
 
-The parameters in table \ref{markfreespaceparams} have to be configured so the robot will have a tendency to the right lane but still is able to drive on the left lane, if necessary. This means, that the maxcost has to be significantly smaller than the lethal (254). The Minimum cost has to be smaller than the neutral cost of the global planner, which defaults to 50. To complicate the transition to the left lane, the inflation radius of it is set to 50\% of the right lane and the radius of the right cost removal  is set to 40\% to guarantee a free space on the right road side.\\
+The parameters in table \ref{markfreespaceparams} have to be configured so the robot will have a tendency to the right lane but still is able to drive on the left lane, if necessary. This means, that the maxcost has to be significantly smaller than the lethal (254). The Minimum cost has to be smaller than the neutral cost of the global planner, which defaults to 50. To complicate the transition to the left lane, the inflation radius of it is set to 50 \% of the right lane and the radius of the right cost removal  is set to 40 \% to guarantee a free space on the right road side.\\
 Around obstacles the cost removal is set to 1.5 meter so the obstacle avoidance will finish within the 2 meter guideline defined in the Carolo-Cup rules\cite{carolocup}.\\
 
 The distance between the points on one road marking correlates to the amount of inflated points. With a smaller distance more points will be inflated along the polynomial resulting in more computational load. Therefore the distances for the left and right points have to be configured fairly large. In case of the left road marking only the last point of the polynomial will be inflated, to prevent the inflation from closing the cleared section on the right lane. The distance between the points on the right road marking is set to 0.5 meter, so the entire length of the polynomial is cleared on the right lane.
@@ -693,9 +693,9 @@ Furthermore Cartographer will be set to 2d map building.
 
 \subsection{Tuning}
 With the basic configuration of Cartographer, it is not able to provide a reliable map and a tuning procedure has to be performed. Here the general recommendation of the tuning guide should be followed, which states to tune local SLAM first and disabling global slam while doing so \cite{cartographertuning}.
-To tune the local SLAM the parameter of the tracjectory builder have to be adjusted.\\
+To tune the local SLAM the parameter of the trajectory builder have to be adjusted.\\
 The trajectory builder contains a scan-matcher, which will compare incoming sensor data and tries to align it with each other as good as possible. This behavior can be tuned by configuring the size of the linear and angular search windows and the weight for the rotation and translation of the incoming scans.\\
-One more important setting is the size of the sub maps. These can be adjusted by the amount of scans they contain. Since the submaps will consist out of the scan matched obstacles it is important to set the size of the submaps not to high, if the incoming data will be very self similar. Otherwise the scanmatcher will combine too many scans while shifting them over each other since they look so similar. This results in both rotational and translational error.\\
+One more important setting is the size of the sub maps. These can be adjusted by the amount of scans they contain. Since the submaps will consist out of the scan matched obstacles it is important to set the size of the submaps not too high, if the incoming data will be very self similar. Otherwise the scanmatcher will combine too many scans while shifting them over each other since they look so similar. This results in both rotational and translational error.\\
 As soon as the local SLAM produces a reliable result after multiple rounds of the robot the global SLAM can be activated and tuned.\\
 
 The global SLAM has two options of combining the submaps the loop-closure, which will check, if the robot was at this spot already, and a scanmatcher, which will try to match the submaps to the current scan. For both of these the weights can be adjusted individually and like in the local SLAM the size of the window for translation and rotation can be adjusted. Reducing the window size to a minimum is important when dealing with self similar data, so the submaps will not be shifted on top of each other. The size should be chosen so the global SLAM can still correct errors of the individual submaps.\\

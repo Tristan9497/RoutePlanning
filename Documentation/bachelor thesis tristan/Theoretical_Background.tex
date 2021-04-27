@@ -25,7 +25,7 @@ A node might offer a service under a certain node and another node can call that
 \subsection{rviz}
 rviz is a 3D visualization tool offered by default in ROS. It offers functionality to visualize sensor and further geometric data.\\
 \subsection{rqt}
-rqt is a qt based tool for the development of GUI's for the ROS framework\cite{rqt}.
+rqt is a qt based tool for the development of GUI's (Graphical User Interface) for the ROS framework\cite{rqt}.
 \subsubsection{rqt\_reconfigure}
 	rqt\_reconfigure is a plugin, for rqt, that provides functionality to edit parameters of the running nodes during runtime using an intuitive GUI\cite{rqtrecon}.
 	
@@ -97,7 +97,7 @@ The tree is normally build up like pictured in Figure \ref{stdtftree}.
 ROS offers the tools tf and tf2, with which for example sensor messages can be transformed from one tf frame in to another. Furthermore it offers the possibility to transform data back in time.
 
 \subsection{URDF and Xacro}
-The robot hardware description consists of one or more URDF(Unified Robot Description Format) based XML files. Their purpose is to define the geometric shape of every part of the robot. 
+The robot hardware description consists of one or more URDF (Unified Robot Description Format) based XML files. Their purpose is to define the geometric shape of every part of the robot. 
 
 Xacro is also based on XML, but offers functionality to use math expressions parameters and macros. This makes the files more flexible and easier to read.
 
@@ -160,7 +160,7 @@ The values in a costmap can be in the range [0-255], but the underlying structur
 \end{itemize}
 
 \subsection{Marking and Clearing}
-Obstacles in the costmap can not only be marked, but also cleared by the subscribed data source. For each data source a configuration regarding the clearing and marking permissions is necessary.\\
+Obstacles in the costmap cannot only be marked, but also cleared by the subscribed data source. For each data source a configuration regarding the clearing and marking permissions is necessary.\\
 For clearing the costmap uses a raytracing algorithm, which allows the costmap to handle moving obstacles\cite{costmap}. Raytracing is a rendering technique, that follows the trace of a ray, in order to determine the influence of that ray with objects. 
 In this application, this is done by casting rays from the robot to the current measurement of the sensors, which allows to determine if a lethal cell in the costmap is feasible.
 \subsubsection{Inflation}
@@ -217,15 +217,15 @@ The Basic-Cup covers free driving with and without static obstacles, as well as 
 Robot restrictions relevant in this thesis:
 \begin{itemize}
 	\item \textbf{Scale} 1:10
-	\item \textbf{Width} - max. 300mm
-	\item \textbf{Wheel base} - min. 200mm
+	\item \textbf{Width} - max. 300 mm
+	\item \textbf{Wheel base} - min. 200 mm
 	\item \textbf{Steering} - at least one axle must be steerable
 \end{itemize}
 
 Track restrictions relevant in this thesis:
 \begin{itemize}
-	\item \textbf{lane width} 350-450mm
-	\item \textbf{sharpest turn radius} 1000mm
+	\item \textbf{lane width} 350-450 mm
+	\item \textbf{sharpest turn radius} 1000 mm
 \end{itemize}
 
 
@@ -258,7 +258,7 @@ This decision is based on a potential comparisons after this thesis between real
 	\label{arlore}
 \end{figure}
 
-As a consequence to the previous choice regarding the robot, the road has to be altered, so the proportions between robot size and road dimensions remain the same. Since the Arlo robot has a diameter of 450mm the track width is set to 900mm to keep the 1:2 scale. This 1:2 proportion can be deduced from the defined vehicle and road widths of the Carolo-Cup\cite{carolocup}.
+As a consequence to the previous choice regarding the robot, the road has to be altered, so the proportions between robot size and road dimensions remain the same. Since the Arlo robot has a diameter of 450 mm the track width is set to 900 mm to keep the 1:2 scale. This 1:2 proportion can be deduced from the defined vehicle and road widths of the Carolo-Cup\cite{carolocup}.
 
 The sensor setup of the robot is based on the anticipated tasks in the Carolo-Cup. 
 
