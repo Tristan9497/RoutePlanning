@@ -5,7 +5,7 @@ The Robot is supposed to follow a road on the correct lanes and dodge upcoming o
 
 The route following and obstacle avoidance will be acomplished using move base and sending new goals in a given interval.
 
-Goals will be found by appordimating either circles or lines on the border of the road extracted by a roaddetection node.
+Goals will be found by approximating either circles or lines on the border of the road extracted by a roaddetection node.
 After the first round the slam result should be good enough, so we can extract new goals straight from there.
 
 The global and the local costmap are both non static or rolling window so the robot will "forget" old obstacles.
@@ -15,6 +15,6 @@ To get the global planner to work like it is requiered here a few changes have b
 This work will be done during my bachelor thesis and hopefully will be improved and used by other people in the future
 
 
-As my thesis is finnished now this repository will remain largly unchanged.
+As my thesis is finished now this repository will remain largly unchanged.
 It contains two branches one for the Sourcecode and one for the full Documentation of the Thesis written in LaTeX
 
