@@ -22,4 +22,5 @@ As my thesis is finished now this repository will remain largly unchanged.
 It contains two branches one for the Sourcecode and one for the full Documentation of the Thesis written in LaTeX
 
 #Working navigation with approximations and custom costmap layer
+
 https://user-images.githubusercontent.com/65277088/117487605-9a4c8680-af6b-11eb-8f59-1ec435fefacf.mp4
