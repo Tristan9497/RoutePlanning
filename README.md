@@ -14,3 +14,7 @@ To get the global planner to work like it is requiered here a few changes have b
 
 This work will be done during my bachelor thesis and hopefully will be improved and used by other people in the future
 
+
+As my thesis is finnished now this repository will remain largly unchanged.
+It contains two branches one for the Sourcecode and one for the full Documentation of the Thesis written in LaTeX
+
